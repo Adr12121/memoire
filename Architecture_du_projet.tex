@@ -1,0 +1,22 @@
+\chapter{Architecture du projet}
+
+\section{Étape 1 : Segmentation et géométrie des pages}
+\subsection{Détection des colonnes et cellules via YOLO}
+% Données d'entraînement, classes, métriques, exemples.
+
+\subsection{Reconstruction de la structure : interpolation \textit{Ghost Lines}}
+% Décrire le besoin (traits manquants, défauts visuels) et la logique générale.
+
+\section{Étape 2 : Moteur de transcription multi-modèles}
+\subsection{Extraction des zones de texte}
+% Comment les crops sont produits et normalisés.
+
+\subsection{Stratégie multi-hypothèses}
+% Générer plusieurs prédictions, score/confiance, sélection.
+
+\section{Étape 3 : Arbitrage par VLM}
+% Quand déclencher l’arbitrage et quel signal d’entrée/sortie.
+
+\section{Protection des données sensibles}
+% Mesures: anonymisation, stockage local, contrôle d’accès, journaux, etc.
+

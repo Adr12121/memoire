@@ -1,0 +1,19 @@
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.maf
+*.mtc*
+*.out
+*.synctex.gz
+*.toc
+*.lof
+*.loa
+
+# System & temporary files
+.vscode/
+compile_out.txt
+compilation_log.txt

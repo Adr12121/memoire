@@ -1,0 +1,64 @@
+\section{Préparation du jeu de données d'apprentissage}
+\label{sec:dataset}
+
+Pour adapter les modèles de détection et de lecture aux documents réels du cabinet GEO-SIAPP, il a été nécessaire de constituer un ensemble d'images d'apprentissage représentatif de nos archives. Cette étape détaille la numérisation des registres, l'annotation des zones utiles sous Label Studio, l'enrichissement des données et la répartition des images pour l'entraînement.
+
+
+\subsection{Acquisition : du registre au tenseur numérique}
+
+La numérisation des archives s'est faite avec le matériel du cabinet, sans conditions de laboratoire particulières. L'analyse des métadonnées PDF générées révèle l'utilisation d'un multifonction \textbf{TOSHIBA e-STUDIO3015AC}.
+
+Ce point est important : les scans produits par ce type d'appareil présentent des caractéristiques très différentes des corpus académiques habituellement utilisés pour entraîner les modèles HTR. L'IIIT-HWS ou l'IAM Dataset reposent sur des conditions d'acquisition maîtrisées. Ici, les contraintes sont celles d'un usage bureautique quotidien.
+
+\subsubsection{Caractéristiques des images produites}
+
+Les documents originaux sont des registres reliés ou des chemises au format A3 ($42 \times 29{,}7$ cm). Les numérisations présentent plusieurs sources de dégradation structurelle :
+\begin{itemize}
+    \item \textbf{Résolution} : La numérisation de masse s'effectue à 300 DPI, parfois 200 DPI pour limiter la taille des fichiers. Cette compression entraîne une perte de définition sur les micro-détails (empattements, points de ponctuation, petits chiffres).
+    \item \textbf{Vieillissement chimique} : Le jaunissement du papier (oxydation de la lignine) et l'estompage des encres ferrogalliques réduisent le contraste local, ce qui trompe les algorithmes de binarisation par seuillage global.
+    \item \textbf{Déformations géométriques} : Le passage dans le chargeur automatique du scanner introduit des micro-rotations aléatoires (\textit{skew}) et des distorsions trapézoïdales selon la rigidité du document.
+\end{itemize}
+
+D'un point de vue matriciel, chaque page scannée est un tenseur tridimensionnel (RVB) de l'ordre de $3500 \times 2400 \times 3$ valeurs. Pour être injecté dans YOLOv8 ou dans un ViT, ce tenseur doit être redimensionné à $640 \times 640$ ou $1024 \times 1024$ pixels, ce qui écrase encore davantage les détails de l'écriture. C'est précisément cette perte à la réduction qui a motivé l'étape de segmentation préalable : plutôt que de passer la page entière au lecteur, on lui envoie la zone d'intérêt découpée, à meilleure résolution relative.
+
+\subsection{Annotation manuelle}
+
+Pour entraîner YOLO à détecter les zones d'intérêt (cartouches, colonnes de tableau, titres de dossier), un travail d'annotation manuelle a été nécessaire. Il a été réalisé via l'interface web \textit{Label Studio}.
+
+\subsubsection{Définition des classes}
+
+Les étiquettes ont été limitées au strict nécessaire opérationnel, en évitant les chevauchements sémantiques qui génèrent de l'ambiguïté lors de l'entraînement :
+\begin{enumerate}
+    \item \texttt{cartouche} : Zone regroupant les métadonnées officielles (commune, section, géomètre).
+    \item \texttt{tableau\_coordonnees} : Grille structurée contenant les coordonnées topographiques.
+    \item \texttt{titre\_dossier} : Numérotation interne du dossier d'arpentage.
+    \item \texttt{tampon} : Sceau officiel, souvent source de bruit pour la lecture.
+\end{enumerate}
+
+L'annotation a imposé une règle de tolérance zéro sur le recadrage des boîtes (\textit{tight bounding}) : inclure du bruit visuel périphérique dans la boîte englobante détériore le ratio d'aspect que le réseau apprend, ce qui se traduit par une pénalité directe dans la fonction de perte CIoU.
+
+\subsection{Augmentation synthétique}
+
+Le sur-apprentissage (\textit{overfitting}) est le risque principal sur un corpus de taille limitée. Si le modèle est entraîné uniquement sur les scans du fonds Dupuy, il mémorise la typographie précise de la machine à écrire utilisée et échoue sur les registres manuscrits du fonds Harrois.
+
+Pour forcer le réseau à abstraire les caractéristiques géométriques des structures - et non leurs propriétés d'encre ou de contraste particulières - un pipeline d'augmentation aléatoire a été appliqué à chaque époque d'entraînement via la bibliothèque \texttt{Albumentations} :
+
+\begin{itemize}
+    \item \textbf{Rotations affines ($\pm 5^\circ$)} : Simule l'insertion imparfaite de la feuille dans le scanner.
+    \item \textbf{Flou gaussien et motion blur} : Reproduit la perte de mise au point optique et l'écrasement DPI.
+    \item \textbf{Jitter colorimétrique} : Variations stochastiques de luminosité et de contraste pour simuler des numérisations mal paramétrées ou du papier très jauni.
+    \item \textbf{Bruit impulsionnel et occlusion partielle} : Suppression aléatoire de zones de pixels pour apprendre au réseau à reconstituer l'information malgré des ratures ou des taches d'encre.
+\end{itemize}
+
+Grâce à cette stratégie, un corpus initialement modeste (quelques centaines d'images annotées) expose le modèle à une variété suffisante de conditions pour généraliser correctement sur des fonds documentaires hétérogènes.
+
+\subsection{Partitionnement Train / Validation / Test}
+
+Pour évaluer les performances du modèle de façon rigoureuse et sans biais de confirmation, le jeu de données a été scindé selon un ratio classique :
+\begin{itemize}
+    \item \textbf{Entraînement (70\%)} : Utilisé pour la rétropropagation du gradient et l'ajustement des poids à chaque époque.
+    \item \textbf{Validation (15\%)} : Évalué en fin d'époque pour calculer la perte de généralisation et déclencher l'arrêt anticipé (\textit{Early Stopping}) si les performances stagnent ou régressent.
+    \item \textbf{Test (15\%)} : Ensemble aveugle, présenté au modèle une seule fois à la toute fin, pour produire les métriques finales publiées dans le chapitre de résultats.
+\end{itemize}
+
+Ce protocole garantit que les chiffres de performance reportés reflètent le comportement du modèle sur des données qu'il n'a jamais vues - seule mesure valable pour prévoir le comportement en production sur les archives restantes du cabinet.

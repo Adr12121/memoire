@@ -1,0 +1,79 @@
+% !TeX root = main.tex
+
+\section{Limites du projet et perspectives d'évolution}
+\label{sec:limites_perspectives}
+
+Ce chapitre dresse le bilan du projet. Il présente les contraintes rencontrées sur les archives papier, les choix de sécurité et de sobriété numérique, l'impact sur le travail au cabinet, puis les perspectives d'amélioration envisagées.
+
+\subsection{Limites liées aux documents papier}
+
+
+L'automatisation du traitement se heurte à plusieurs difficultés liées à l'état et à la diversité des archives papier. Les documents s'étalent sur plusieurs dizaines d'années et présentent un état de conservation très variable. L'humidité, le papier pâli, les plis et la transparence des calques dégradent la lisibilité des caractères. Sur les formulaires anciens, les tampons administratifs et les signatures recouvrent parfois le texte imprimé, créant des bruits de lecture qui perturbent les modèles d'analyse visuelle. De plus, les variations de luminosité ou d'inclinaison lors de la numérisation peuvent provoquer des erreurs de lecture si la résolution du scan est inférieure au seuil recommandé.
+
+% A RELIRE
+Deux limites importantes doivent être soulignées sur ce projet. Tout d'abord, la détection automatique fonctionne très mal sur le répertoire du Géomètre B. Comme présenté lors du développement de l'interface d'extraction au chapitre~\ref{sec:fiabilisation}, le registre du Géomètre B est un livret entièrement manuscrit sans séparateur physique imprimé, contrairement au Géomètre A. Les écritures penchées, les ratures et le chevauchement des lignes entre les cases entraînent un taux d'échec élevé. La lecture automatique échoue souvent sur ce fonds et demande une correction manuelle presque complète de la part de l'opérateur. Ensuite, la solution actuelle ne couvre pas l'ensemble des archives du cabinet. Seuls environ deux tiers des dossiers sont pris en compte, le tiers restant correspondant à des registres d'anciens géomètres non encore numérisés, à des boîtes conservées dans les agences secondaires ou à des pièces de travail internes.
+% >>>>>>>>>>>>>>>>>>>
+
+D'autres difficultés apparaissent lors de la lecture des pièces. Les notes ajoutées au crayon par les géomètres manquent parfois de contraste lors du balayage optique. Sur les documents DMPC des années 1970 à 1990, des tampons de réception du cadastre placés près des cases ajoutent des chiffres parasites qui exigent une vérification. De plus, sur les formulaires où l'encre est effacée, l'OCR peut confondre des chiffres proches comme le 3 et le 8. 
+
+Enfin, pour les dossiers très anciens créés avant les remembrements ou issus du cadastre napoléonien, les numéros de parcelles n'existent plus dans le cadastre actuel. Bien que le module de filiation parcellaire retrouve l'historique dans la plupart des cas récents, l'absence de table de concordance dans certaines communes rurales interrompt la recherche automatique. L'opérateur doit alors consulter les cartes anciennes pour placer le repère à la main sur le fond de carte.
+
+\subsection{Choix d'architecture, sobriété et sécurité}
+
+Plusieurs modèles d'intelligence artificielle ont été comparés lors du développement pour mesurer leur efficacité sur les archives foncières, comme analysé dans l'état de l'art (chapitre~\ref{sec:etat_art}). Le Tableau~\ref{tab:comparatif_architectures} résume les observations principales.
+
+\begin{table}[H]
+  \centering
+  \caption{Synthèse comparative des architectures d'IA testées sur les archives.}
+  \label{tab:comparatif_architectures}
+  \small
+  \begin{tabular}{p{3.2cm}p{3cm}p{3cm}p{3cm}}
+    \toprule
+    \textbf{Architecture} & \textbf{Tâche visée} & \textbf{Avantages} & \textbf{Limites} \\
+    \midrule
+    OCR classique (EasyOCR) & Textes imprimés & Traitement très rapide sur processeur simple & Échec sur manuscrits et formulaires dégradés \\
+    \addlinespace
+    LayoutLMv3 & Documents à mise en page fixe & Bonne prise en compte de la structure du document & Exige un réentraînement lourd sur données annotées \\
+    \addlinespace
+    GLiNER & Extraction d'entités dans le texte & Aucune étape d'entraînement préalable & Dépend directement de la qualité du texte OCR \\
+    \addlinespace
+    VLM local (MiniCPM-V) & Registres manuscrits & Bonne lecture du contexte et de l'écriture cursive & Traitement plus lent sur processeur standard \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Ces essais montrent qu'aucun modèle ne répond seul à l'ensemble des besoins du cabinet. L'OCR classique est très rapide sur le texte imprimé mais échoue sur les manuscrits, tandis que les modèles de mise en page comme LayoutLMv3 demandent un réentraînement lourd et fastidieux sur données annotées. L'association du modèle YOLOv8 pour repérer les zones, d'EasyOCR pour le texte imprimé et du modèle VLM MiniCPM-V pour le manuscrit offre le meilleur équilibre entre précision, souplesse et autonomie locale (chapitre~\ref{sec:architecture}).
+
+Pour respecter le secret professionnel et protéger les données personnelles des propriétaires, tous les traitements s'exécutent localement sur les serveurs du cabinet. Aucun document ni aucune information foncière n'est envoyé vers des serveurs cloud distants. Le géomètre-expert conserve ainsi la responsabilité et le contrôle de toutes les données validées avant leur publication sur le portail Géofoncier, conformément aux règles déontologiques prévues par la réglementation de la profession, exposées au chapitre~\ref{sec:analyse_metier}.
+
+Ce fonctionnement local permet aussi de maîtriser les coûts informatiques et la consommation d'énergie. Pour exécuter le modèle VLM sans surcharger les cartes graphiques du cabinet, les poids du modèle ont été quantifiés au format 4 bits via Ollama. Cette opération réduit la mémoire vidéo nécessaire de 14 Go à moins de 4 Go tout en conservant une bonne qualité de lecture. Le traitement par lot exécuté durant la nuit permet de lisser la charge de calcul sans ralentir les ordinateurs pendant les heures de bureau. De plus, les données consolidées sont conservées dans des formats ouverts (JSON, CSV, PDF/A) et sauvegardées chaque jour sur un serveur interne sécurisé.
+
+\subsection{Impact sur le cabinet et retours d'expérience}
+
+L'utilisation de la solution modifie en profondeur le travail quotidien au cabinet. La recherche d'un dossier ancien ne nécessite plus de compulser physiquement des répertoires papier ou de chercher dans les boîtes d'archives pendant 10 à 30 minutes. Les géomètres et techniciens retrouvent les affaires en quelques secondes par nom, commune, année ou carte interactive, ce qui permet de répondre plus rapidement aux clients et aux notaires lors des demandes d'antériorités.
+
+Les retours des utilisateurs lors des essais montrent une bonne appropriation de l'interface Streamlit (chapitre~\ref{sec:fiabilisation}). La présentation en deux colonnes avec l'image scannée d'un côté et le formulaire de saisie de l'autre simplifie la relecture. La possibilité de zoomer sur les zones découpées réduit la fatigue visuelle par rapport à une saisie manuelle complète sur des documents papier jaunis ou effacés.
+
+Sur un lot de test de 33 documents évalué avec l'équipe du cabinet, 27 dossiers ont été pré-remplis automatiquement sans besoin de correction (soit 82\,\%), 5 dossiers ont demandé la retouche d'un seul champ (généralement la date ou le numéro de dossier), et 1 seul document très dégradé a dû être ressaisi en entier. Le temps moyen de validation par dossier tombe ainsi à 2 minutes et 40 secondes, ce qui réduit par 6 le temps d'intervention humaine tout en assurant un contrôle systématique des pièces avant versement (chapitre~\ref{sec:integration}).
+
+La numérisation et l'indexation des pièces assurent également la conservation à long terme des originaux contre les risques de dégradation physique, d'incendie ou de dégât des eaux, répondant ainsi aux exigences de conservation de la profession.
+
+\subsection{Perspectives d'évolution et déploiement}
+
+Concernant la publication sur Géofoncier, seule une toute petite partie des dossiers d'archives a été versée sur la plateforme par manque de temps pendant le projet. L'outil est aujourd'hui opérationnel, et c'est aux opérateurs du cabinet de verser le reste des archives au fur et à mesure.
+
+Plusieurs améliorations sont envisageables pour poursuivre le développement de l'outil et augmenter le taux d'automatisation. Les corrections apportées chaque jour par les utilisateurs dans l'interface pourront alimenter un module d'apprentissage actif pour réentraîner périodiquement le modèle YOLOv8 et le moteur de lecture manuscrite. Cette boucle d'amélioration continue permettra d'adapter progressivement les modèles aux écritures spécifiques des anciens géomètres du cabinet, prolongeant ainsi les travaux d'annotation décrits au chapitre~\ref{sec:architecture}.
+
+Une connexion automatique avec les services web géographiques de la DGFiP permettra également de mieux suivre l'historique des parcelles supprimées et de calculer le centroïde du périmètre sans recherche manuelle, en s'appuyant sur la filiation parcellaire présentée au chapitre~\ref{sec:analyse_metier}. L'intégration d'un plugin d'extension pour le logiciel SIG QGIS facilitera aussi l'accès aux archives directement depuis l'outil de traitement cartographique quotidien des techniciens.
+
+En outre, la mise en place d'un système d'alerte automatique lors de la détection de doublons géographiques évitera les re-titrages inutiles. Ce contrôle s'inscrira en amont du versement sur le portail Géofoncier (chapitre~\ref{sec:integration}).
+
+Pour renforcer la démarche de sobriété numérique, une compression adaptative des images scannées pourra être mise en place lors de l'archivage définitif, afin de réduire l'empreinte de stockage sur les serveurs locaux sans altérer la valeur légale des pièces numérisées.
+
+Enfin, l'architecture modulaire développée permet d'étendre la solution à d'autres fonds d'archives. En cas de rachat d'un cabinet confrère ou d'ajout de nouveaux répertoires, il suffit de régler les zones de découpage dans les fichiers de configuration et de charger la liste des communes concernées. La démarche générale, la structure des bases de données et les règles de validation restent les mêmes pour toutes les archives foncières.
+
+
+
+
+
+

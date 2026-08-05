@@ -1,0 +1,128 @@
+% !TeX root = main.tex
+
+\documentclass[a4paper,11pt,twoside]{report}
+
+% Packages utiles
+\usepackage[utf8]{inputenc}
+\usepackage[Rejne]{fncychap} %Pour le style d'affichage des titres de chapitre
+\usepackage[T1]{fontenc} % Encodage des fontes de caractères
+\usepackage[french]{babel} % Utilisation des règles typographiques françaises
+\usepackage[cyr]{aeguill} % Pour les guillemets et autres caractères
+\usepackage[bitstream-charter]{mathdesign} % Police vectorielle charter
+\usepackage{mathtools}
+\usepackage{graphicx} % Insérer des images
+\usepackage{parskip} % Sauter des lignes entre paragraphes
+\usepackage{verbatim} % Intégration de code en type "Typewriter"
+\usepackage{hyperref} % Liens hypertextes
+\usepackage{emptypage} % Suppression du numéro de page, de l'entête et du pied de page pour les pages vides
+\usepackage{fancyhdr} % Pour personnaliser l'entête et le pied de page
+\usepackage{float}
+\usepackage{url}
+\usepackage{changepage}
+\usepackage{lastpage}
+\usepackage[justification=centering]{caption} % Pour centrer la légende des images
+\usepackage{minitoc}
+
+% Algo
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{import}
+\usepackage{etoolbox}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage[caption=false]{subfig}
+
+\graphicspath{{assets/}}
+
+% Liste des algorithmes
+\let\mylistof\listof
+\renewcommand\listof[2]{\mylistof{algorithm}{Liste des algorithmes}}
+% pour palier au problème de niveau des algos
+\makeatletter
+\providecommand*{\toclevel@algorithm}{0}
+\makeatother
+
+% Options de mise en page
+\usepackage[tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2.5cm]{geometry} % Marges et format
+
+% Métadonnées
+\author{Travaillé Adrien}
+\title{Projet de recherche technologique}
+\date{\today}
+
+% Définition de l'entête et du pied de page
+\renewcommand{\headrulewidth}{1pt}
+\renewcommand{\footrulewidth}{1pt}
+\setlength{\headheight}{14pt}
+
+% Nouvelle commande pour les tableaux
+\newcolumntype{C}[1]{>{\centering\arraybackslash}m{#1}} %Utiliser C dans la définition des colonnes
+
+% Largeur des traits de séparation dans les tableaux
+\setlength{\arrayrulewidth}{0.5mm}
+
+\begin{document}
+
+\title{Projet de Fin d'Études \\[0.5cm] Développement d'un outil permettant le traitement et l'insertion des archives numériques sur Geofoncier au sein d'un cabinet de Géomètre-Expert}
+\pagenumbering{gobble} %Ne pas numéroter la page de garde et de sommaire
+\include{Page_de_garde}
+
+%------------------- Sommaire -------------------------------- %
+\tableofcontents
+\newpage
+
+\include{Remerciements.tex}
+\newpage
+
+%%%%%%%%%%%%%%%%% Début de la numérotation des pages %%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pagestyle{fancy}
+\fancyhf{} % clear all fields
+\fancyhead[R]{\rightmark}
+\renewcommand{\sectionmark}[1]{%
+\markright{\MakeUppercase{\thesection.\ #1}}}%
+%\lhead{\leftmark}
+%\lhead{}
+\cfoot{\bfseries Page \thepage{} / \pageref{LastPage}}
+\makeatletter
+\let\ps@plain=\ps@fancy
+\makeatother
+
+%------------------- Inclusion des chapitres ----------------- %
+
+\pagenumbering{arabic} % Commencer ici la numérotation
+\setcounter{page}{1} % Forçage du compteur de page à 1
+\include{Introduction}
+
+\include{Analyse_metier_donnees}
+\include{Etat_de_lart}
+\include{Architecture_du_projet}
+\include{Fiabilisation_post_traitement}
+\include{Integration_geofoncier_resultats}
+
+\include{Conclusion_perspectives}
+
+%------------------- Liste des figures et des tableaux ----------------------- %
+\listoffigures
+\thispagestyle{empty}
+\listoftables
+\thispagestyle{empty}
+\listofalgorithms
+\thispagestyle{empty}
+
+%------------------- Bibliographie --------------------------- %
+\newbool{firstbib}
+\booltrue{firstbib}
+\preto{\bibitem}{\ifbool{firstbib}{\thispagestyle{empty}\setbool{firstbib}{false}}{}}
+
+% Configuration du style (BibTeX standard)
+\bibliographystyle{apalike}
+
+% Affiche toutes les références même celles non citées dans le texte
+%\nocite{*}
+
+% Affiche la bibliographie ici et indique le fichier .bib source
+\bibliography{ref_prt}
+
+\end{document}
+

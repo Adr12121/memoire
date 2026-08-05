@@ -1,0 +1,271 @@
+ 
+ 
+ 
+ 
+PFE 2026 
+Adrien TRAVAILLÉ 1/4 
+ 
+La forme et le contenu des résumés sont de la responsabilité de l’étudiant·e qui en est l’auteur 
+ 
+Développement d'un outil permettant le traitement et l'insertion 
+des archives numériques sur Geofoncier au sein d'un cabinet de    
+Géomètre-Expert 
+ 
+PFE présenté par : 
+ 
+TRAVAILLÉ Adrien 
+Société d’accueil : 
+ 
+GEO-SIAPP 
+Directeur de PFE :  
+ 
+HAGUE Gaëtan 
+Correcteur :  
+ 
+ 
+KOEHL Mathieu  
+Encadrant :  
+ 
+ 
+HAGUE Gaëtan 
+ 
+ 
+1. Contexte et objectifs de l’étude 
+ 
+La profession de géomètre-expert est soumise, depuis le décret n°96-478 du 31 mai 1996, à une 
+obligation de conservation et de mise à jour des archives topographiques fixant les limites des 
+propriétés foncières. Ces documents tels que des procès-verbaux de bornage, plans de division, 
+documents d'arpentage, constituent une mémoire pour toute nouvelle mission foncière, devant être 
+consultée et prise en compte avant tout autre modification du parcellaire cadastral. Avant d'intervenir, 
+chaque opérateur a l’obligation de consulter Géofoncier, le portail national de l'Ordre des Géomètres-
+Experts (OGE), afin de vérifier si une ou plusieurs opérations foncières antérieures concernent les 
+parcelles du dossier en cours. 
+Or, si les documents récents sont aujourd'hui versés sur ce portail, la très grande majorité des 
+archives historiques des cabinets n'y figure pas. Le cabinet GEO-SIAPP, basé en Ardèche, dispose 
+d'un fonds estimé à plusieurs milliers de documents couvrant la période 1959–2007 (année 
+approximative de la numérisation). Ces archives sont extrêmement hétérogènes : plans modernes 
+numérisés, registres manuscrits anciens, livrets de plusieurs géomètres-experts. Plus de 20 000 
+dossiers sont concernés, de tous types, où seuls ceux modifiant le parcellaire cadastral sont d’une 
+utilité pour l’entreprise. Aucune de ces pièces n'est indexée, ni géoréférencée sur Géofoncier. La 
+recherche manuelle dans ce fonds est longue, non facturée, et source d'erreurs de saisie. 
+Ce projet vise ainsi à concevoir un outil automatisé capable de lire ces archives brutes, d'en extraire 
+les données importantes (localisation, date, numéro de dossier, géomètre responsable...) pour pouvoir 
+retrouver ces dossiers dans les livrets d’époque et pour finalement automatiser leur versement sur 
+Géofoncier.  
+ 
+ 
+2. État de l'art et limites des approches classiques : Le choix de 
+l'intelligence artificielle 
+ 
+L'extraction classique de texte, basée sur la lecture directe comme des OCR (Optical Character 
+Recognition) ou l'utilisation d'expressions régulières sur des informations fixes, paraissent être une 
+solution idéale. Toutefois, elle est insuffisante pour traiter ce type d'archives. Cette méthode ne 
+fonctionne que sur des documents récents, présentant déjà une existence numérique et sans 
+dégradation. Lorsqu’un plan présente une partie manuscrite, une écriture altérée ou une qualité de 
+numérisation détériorée, les résultats classiques sont inutilisables. Ces défauts sont présents sur la 
+majorité des documents de l’étude. 
+Face à ces limites, l’intelligence artificielle (IA) s’impose comme l’alternative la plus robuste pour 
+l'analyse de ces documents. Des outils automatisés sont déjà exploités dans le domaine juridique 
+(Ross, Predictice…) et par les notaires (Intellig'IA) [Barthe, 2017]. 
+ Dans le domaine de la topographie, l'apprentissage profond fait également l'objet de recherches 
+pour l'analyse de nuages de points 3D et la structuration de données spatiales [Poux, 2020]. Ces 
+
+ 
+ 
+ 
+ 
+PFE 2026 
+Adrien TRAVAILLÉ 2/4 
+ 
+La forme et le contenu des résumés sont de la responsabilité de l’étudiant·e qui en est l’auteur 
+applications justifient l'étude de ces algorithmes pour le traitement automatisé des archives foncières.
+ 
+ 
+L'évolution des réseaux de neurones convolutifs (CNN) [LeCun et al., 2015] permet en effet un 
+traitement direct des documents en suivant une logique de reconnaissance visuelle (position précise 
+et motif défini) plutôt que textuelle. Dans ce projet, le choix s'est porté sur le modèle de détection 
+d'objets YOLO (You Only Look Once). Au lieu de rechercher des chaînes de caractères instables, ce 
+modèle identifie les coordonnées spatiales des éléments clés sur la page (cartouches, tableaux de 
+données, signatures), indépendamment de la qualité de la numérisation.  
+ 
+Le traitement des archives foncières est soumis à des exigences strictes en matière de confidentialité. 
+Ces documents contiennent des données à caractère personnel (noms de propriétaires, adresses, 
+historiques de parcelles) sujettes au secret professionnel, tel que défini par le Code des devoirs 
+professionnels de l'Ordre des Géomètres-Experts. Afin de respecter cette norme déontologique et de 
+garantir la conformité au Règlement Général sur la Protection des Données (RGPD), l'outil développé 
+repose sur une exécution intégralement locale. L'ensemble des modèles d'intelligence artificielle 
+fonctionne directement sur le matériel informatique du cabinet. Aucun transfert n'est effectué vers des 
+serveurs externes où l'information risquerait d'être rendue publique. Cette question de protection des 
+données sensibles a influencé la chaîne de traitement, de l'extraction locale jusqu'à la validation par 
+l’opérateur et au versement final sécurisé sur l'API Géofoncier. 
+ 
+3. Méthodologie mise en place 
+ 
+Le traitement de documents aussi variés par une solution unique est une problématique reconnue 
+[AlKendi et al., 2024]. Pour répondre à cette contrainte, l'outil développé repose sur une architecture 
+en plusieurs modules de codes, l’ensemble étant dans ce cas produit dans le langage de 
+programmation Python. La chaîne de traitement couvre l'ensemble des opérations, depuis la réception 
+du fichier numérisé jusqu'à sa publication sur Géofoncier. L’arborescence est présentée ci-dessous 
+(Fig. 1). 
+ 
+Fig. 1 : Organigramme des solutions retenues 
+ 
+3.1 Prétraitement et classification 
+Étant donné la diversité des archives, cette classification permet d'orienter chaque fichier vers le bon 
+sous-système de lecture. L'algorithme de tri (plan_classifier.py) analyse la géométrie du document 
+pour déterminer son format. Ce premier routage sépare les plans modernes (documents d'arpentage, 
+DMPC actuels) des plans historiques, orientant chaque archive vers le module le plus pertinent. 
+ 
+ 
+
+ 
+ 
+ 
+ 
+PFE 2026 
+Adrien TRAVAILLÉ 3/4 
+ 
+La forme et le contenu des résumés sont de la responsabilité de l’étudiant·e qui en est l’auteur 
+3.2 Détection spatiale par intelligence artificielle (YOLOv8) 
+Une fois le document classifié, l'extraction de l'information s'opère par une approche visuelle du 
+document. Plutôt que de chercher du texte à l'aveugle, le système emploie le réseau de neurones 
+convolutifs YOLOv8 [Jocher et al., 2023] (via spatial_extractor.py) pour localiser et découper les zones 
+d'intérêt (cartouches, tableaux de filiation, signatures). Ce dernier est robuste face à la dégradation 
+des scans. L'IA intervient ici pour analyser la structure visuelle du document et isoler les blocs, sans 
+nécessiter de lourdes ressources de calcul. Ce modèle est notamment utile pour détecter le numéro 
+d’ordre du document d’arpentage, ou encore la case dédiée au géomètre effectuant la mission.  
+ 
+3.3 Outil OCR et modèles d'IA locaux 
+Après le découpage, le système (semantic_ocr_engine.py) procède à l'extraction textuelle par un 
+procédé en deux étapes.  
+ 
+Face 
+aux 
+archives 
+regroupant 
+textes 
+imprimés 
+et 
+manuscrits, une approche hybride est nécessaire. Pour les 
+textes imprimés, un moteur de reconnaissance optique 
+classique est privilégié (Tesseract).  
+ 
+En revanche pour le texte manuscrit, l'outil s'appuie sur des 
+modèles spécialisés (TrOCR, PyLaia) pour déchiffrer 
+l'écriture [Tarride et al., 2024]. Dans un second temps, un 
+outil de raisonnement (VLM/LLM locaux via le moteur 
+Ollama, tels que LLaVA ou Llama 3) intervient. S'aidant du 
+contexte global du document, cette IA agit comme un 
+arbitre pour corriger les erreurs de l'OCR et déduire les 
+informations complexes ou partiellement illisibles. Cette 
+méthode en deux étapes rend la transcription finale 
+beaucoup plus fiable.       
+     
+ 
+ 
+ 
+     Fig. 2 : Zones de détection (DMPC) 
+   
+   
+ 
+ 
+ 
+3.4 Cohérence des informations versées  
+L'extraction par IA nécessite un contrôle à chaque étape (pour éviter les hallucinations), une double 
+vérification est opérée (coherence_checker.py). D'abord, une seconde intelligence artificielle (LLM 
+Ollama) vérifie si les données lues sont plausibles et logiques entre elles. Concrètement, cette IA agit 
+comme un relecteur capable de détecter des aberrations, comme une date impossible ou une échelle 
+illogique pour un plan cadastral. Ensuite, le système croise ces données avec des bases de données 
+de référence : validation des communes via le répertoire de l'INSEE et authentification des géomètres 
+via l'annuaire de l'OGE. À l'issue de ces vérifications, l'outil effectue un bilan et calcule un score de 
+confiance. Ce score classe automatiquement le dossier sous un statut visuel clair (CONFORME, 
+ALERTE ou REJET), indiquant ainsi aux opérateurs les documents les moins bien détectés. 
+ 
+ 
+3.5 Validation humaine  
+Puisque le traitement de données cadastrales engage la responsabilité juridique du cabinet, l'outil est 
+conçu comme une assistance : l'opérateur humain conserve le contrôle absolu sur la validation. l'IA 
+n'agit que comme un assistant, un contrôle final étant nécessaire pour chaque dossier. Les dossiers 
+sont présentés à l'opérateur au travers d'une application web locale et interactive. Le géomètre peut y 
+inspecter le document d'origine face aux champs extraits (colorés selon leur taux de confiance), puis 
+valider ou corriger les erreurs. Le système est également muni d’un auto-apprentissage pour 
+améliorer les modèles sur ces corrections. Pour prévenir tout risque de surapprentissage, lié à 
+l'intégration continue de ces nouvelles données, le système ne se réentraîne pas en temps réel. Les 
+corrections sont stockées et réinjectées par groupes au sein de l’entraînement global, ce qui permet 
+que le modèle améliore sa précision sur les cas difficiles sans perdre sa capacité de généralisation 
+globale [Goodfellow et al., 2016]. 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+PFE 2026 
+Adrien TRAVAILLÉ 4/4 
+ 
+La forme et le contenu des résumés sont de la responsabilité de l’étudiant·e qui en est l’auteur 
+3.6 Export et intégration Géofoncier 
+Dès validation par l'opérateur, le dossier est formaté (JSON) pour se conformer aux spécifications 
+(Swagger) de l’API Géofoncier. Pour pouvoir verser un dossier sur le portail, le système compile les 
+informations obligatoires : le code INSEE de la commune, les coordonnées de géolocalisation (X,Y), 
+les références cadastrales (section, parcelles), l'identifiant du cabinet, ainsi que le code d'opération 
+normé définissant le type de mission (ex: code Ec pour une division). L'interconnexion s'effectue 
+ensuite via un « Token » d'authentification sécurisé, autorisant le versement automatique de ces 
+données et du document original, et fourni à chaque géomètre-expert inscrit à l’ordre et possédant 
+l’accès à Géofoncier. Toutes ces informations sont obligatoires et doivent être renseignées. 
+. 
+      4. Résultats et limites de l’étude 
+ 
+L’outil a démontré sa viabilité lors des tests menés sur les archives du cabinet. La chaîne de 
+traitement automatisée permet de réduire le temps d'analyse par document, passant de plusieurs 
+dizaines de minutes de recherche et de saisie manuelle à un traitement de l'ordre de quelques 
+minutes. Les résultats de la classification et de l'extraction montrent que le système identifie 
+correctement les données clés (numéros de référence, communes, géomètres, parcelles). La 
+connexion avec l'API Géofoncier a également été validée, l’outil pouvant verser des dossiers 
+géolocalisés conformes aux standards de l'Ordre. 
+ 
+Cependant, cette solution se heurte à une limite évidente : tous les documents du cabinet n'ont pas 
+encore été numérisés. L'outil est conçu pour lire les plans et chercher les numéros de dossiers 
+correspondants dans les registres d'époque. Mais comme une grande partie de ces vieux livrets 
+n'existe encore qu'au format physique, l'intelligence artificielle est logiquement incapable d'y accéder 
+pour faire le lien, étant conçu pour lire des plans et entrainé sur ceux-ci. Par ailleurs, les performances 
+actuelles du modèle sont soumises à une limite de généralisation. Dans le cadre de ce projet, 
+l'entraînement et l'affinage des modèles (notamment pour la reconnaissance de l'écriture manuscrite) 
+se sont concentrés sur un échantillon restreint. L'outil fonctionne sur une partie ciblée des archives, 
+correspondant au style graphique et à la nomenclature de géomètres historiques. Pour étendre cette 
+automatisation à l'intégralité des presque 20 000 dossiers, un important travail de numérisation et de 
+lecture de registres est nécessaire. À ce titre, l'important volume d'archives numérisées en interne 
+depuis 5 à 10 ans (et non versées sur Géofoncier) constituera un premier test idéal. Il est également 
+nécessaire d'enrichir la base d'apprentissage. L'opérateur devra corriger manuellement les premiers 
+documents des autres fonds afin que le système s'habitue à l’ensemble des possibilités.  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+5. Conclusion 
+ 
+Ce projet démontre la faisabilité d'une automatisation du traitement des archives foncières historiques 
+au sein d'un cabinet de géomètre-expert. En combinant détection d'objets (YOLOv8), extraction, 
+reconnaissance de l'écriture manuscrite (TrOCR, PyLaia) et modèles Vision-Langage, le projet 
+développé réduit le temps de saisie tout en maintenant le contrôle humain indispensable à la qualité 
+de la donnée foncière. L'intégration directe à l'API Géofoncier, couplée au moteur de filiation 
+cadastrale, ouvre la voie à une alimentation massive et automatisée du portail national, au bénéfice 
+de l'ensemble de la profession. 
+ 
+6. Bibliographie 
+ 
+AlKendi, W., Gechter, F., Heyberger, L. et al. (2024) 'Advancements and Challenges in Handwritten Text Recognition', Journal 
+of Imaging, 10(1), p. 18. 
+Barthe, C. (2017) 'L'intelligence artificielle au service du droit et du notariat', JCP Notariale et Immobilière, (12), pp. 14-18. 
+Goodfellow, I., Bengio, Y. et Courville, A. (2016) Deep Learning. MIT Press. 
+Jocher, G., Chaurasia, A. et Qiu, J. (2023) Ultralytics YOLOv8. Disponible sur : https://github.com/ultralytics/ultralytics 
+LeCun, Y., Bengio, Y. et Hinton, G. (2015) 'Deep Learning', Nature, 521, pp. 436-444. 
+Poux, F. (2020) Smart Point Cloud : organisation et sémantisation de données 3D par apprentissage profond. Thèse de 
+doctorat, Université de Liège. 
+Tarride, S., Schneider, Y., Generali-Lince, M. et al. (2024) 'Improving Automatic Text Recognition with Language Models in the 
+PyLaia Open-Source Library', arXiv preprint arXiv:2404.18722 

@@ -1,0 +1,52 @@
+% !TeX root = main.tex
+
+\section{Conclusion et perspectives}
+\label{sec:conclusion}
+
+\subsection{Bilan du projet}
+
+\subsection{Bilan d'ingénierie et de recherche}
+
+Ce mémoire de Projet de Fin d'Études avait pour ambition de concevoir un système automatisé capable d'ingérer l'intégralité du passif documentaire d'un cabinet de géomètre-expert pour l'indexer sur le portail national Géofoncier. La contrainte nodale du projet résidait dans l'interdiction stricte de recourir à l'informatique en nuage (Cloud), imposée par le RGPD et le secret professionnel inaliénable de la profession.
+
+La solution développée relève ce défi par une architecture logicielle modulaire en cascade, privilégiant l'optimisation mathématique à la force brute. Plutôt qu'un réseau de neurones monolithique, le système déploie un pipeline hybride :
+\begin{itemize}
+  \item \textbf{Heuristique déterministe} pour le routage instantané des documents.
+  \item \textbf{Vision par ordinateur (YOLOv8)} pour la régression spatiale (CIoU) des boîtes englobantes, esquivant le bruit visuel des archives.
+  \item \textbf{Prétraitements mathématiques} (Otsu, Hough) pour redresser le signal physique avant lecture.
+  \item \textbf{Reconnaissance de texte (TrOCR / PyLaia)} utilisant le mécanisme d'attention des \textit{Transformers} et la perte CTC pour lisser l'entropie de l'écriture manuscrite.
+  \item \textbf{Extraction sémantique (GLiNER)} par projection vectorielle dans un espace latent bi-encodeur, permettant un NER \textit{zero-shot} résilient aux fautes d'orthographe.
+  \item \textbf{Fiabilisation algorithmique} par calcul matriciel de la distance de Levenshtein, couplée à un VLM déployé localement via Ollama pour arbitrer les cas insolubles par inférence logique stricte.
+\end{itemize}
+
+Les résultats quantitatifs valident cette approche hybride. L'extraction atteint la perfection sur les plans vectoriels modernes. Sur les registres manuscrits, intrinsèquement dégradés, le système extrait l'information vitale (la commune) avec un F1-Score approchant $0{,}70$. Couplé à l'interface de validation Streamlit, le système divise par $7{,}5$ le temps de traitement global des archives, transformant une tâche de secrétariat pluriannuelle en un processus de numérisation massif hautement rentable. Surtout, l'intégralité du traitement s'exécute localement sur un simple processeur (CPU) Windows, garantissant la souveraineté totale du cabinet sur ses données sensibles.
+
+\subsection{Apports personnels}
+
+Ce projet a été une occasion rare de construire une chaîne complète de traitement par intelligence artificielle, de l'analyse du besoin métier jusqu'à la connexion à une API de production. Chaque décision technique a dû tenir compte à la fois des contraintes réglementaires (RGPD, secret professionnel), des contraintes matérielles (CPU uniquement, poste Windows), et des contraintes de performance (extraire des métadonnées fiables depuis des documents très dégradés).
+
+Sur le plan technique, ce travail a permis de maîtriser un ensemble cohérent d'outils d'intelligence artificielle : la détection d'objets par YOLOv8, la reconnaissance d'écriture manuscrite par TrOCR, l'extraction d'entités par GLiNER, les modèles Vision-Langage via Ollama. La combinaison opérationnelle de ces outils dans un pipeline Python maintenable représente une compétence d'intégration logicielle concrète.
+
+Sur le plan métier, ce projet a aussi été une immersion dans les réalités du cabinet de géomètre-expert : les obligations légales liées au décret de 1996, le fonctionnement de Géofoncier, les enjeux de la filiation cadastrale, les défis quotidiens de gestion d'un fonds d'archives aussi volumineux qu'hétérogène.
+
+\subsection{Perspectives d'évolution}
+
+\subsubsection{Améliorations à court terme}
+
+\subsubsection{Amélioration de l'entraînement par consolidation élastique}
+
+L'amélioration prioritaire à court terme consiste à industrialiser la boucle d'apprentissage continu. L'interface Streamlit accumule d'ores et déjà des milliers de corrections opérateur au format JSONL. L'enjeu est désormais de lancer des sessions de réentraînement des modèles YOLO et PyLaia. Pour prévenir l'oubli catastrophique, l'implémentation de méthodes de régularisation mathématiques, telles que la consolidation élastique des poids (EWC) basée sur la matrice d'information de Fisher, garantira que le modèle apprenne les plumes complexes des anciens géomètres ardéchois sans oublier sa compréhension globale de la langue française.
+
+Par ailleurs, l'interface de validation s'enrichira d'un tableau de bord analytique. L'exploitation des journaux techniques (fichiers logs) permettra aux associés du cabinet de suivre en temps réel la volumétrie traitée, les taux de rejet par typologie d'archive, et d'ajuster le paramétrage algorithmique en conséquence.
+
+\subsubsection{Extension à d'autres cabinets}
+
+L'approche développée n'est pas spécifique à GEO-SIAPP ni à l'Ardèche. La même problématique existe dans l'ensemble des cabinets de géomètres-experts en France. L'Ordre estime que plusieurs dizaines de millions de documents sont conservés dans les fonds privés des cabinets français, dont la grande majorité n'est pas versée sur Géofoncier.
+
+L'outil, avec des adaptations mineures (extension de la base de communes à d'autres départements, enrichissement des données d'entraînement avec d'autres styles de registres), pourrait être déployé dans d'autres contextes. Une mise à disposition de l'outil via l'Ordre des géomètres-experts, ou en open-source, pourrait constituer une contribution utile à l'ensemble de la profession.
+
+\subsubsection{Vers une géolocalisation à l'échelle parcellaire}
+
+Actuellement, les coordonnées insérées dans la pastille Géofoncier correspondent au centroïde de la commune. C'est suffisant pour créer l'entrée dans le portail, mais insuffisant pour les outils de recherche géographique précise utilisés sur le terrain.
+
+Un axe d'amélioration naturel serait de croiser automatiquement les références cadastrales extraites (section, numéro de parcelle) avec les bases de données cadastrales de la DGFiP pour déterminer les coordonnées précises de l'intervention. Combiné avec la validation automatique, cela permettrait un versement entièrement géolocalisé à l'échelle parcellaire, sans intervention humaine supplémentaire pour la localisation. Ce serait l'aboutissement complet du projet : un flux de traitement continu, depuis le fichier numérisé jusqu'à la pastille précisément positionnée sur le portail national.

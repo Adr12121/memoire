@@ -1,0 +1,147 @@
+\section{Implémentation Logicielle et Résolution des Cas Limites}
+\label{sec:implementation}
+
+L'architecture conceptuelle détaillée dans les chapitres précédents a nécessité une implémentation logicielle rigoureuse. L'objectif de ce chapitre est d'exposer la traduction des modèles mathématiques et des workflows métiers en code source exécutable, en mettant l'accent sur les choix de conception logicielle (architecture logicielle, asynchronisme) et sur la gestion des \textit{edge cases} (cas limites) inhérents à l'analyse de documents historiques.
+
+\subsection{Environnement de développement et contraintes techniques}
+
+Le projet a été intégralement développé en langage \textbf{Python 3.10}, choisi pour son écosystème hégémonique dans le domaine de l'intelligence artificielle et de la \textit{Data Science} (PyTorch, Transformers, OpenCV). 
+
+Conformément à la problématique d'ingénierie soulevée (sécurité et isolation des données), le système ne s'appuie sur aucune API cloud tierce pour l'inférence. L'intégralité du code s'exécute sur une machine locale de type station de travail (\textit{Workstation}) équipée d'une carte graphique NVIDIA RTX 4070 Ti, permettant l'accélération matérielle via l'API CUDA.
+
+Cette contrainte de ressources locales a dicté une optimisation stricte de la mémoire vive (VRAM) et l'utilisation de techniques avancées de \textbf{Quantification} (\textit{Quantization}). 
+
+En intelligence artificielle, les poids d'un réseau neuronal sont historiquement stockés en nombres à virgule flottante codés sur 32 bits (\texttt{float32}). Or, le chargement en RAM d'un modèle VLM paramétré à 7 milliards de paramètres exigerait plus de 28 Go de mémoire, excédant largement les 12 Go de la RTX 4070 Ti.
+Pour résoudre ce blocage matériel, le système implémente une quantification en \texttt{int8} (entiers sur 8 bits) ou utilise le format compressé \textbf{GGUF} via le moteur d'inférence llama.cpp. Cette compression logarithmique des matrices de poids dégrade marginalement la précision mathématique du modèle (perte de perplexité inférieure à 2\%), mais divise par quatre l'empreinte mémoire, permettant au VLM d'être chargé intégralement en VRAM.
+
+Parallèlement à la quantification, le pipeline hybride repose sur une destruction active des graphes de calcul. Le modèle YOLO est chargé en VRAM uniquement pendant la phase de segmentation spatiale, puis immédiatement détruit par le \textit{Garbage Collector} de Python (\texttt{del model; torch.cuda.empty\_cache()}) pour libérer les registres mémoires avant de céder la place au VLM.
+
+\subsection{Algorithme de normalisation par Distance de Levenshtein}
+
+Au-delà de l'extraction par les réseaux de neurones, la phase de post-traitement est indispensable. Comme explicité au Chapitre 5, la réconciliation entre un toponyme extrait par l'IA et la base de données officielle de l'INSEE repose sur la distance de Levenshtein. 
+
+Plutôt que d'utiliser des algorithmes naïfs dont la complexité temporelle est en $\mathcal{O}(3^n)$, l'implémentation utilise la programmation dynamique matricielle (disponible via la bibliothèque optimisée en C++ \texttt{RapidFuzz}). Voici l'algorithme d'encapsulation développé pour le projet, qui intègre un prétraitement morphologique avant le calcul mathématique :
+
+\begin{figure}[H]
+\begin{verbatim}
+import re
+from rapidfuzz import fuzz, process
+
+def normalize_commune_name(raw_text, insee_database, threshold=85.0):
+    """
+    Normalise le texte OCR d'une commune par rapport à la BDD INSEE.
+    Applique une pénalité heuristique et retourne le top 3.
+    """
+    # 1. Prétraitement : suppression des bruits OCR et de la casse
+    clean_text = raw_text.lower().strip()
+    clean_text = re.sub(r'[^a-z\s-]', '', clean_text)
+    
+    # Règle métier : gestion des abréviations de "Saint"
+    clean_text = clean_text.replace("st ", "saint ").replace("ste ", "sainte ")
+
+    # 2. Calcul des distances de Levenshtein (ratio) 
+    # extract() retourne une liste de tuples (choix, score, index)
+    results = process.extract(
+        clean_text, 
+        insee_database['nom_commune'].tolist(),
+        scorer=fuzz.WRatio, 
+        limit=3
+    )
+    
+    # 3. Évaluation du seuil de confiance
+    best_match, best_score, _ = results[0]
+    
+    if best_score >= threshold:
+        return {"status": "VALID", "commune": best_match, "score": best_score}
+    else:
+        # En deçà du seuil, l'intervention humaine est requise
+        return {"status": "UNCERTAIN", "candidates": results}
+\end{verbatim}
+\caption{Fonction Python de normalisation toponymique intégrant un score de similarité (\texttt{WRatio}).}
+\end{figure}
+
+Cette fonction illustre parfaitement la philosophie hybride du système : l'algorithme fait le maximum pour résoudre le problème automatiquement, mais accepte de déléguer à l'humain (statut \texttt{UNCERTAIN}) si la probabilité de certitude mathématique (ici fixée empiriquement à $85\%$) n'est pas atteinte.
+
+\subsection{Gestion d'état dans l'interface de validation (Streamlit)}
+
+L'interface homme-machine, codée avec le \textit{framework} Streamlit, présente une spécificité technique : l'architecture de Streamlit est \textit{stateless} (sans état). À chaque interaction de l'utilisateur (clic sur un bouton, frappe au clavier), l'intégralité du script Python est ré-exécutée de haut en bas. 
+
+Pour éviter que les corrections de l'opérateur ne soient écrasées par le rechargement du fichier JSON source lors du rafraîchissement, l'implémentation s'appuie sur le gestionnaire d'état de session (\textit{Session State}) et sur l'usage de fonctions de rappel (\textit{Callbacks}).
+
+L'extrait de code ci-dessous démontre comment les métadonnées géographiques (Commune, Section, Numéro INSEE) sont persistées en mémoire de session :
+
+\begin{figure}[H]
+\begin{verbatim}
+import streamlit as st
+
+def update_commune_callback(dossier_id, new_commune):
+    """
+    Callback exécuté AVANT le rafraîchissement de la page.
+    Il met à jour le dictionnaire global en mémoire RAM.
+    """
+    st.session_state['archives_data'][dossier_id]['commune'] = new_commune
+    st.session_state['archives_data'][dossier_id]['status'] = "MANUAL_VALIDATED"
+    # Le script va ensuite se relancer, mais avec la donnée mise à jour.
+
+# Dans la fonction de rendu (UI)
+def render_dossier_row(dossier):
+    col_text, col_input, col_btn = st.columns([2, 2, 1])
+    
+    with col_text:
+        st.write(f"Valeur IA : {dossier['ocr_raw_commune']}")
+        
+    with col_input:
+        # Le widget prend sa valeur par défaut depuis la session_state
+        user_input = st.text_input(
+            "Correction", 
+            value=dossier['commune'],
+            key=f"input_{dossier['id']}"
+        )
+        
+    with col_btn:
+        # Bouton lié au Callback
+        st.button(
+            "Valider",
+            key=f"btn_{dossier['id']}",
+            on_click=update_commune_callback,
+            args=(dossier['id'], user_input)
+        )
+\end{verbatim}
+\caption{Architecture \textit{Stateful} sous Streamlit utilisant le \texttt{session\_state} et le routage par callbacks.}
+\end{figure}
+
+Cette séparation stricte entre la logique de mise à jour (Callback) et la logique d'affichage (UI) garantit que les interactions du géomètre sont enregistrées de manière déterministe, annulant les risques de perte de données lors des latences du navigateur web.
+
+\subsection{Analyse et résolution des cas d'erreurs (Hallucinations VLM)}
+
+La robustesse d'un système d'intelligence artificielle en production ne se mesure pas à ses succès, mais à sa capacité à gérer ses défaillances. L'utilisation d'un \textit{Vision Language Model} (VLM), bien que surpuissante sur l'analyse de documents non structurés, introduit un risque d'ingénierie majeur : l'\textbf{hallucination}.
+
+Le modèle génératif tente de prédire la suite logique de la séquence de \textit{Tokens}. Dans les archives du Géomètre B, certaines communes (ex: "Saint-Péray") écrites avec une typographie dégradée ont parfois été traduites par le VLM en noms de villes américaines absurdes (ex: "San Pedro") car les poids synaptiques du réseau, entraînés sur internet, ont statistiquement associé un motif visuel flou à une chaîne de caractères anglo-saxonne prédominante dans son set d'entraînement.
+
+Pour endiguer ce phénomène de \textit{catastrophic hallucination}, le système met en œuvre deux mécanismes de \textit{fallback} (repli) :
+\begin{enumerate}
+    \item \textbf{Restriction du Vocabulaire (Logit Bias)} : Lors de l'appel au modèle, les vecteurs de probabilités (\textit{Logits}) des \textit{Tokens} n'appartenant pas au registre cadastral français sont artificiellement pénalisés par un biais négatif très élevé ($-\infty$).
+    \item \textbf{Injonction négative dans le Prompt System} : Le \textit{Prompt Engineering} a été affiné pour inclure un contexte punitif.
+\end{enumerate}
+
+\begin{figure}[H]
+\begin{verbatim}
+SYSTEM_PROMPT = """
+Tu es un expert géomètre extrayant des données de registres cadastraux 
+départementaux (Ardèche, Drôme).
+RÈGLE ABSOLUE : Les communes sont UNIQUEMENT des communes françaises. 
+Si le texte est illisible, tu ne dois SOUS AUCUN PRÉTEXTE inventer ou 
+traduire un nom. 
+Si la certitude est < 90%, tu DOIS retourner la chaîne exacte "[ILLISIBLE]".
+"""
+\end{verbatim}
+\caption{Extrait du \textit{System Prompt} forçant le réseau à adopter une attitude conservatrice.}
+\end{figure}
+
+Le pipeline intercepte la chaîne \texttt{[ILLISIBLE]} et déclenche immédiatement la règle de repli : le dossier est marqué en rouge dans l'interface Streamlit avec le flag \texttt{NEEDS\_HUMAN\_REVIEW}. Ainsi, l'erreur de la machine n'est jamais silencieuse. Le cabinet accepte un faux négatif (la machine abandonne et demande de l'aide) mais ne tolère aucun faux positif (la machine insère une mauvaise donnée en base).
+
+\subsection{Service en arrière-plan (Daemon) pour l'API}
+
+Enfin, l'envoi des données vers les serveurs de Géofoncier (détaillé au chapitre suivant) a été conçu comme un service autonome (\textit{daemon}). Développé sous la forme d'un script s'exécutant en boucle infinie temporisée (\texttt{while True} avec \texttt{time.sleep}), ce service fonctionne en arrière-plan sans complexité asynchrone superflue.
+
+Il écoute en permanence le répertoire \texttt{outputs/} de la machine. Lorsqu'un fichier JSON est déposé par l'interface de validation, le service l'ingère, négocie les jetons cryptographiques (\textit{Tokens} d'API) et transmet les paquets sans bloquer le fil d'exécution principal du géomètre, assurant ainsi une fluidité parfaite de l'application cliente.

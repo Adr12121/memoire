@@ -1,0 +1,189 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric}
+\usepackage[expansion=false]{microtype}
+\usepackage{csquotes}
+\usepackage{amsmath}
+\usepackage{setspace}
+\usepackage{xcolor}
+
+
+\geometry{margin=2.5cm}
+\hypersetup{colorlinks=true, linkcolor=blue, citecolor=black, urlcolor=blue}
+\setstretch{1.15} % Augmente légèrement l'interligne pour plus de lisibilité et de volume
+
+\newcommand{\titreEtude}{Développement d'un outil permettant le traitement et l'insertion des archives numériques sur Geofoncier au sein d'un cabinet de Géomètre-Expert}
+\newcommand{\auteur}{Travaillé Adrien}
+\newcommand{\specialite}{INSA Strasbourg - Spécialité Topographie}
+\newcommand{\structure}{Cabinet de Géomètre-Expert (structure d'accueil : GEO-SIAPP)}
+\newcommand{\encadrement}{Encadrant : Mathieu KOEHL}
+\newcommand{\dateRapport}{Mai 2026}
+
+\title{\textbf{Rapport d'activités mi-parcours (PFE)}\\[0.6em]\Large \titreEtude}
+\author{\textbf{\auteur}\\\specialite\\\structure\\\encadrement}
+\date{\dateRapport}
+
+\begin{document}
+\maketitle
+
+\vspace{1em}
+\begin{center}
+\textbf{Document synthétique} - rédigé conformément à la fiche \emph{« Rapport d'activités mi-parcours »} (février 2026).
+\end{center}
+\vspace{1em}
+
+\noindent\textbf{Titre presque définitif de l'étude :} \titreEtude.\\
+\textit{Tout changement de titre ou d'orientation sera signalé dès qu'il affecte les objectifs, le planning ou les livrables attendus.}
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{Définition, cadrage et objectifs}
+
+\subsection{Contexte technique et métier}
+Le cabinet de Géomètre-Expert GEO-SIAPP possède un passif d'archives numériques extrêmement riche, accumulé au fil des décennies. Ces archives, numérisées de manière hétérogène, se composent de documents de natures diverses, allant des plans de piquetage modernes aux anciens documents d'arpentage. Actuellement, la valorisation de ce patrimoine de données est limitée par son format non structuré. Lorsqu'un collaborateur doit rechercher une information spécifique sur une parcelle ou préparer un dossier, il est contraint de parcourir manuellement de nombreux fichiers PDF ou des images scannées. 
+
+Face à ce constat, le besoin opérationnel est clair : il s'agit de concevoir et de déployer un outil capable d'ingérer ces documents bruts, d'en extraire la sémantique métier, puis de structurer ces informations dans un format exploitable. L'objectif ultime, à terme, est de rendre ces données directement compatibles avec un versement sur la plateforme nationale Geofoncier. Cette transition numérique représente un enjeu de productivité majeur pour le cabinet, mais elle se heurte à la complexité inhérente à la vision par ordinateur appliquée aux documents d'archives. La grande variabilité des mises en page, les fluctuations de la qualité de numérisation et la diversité des typographies constituent les principaux verrous technologiques de cette étude.
+
+\subsection{Évolution des objectifs et redéfinition du périmètre}
+Au début de ce Projet de Fin d'Études, l'ambition était de traiter de manière exhaustive l'ensemble des archives, incluant les documents dactylographiés et les vieux registres entièrement manuscrits. Cependant, les premières expérimentations ont mis en évidence une réalité technique contraignante. Les vieux livrets d'archives, rédigés à la main avec une écriture cursive souvent dégradée par le temps et l'encre baveuse, posent des problèmes de transcription majeurs. Les modèles de reconnaissance d'écriture manuscrite (HTR) actuels peinent à fournir un niveau de confiance suffisant pour une automatisation rentable. 
+
+Étant donné que ces vieux manuscrits ne constituent pas le cœur opérationnel du projet, la décision a été prise, en accord avec l'encadrement, de reporter leur traitement à une phase ultérieure. Le périmètre de l'étude a donc été recentré sur les documents structurés et les plans modernes. Ce choix stratégique permet de concentrer les efforts de développement sur un sous-ensemble de données garantissant un retour sur investissement rapide pour le cabinet. Les objectifs se concentrent désormais sur l'extraction de champs spécifiques à haute valeur ajoutée. L'outil développé se charge aujourd'hui d'isoler et de retranscrire des informations cruciales telles que les noms des anciens et nouveaux propriétaires, le numéro d'ordre du document d'arpentage (DA), la commune, la section cadastrale, le nom des signataires, le numéro de la parcelle, le type d'action réalisée (par exemple un plan de piquetage), le nom du géomètre-expert intervenu, ainsi que la date de l'opération.
+
+\subsection{Les options étudiées et les choix d'architecture}
+La recherche d'une solution fiable a nécessité d'étudier plusieurs approches d'extraction d'informations. La première option envisagée reposait sur l'utilisation d'un moteur de reconnaissance optique de caractères (OCR) de manière globale sur la page entière. Cette méthode a rapidement été écartée, car elle détruit la topologie du document et rend extrêmement difficile l'association logique entre une étiquette (comme le mot "Commune") et sa valeur correspondante. 
+
+L'approche finalement retenue s'oriente vers une architecture hybride et modulaire. Elle s'appuie d'abord sur la vision par ordinateur pour comprendre la structure du document, segmenter les zones d'intérêt, et isoler précisément les paires d'informations. Une fois ces zones d'intérêt découpées, des algorithmes de transcription ciblés entrent en jeu. Enfin, pour garantir la fiabilité des données, une forte composante de validation humaine a été intégrée au cœur du processus.
+
+\section{Résultats et synthèse de l'étude bibliographique}
+
+Conformément aux attentes académiques, une recherche bibliographique approfondie a été menée pour justifier les choix technologiques adoptés dans l'architecture du système. Cette étude s'articule autour de trois axes principaux : la segmentation documentaire, la reconnaissance optique, et l'arbitrage par intelligence artificielle générative.
+
+\subsection{Segmentation et compréhension de la structure documentaire}
+La première étape cruciale du traitement d'un document numérisé est l'analyse de sa mise en page. La littérature scientifique montre une transition claire des méthodes traditionnelles basées sur le traitement de signal vers des méthodes d'apprentissage profond. Les détecteurs d'objets, initialement conçus pour la reconnaissance photographique, ont été adaptés avec succès à l'analyse de documents. Des architectures telles que YOLO (You Only Look Once) se distinguent par leur rapidité et leur robustesse face aux bruits de numérisation, aux inclinaisons de pages et aux artefacts visuels. Dans le cadre de ce projet, l'utilisation de tels algorithmes permet de localiser avec précision les encadrés contenant les métadonnées essentielles du géomètre, facilitant grandement le travail de l'OCR en aval en lui fournissant des images correctement recadrées et nettoyées.
+
+\begin{figure}[htbp]
+    \centering
+    % Remplace la ligne ci-dessous par : \includegraphics[width=0.8\textwidth]{chemin/vers/image_yolo.png}
+    \textcolor{gray}{\rule{0.8\textwidth}{6cm}}
+    \caption{Exemple de détection des champs d'intérêt sur un plan moderne par l'algorithme de vision.}
+    \label{fig:segmentation_yolo}
+\end{figure}
+
+\subsection{Évolution des moteurs de transcription optique}
+L'extraction du texte brut repose sur des moteurs dont la technologie a fortement évolué. Historiquement dominé par des solutions basées sur des modèles de Markov cachés (HMM) comme les premières versions de Tesseract, le domaine de l'OCR a été révolutionné par l'apparition des réseaux de neurones récurrents (LSTM) puis par les architectures Transformers. Des modèles récents comme TrOCR abordent la reconnaissance de texte comme un problème de traduction d'image vers texte, offrant d'excellents résultats sur des documents imprimés complexes. Mon étude bibliographique a mis en lumière l'importance d'utiliser le bon outil pour le bon contexte : un OCR classique est suffisant pour du texte informatique natif, tandis que des modèles plus lourds sont nécessaires pour des polices dégradées par de multiples numérisations.
+
+\subsection{L'émergence des modèles de langage multimodaux (VLM)}
+Un axe d'étude particulièrement novateur pour ce PFE concerne l'utilisation des modèles de langage visuels (Vision-Language Models). Ces modèles, capables de prendre en entrée à la fois une image et une consigne textuelle, ouvrent de nouvelles perspectives pour les cas d'usage ambigus. L'étude de modèles tels que Qwen2-VL montre qu'ils ne se contentent pas de lire les caractères, mais qu'ils comprennent le contexte sémantique de la zone. Dans mon architecture, le VLM n'est pas utilisé comme un extracteur primaire, en raison de son coût de calcul élevé, mais comme un arbitre. Lorsque le moteur OCR principal renvoie un score de confiance particulièrement faible, notamment sur des toponymes prêtant à confusion, la zone de l'image est soumise au VLM avec un prompt de cadrage strict pour obtenir une décision contextualisée.
+
+\section{Moyens, personnes contributrices et interactions}
+
+\subsection{Environnement de développement et choix techniques}
+Le développement de la solution est intégralement réalisé sur un environnement Windows, ce qui correspond au parc informatique standard de l'entreprise d'accueil. Le langage de programmation central est Python, choisi pour son écosystème riche et mature dans les domaines du traitement d'image et de l'intelligence artificielle. Les manipulations de fichiers PDF et les traitements d'images préliminaires s'appuient sur des bibliothèques reconnues telles que PyMuPDF et OpenCV. 
+
+Pour répondre aux contraintes de confidentialité liées aux données sensibles contenues dans les actes fonciers, l'ensemble du pipeline principal a été conçu pour s'exécuter localement sur les serveurs du cabinet. Cette conception "sur site" garantit qu'aucune donnée de propriété n'est transmise à des services cloud publics sans contrôle préalable, répondant ainsi aux exigences de sécurité inhérentes à la profession de Géomètre-Expert.
+
+\subsection{Interface utilisateur et intégration métier}
+L'outil d'extraction automatisé n'aurait aucune valeur s'il n'était pas manipulable par les équipes de production. Afin de rendre le système accessible, une interface web locale a été développée en s'appuyant sur le framework Streamlit. Pour faciliter le lancement de l'application par des utilisateurs non informaticiens, un script exécutable de type batch (fichier .bat) a été mis en place. Un simple double-clic permet d'initialiser l'environnement virtuel, de lancer le serveur local et d'ouvrir le navigateur sur la page de validation. 
+
+Cette interface permet au géomètre ou au technicien de visualiser le document original côte à côte avec les données extraites. Le projet n'étant pas encore pleinement opérationnel en conditions réelles de production, cette interface joue actuellement un rôle de prototype avancé, permettant de tester l'ergonomie et de recueillir les premiers retours utilisateurs. 
+
+\begin{figure}[htbp]
+    \centering
+    % Remplace la ligne ci-dessous par : \includegraphics[width=0.9\textwidth]{chemin/vers/capture_streamlit.png}
+    \textcolor{gray}{\rule{0.9\textwidth}{7cm}}
+    \caption{Interface web locale développée sous Streamlit pour la validation humaine des extractions.}
+    \label{fig:interface_streamlit}
+\end{figure}
+
+\subsection{Interactions et répartition des rôles}
+La réussite de ce projet repose sur une collaboration étroite avec la structure d'accueil. Le cabinet GEO-SIAPP fournit l'infrastructure matérielle, l'accès au corpus d'archives indispensable pour l'entraînement et les tests, ainsi que l'expertise métier nécessaire pour juger de la pertinence des résultats. En tant qu'étudiant-ingénieur, ma contribution personnelle couvre l'intégralité de la conception technique : architecture logicielle, développement des algorithmes d'extraction, mise en place des règles de post-traitement sémantique et création de l'interface utilisateur. Mon encadrant académique assure de son côté un suivi rigoureux sur la méthodologie scientifique employée et veille à ce que le niveau de complexité technique réponde aux exigences d'un diplôme d'ingénieur spécialisé en topographie.
+
+\section{Points forts de l'étude et premiers résultats}
+
+\subsection{Robustesse de l'extraction sur les plans modernes}
+À ce stade intermédiaire du projet, le principal point fort réside dans la stabilisation du processus d'extraction pour la catégorie des plans modernes. Le pipeline logiciel développé s'avère capable de traiter un lot de documents dactylographiés, d'y repérer les cartouches de métadonnées, et de lire avec une grande acuité les champs structurés. Les informations telles que le numéro de la parcelle, la commune, la date et le nom des propriétaires sont extraites puis formatées. Ce processus génère en sortie des fichiers de résultats au format CSV, accompagnés de fichiers de configuration JSON, permettant une traçabilité totale de l'endroit exact où l'information a été lue sur l'image source.
+
+\subsection{Correction sémantique automatisée}
+Un autre résultat significatif de cette première moitié de stage est l'implémentation d'un moteur de correction sémantique. Les erreurs inhérentes à l'OCR sont inévitables (par exemple, la confusion entre le chiffre zéro et la lettre O, ou des erreurs sur des noms de villes mal orthographiés). Pour pallier ce problème, le programme intègre un système de post-traitement qui confronte les chaînes de caractères extraites à des référentiels fiables. Par exemple, le nom de la commune extrait est automatiquement comparé à la base de données officielle de l'INSEE. Si une correspondance proche est trouvée, le système propose la correction orthographique exacte, soulageant ainsi l'opérateur d'une fastidieuse vérification manuelle.
+
+\subsection{Traçabilité et apprentissage continu}
+Le système brille également par sa capacité à tracer ses propres décisions. Chaque champ extrait se voit attribuer un niveau de confiance. Cette métrique est fondamentale, car elle permet à l'interface web locale de mettre en évidence visuellement les champs nécessitant impérativement une vérification humaine, tandis que les champs considérés comme certains peuvent être validés de façon tacite. De plus, lorsqu'un utilisateur corrige une donnée via l'interface, cette correction est sauvegardée et capitalisée. Bien que la boucle d'apprentissage automatique ne soit pas encore totalement aboutie, les fondations sont posées pour que l'outil s'améliore au fil de son utilisation.
+
+\section{Planning prévisionnel et résultats à atteindre}
+
+\subsection{Analyse du chemin parcouru et des ajustements nécessaires}
+La première phase du projet a permis de construire le socle technologique et de valider la faisabilité technique de l'extraction sur les plans modernes. La décision de reporter le traitement des registres entièrement manuscrits a permis de dérisquer le planning et de s'assurer qu'un outil fonctionnel pourra être livré à l'issue du stage. Actuellement, le système n'est pas encore opérationnel en production et le versement final vers la base de données nationale Geofoncier n'a pas encore été développé. Ces deux points constituent l'épine dorsale de la seconde moitié du projet.
+
+\subsection{Planification des travaux restants}
+Les prochaines semaines seront consacrées à l'amélioration de la robustesse des algorithmes d'extraction. Il s'agira de confronter le pipeline actuel à des cas limites (documents mal scannés, tampons encreurs chevauchant le texte) afin de peaufiner les seuils de confiance. Par la suite, le travail se concentrera sur l'industrialisation de la solution. 
+
+L'objectif majeur restant à atteindre est le développement du module d'exportation vers Geofoncier. Il conviendra d'étudier les spécifications techniques de la plateforme nationale (structures XML, API ou imports CSV spécifiques) pour formater les données extraites et validées par le géomètre directement dans le formalisme attendu par l'ordre. Cela conclura la chaîne de valeur, transformant un simple PDF d'archive en une donnée foncière interopérable. Enfin, la fin du stage sera consacrée à l'évaluation des gains de productivité réels obtenus par le cabinet et à la rédaction du mémoire final.
+
+\vspace{1.5em}
+\noindent Afin de synthétiser ces prochaines étapes, l'organigramme suivant détaille la progression attendue jusqu'à la soutenance finale.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[
+      node distance=10mm and 0mm,
+      box/.style={draw, rectangle, rounded corners, align=center, inner sep=10pt, text width=13cm, fill=gray!5, thick},
+      arrow/.style={-Latex, thick}
+    ]
+    
+    \node[box] (etape1) {\textbf{ÉTAT ACTUEL : Validation du prototype sur plans modernes} \\ 
+    Interface web locale via script exécutable fonctionnelle. Extraction des propriétaires, DA, communes, parcelles et dates opérationnelle avec validation sémantique.};
+    
+    \node[box, below=of etape1] (etape2) {\textbf{PHASE 1 : Stabilisation et déploiement interne (Mois 4)} \\ 
+    Déploiement du système sur les postes du cabinet. Résolution des bugs liés aux mises en page atypiques. Mesure des premiers indicateurs de fiabilité en conditions réelles.};
+    
+    \node[box, below=of etape2] (etape3) {\textbf{PHASE 2 : Développement du module Geofoncier (Mois 5)} \\ 
+    Création du formatage de sortie compatible avec le portail national. Automatisation de la création des lots de versement à partir des données validées dans l'interface.};
+    
+    \node[box, below=of etape3] (etape4) {\textbf{PHASE 3 : Évaluation globale et documentation (Mois 6)} \\ 
+    Analyse de la productivité générée face à la saisie manuelle. Rédaction du guide utilisateur et finalisation du manuscrit de PFE.};
+    
+    \draw[arrow] (etape1) -- (etape2);
+    \draw[arrow] (etape2) -- (etape3);
+    \draw[arrow] (etape3) -- (etape4);
+    
+    \end{tikzpicture}
+    \caption{Organigramme prévisionnel des travaux restants pour la seconde moitié du projet.}
+    \label{fig:organigramme_planning}
+\end{figure}
+
+\newpage
+\bibliographystyle{plain}
+\begin{thebibliography}{9}
+\bibitem{smith2007}
+R. Smith.
+\newblock \emph{An Overview of the Tesseract OCR Engine}.
+\newblock In Proceedings of the Ninth International Conference on Document Analysis and Recognition (ICDAR), IEEE, 2007.
+
+\bibitem{li2021}
+M. Li, T. Lv, L. Cui, Y. Lu, D. Florencio, C. Wu, J. Li.
+\newblock \emph{TrOCR: Transformer-based Optical Character Recognition with Pre-trained Models}.
+\newblock Preprint arXiv:2109.10282, 2021.
+
+\bibitem{ultralyticsyolo}
+G. Jocher, A. Chaurasia, J. Qiu.
+\newblock \emph{Ultralytics YOLO - State-of-the-art object detection models}.
+\newblock Dépôt logiciel (GitHub), 2023.
+
+\bibitem{qwen2vl}
+S. Bai et al.
+\newblock \emph{Qwen2-VL: Enhancing Vision-Language Model’s Perception of the World at Any Resolution}.
+\newblock Preprint arXiv:2409.12191, 2024.
+\end{thebibliography}
+
+\end{document}
