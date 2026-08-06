@@ -9,38 +9,38 @@ Ce chapitre présente la dernière phase du traitement : le versement sur Géofo
 
 Le chapitre~\ref{sec:analyse_metier} a présenté la structure de l'API REST Géofoncier et le format des données qu'elle attend. Cette section décrit comment le script \texttt{geofoncier\_api.py} met en pratique ces échanges, du jeton d'authentification jusqu'à l'upload du document source.
 
-Les identifiants du cabinet (login et mot de passe Géofoncier) sont stockés dans un fichier \texttt{.env} local, qui n'est jamais partagé ni versionné. L'authentification repose sur une requête \texttt{GET /token} avec une en-tête \texttt{Authorization: Basic base64(login:password)}.
+Les identifiants du cabinet (login et mot de passe) sont stockés dans un fichier \texttt{.env} local, qui n'est jamais partagé. L'authentification repose sur une requête \texttt{GET /token} avec une en-tête \texttt{Authorization: Basic base64(login:password)}.
 
-Au démarrage de l'application, la fonction \texttt{get\_valid\_token()} décode la date d'expiration inscrite dans le jeton JWT (champ \texttt{exp}) et calcule le temps restant. Si l'expiration est à moins de 30 minutes, un nouveau jeton est demandé automatiquement. Ce mécanisme est entièrement transparent pour l'opérateur. La durée de validité réelle d'un jeton est de 10 heures.
+Au démarrage de l'application, la fonction \texttt{get\_valid\_token()} décode la date d'expiration inscrite dans le jeton JWT (champ \texttt{exp}) et calcule le temps restant. Si l'expiration est à moins de 30 minutes, un nouveau jeton est demandé automatiquement. Ce procédé est transparent pour l'opérateur. La durée de validité réelle d'un jeton est de 10 heures.
 
 En cas d'échec du renouvellement, l'ancienne valeur du jeton est conservée en mémoire et l'interface affiche un avertissement. Si aucun jeton valide n'est disponible au moment du versement, l'API retourne un \texttt{401 Unauthorized}, que l'interface traduit en message explicite.
 
-Lorsque l'opérateur clique sur \enquote{Créer le dossier sur Géofoncier}, l'application construit le dictionnaire de données à partir de toutes les informations collectées lors des étapes précédentes. La fonction \texttt{create\_geofoncier\_dossier()} assemble ensuite le payload JSON avant l'envoi. Ce dictionnaire rassemble les identifiants Géofoncier du cabinet créateur (\texttt{enr\_cab\_createur}, par exemple \texttt{1987I004169}) et du cabinet détenteur (\texttt{enr\_cab\_detenteur}), la référence interne du dossier (\texttt{enr\_ref\_dossier}, limitée à 15 caractères), le code INSEE à 5 chiffres (\texttt{enr\_code\_insee}), ainsi que la date de l'opération au format ISO 8601 (\texttt{enr\_date\_dossier}). Il spécifie aussi le code d'opération (\texttt{op\_code}, comme \texttt{Em} pour une modification parcellaire ou \texttt{Eb} pour un bornage), la liste des parcelles cadastrales, les coordonnées Lambert-93 du marqueur sur la carte (\texttt{localisant}), le numéro DMPC formaté (\texttt{dmpc\_ref}) et le statut du dossier (\texttt{enr\_statut}).
+Lorsque l'opérateur clique sur \enquote{Créer le dossier sur Géofoncier}, l'application construit le dictionnaire de données à partir de toutes les informations collectées lors des étapes précédentes. La fonction \texttt{create\_geofoncier\_dossier()} assemble ensuite le JSON avant l'envoi. Ce dictionnaire rassemble les identifiants Géofoncier du cabinet créateur (\texttt{enr\_cab\_createur}, par exemple \texttt{1987I004169}) et du cabinet détenteur (\texttt{enr\_cab\_detenteur}), la référence interne du dossier (\texttt{enr\_ref\_dossier}, limitée à 15 caractères), le code INSEE à 5 chiffres (\texttt{enr\_code\_insee}), ainsi que la date de l'opération au format ISO 8601 (\texttt{enr\_date\_dossier}). Il spécifie aussi le code d'opération (\texttt{op\_code}, comme \texttt{Em} pour une modification parcellaire ou \texttt{Eb} pour un bornage), la liste des parcelles cadastrales, les coordonnées Lambert-93 du marqueur sur la carte (\texttt{localisant}), le numéro DMPC formaté (\texttt{dmpc\_ref}) et le statut du dossier (\texttt{enr\_statut}).
 
 Détail des éléments transmis dans ce dictionnaire :
 \begin{itemize}
   \item Identifiants du cabinet : les champs \texttt{enr\_cab\_createur} et \texttt{enr\_cab\_detenteur} reçoivent le numéro d'inscription du cabinet à l'Ordre des Géomètres-Experts.
   \item Référence et commune : le champ \texttt{enr\_ref\_dossier} enregistre la référence interne (15 caractères maximum), \texttt{enr\_code\_insee} le code de la commune à 5 chiffres, et \texttt{enr\_date\_dossier} la date au format ISO.
   \item Type d'opération : le champ \texttt{op\_code} précise la nature de l'acte (\texttt{Em} pour division, \texttt{Eb} pour bornage), et \texttt{enr\_statut} indique le niveau de validation.
-  \item Localisant géométrique : l'objet \texttt{localisant} contient une structure de point GeoJSON avec les coordonnées du marqueur calculées en Lambert-93 (EPSG:2154).
+  \item Localisant : l'objet \texttt{localisant} contient une structure de point GeoJSON avec les coordonnées du marqueur calculées en Lambert-93 (EPSG:2154).
   \item Parcelles concernées : la liste \texttt{parcelles} rassemble les objets précisant la section cadastrale et le numéro de chaque parcelle modifiée.
 \end{itemize}
 
-Chaque champ fait l'objet d'un contrôle automatique avant la requête, comme expliqué lors de la fiabilisation au chapitre~\ref{sec:fiabilisation}. Si le code INSEE ou les coordonnées sont absents, le script bloque la préparation et alerte l'opérateur dans l'interface.
+Chaque champ fait l'objet d'un contrôle automatique avant la requête, comme expliqué lors de la fiabilisation au chapitre~\ref{sec:fiabilisation}. Si le code INSEE ou les coordonnées sont absentes, le script bloque la préparation et alerte l'opérateur dans l'interface.
 
-Avant l'envoi, le dictionnaire est converti en JSON. Les coordonnées spatiales en Lambert-93 sont arrondies à deux décimales (précision centimétrique). Les chaînes de caractères sont encodées en UTF-8 pour prévenir toute altération des caractères accentués lors du transit HTTP.
+Avant l'envoi, le dictionnaire est converti en JSON. Les coordonnées spatiales en Lambert-93 sont arrondies à deux décimales (précision centimétrique). Les chaînes de caractères sont encodées en UTF-8 pour prévenir toute altération des caractères lors du transit HTTP.
 
 Le transfert des requêtes vers le serveur de Géofoncier s'appuie sur la bibliothèque \texttt{requests} avec une gestion des délais d'attente. Si le serveur de la plateforme met plus de 15 secondes à répondre (en période de forte charge), l'application effectue jusqu'à trois tentatives successives avec un délai d'attente avant de lever une exception et de proposer une sauvegarde locale temporaire à l'utilisateur.
 
 Le marqueur positionné par l'opérateur sur la carte est en coordonnées géographiques WGS84 (latitude/longitude). L'API Géofoncier attend des coordonnées en Lambert-93 (système officiel français, EPSG:2154). La conversion est assurée par la fonction \texttt{latlon\_to\_lambert93()}, qui utilise la bibliothèque \texttt{pyproj} si elle est disponible, ou à défaut une formule intégrée.
 
-La requête \texttt{POST /dossiersoge/dossiers/} est envoyée avec le payload JSON dans le corps et le jeton dans l'en-tête \texttt{Authorization}. L'appel est synchrone : l'interface affiche un spinner pendant l'envoi.
+La requête \texttt{POST /dossiersoge/dossiers/} est envoyée avec le JSON dans le corps et le jeton dans l'en-tête \texttt{Authorization}. L'application affiche un indicateur de chargement jusqu'à la réponse du serveur.
 
 En cas de succès, l'API retourne un code \texttt{201 Created} et un objet JSON contenant le champ \texttt{id} du dossier créé. Ce champ est affiché directement dans l'interface et enregistré dans le CSV de travail.
 
-L'API peut également rejeter le champ \texttt{dmpc\_ref} si le format du numéro de DA ne correspond pas à celui attendu côté serveur. Le script gère ce cas avec un mécanisme de repli : il détecte le code d'erreur \texttt{400} associé à ce champ, supprime \texttt{dmpc\_ref} du payload et relance la requête sans lui. Le dossier est ainsi créé même si la référence DMPC n'a pas pu être attachée.
+L'API peut également rejeter le champ \texttt{dmpc\_ref} si le format du numéro de DA ne correspond pas à celui attendu côté serveur. Le script gère alors ce cas avec une autre méthode : il détecte le code d'erreur \texttt{400} associé à ce champ, supprime \texttt{dmpc\_ref} du payload et relance la requête sans lui. Le dossier est ainsi créé même si la référence DMPC n'a pas pu être jointe.
 
-Après la création réussie du dossier, une deuxième requête \texttt{POST /dossiersoge/documents/} est envoyée en \texttt{multipart/form-data} pour attacher le fichier PDF au dossier. Le type MIME est détecté automatiquement depuis l'extension du fichier (\texttt{.pdf}, \texttt{.tif}, \texttt{.jpg}, etc.). Si le fichier source est introuvable dans le dossier d'entrée, l'interface signale l'absence sans bloquer : le dossier est déjà créé sur Géofoncier.
+Après la création réussie du dossier, une deuxième requête \texttt{POST /dossiersoge/documents/} est envoyée en \texttt{multipart/form-data} pour attacher le fichier PDF au dossier. Le type MIME (l'identifiant qui indique le format du fichier au serveur, comme \texttt{application/pdf}) est détecté automatiquement depuis l'extension du fichier (\texttt{.pdf}, \texttt{.tif}, \texttt{.jpg}, etc.). Si le fichier source est introuvable dans le dossier d'entrée, l'interface signale l'absence sans bloquer : le dossier est déjà créé sur Géofoncier, mais sans le fichier.
 
 Plusieurs situations peuvent provoquer un échec lors du versement. Le Tableau~\ref{tab:erreurs_api} liste les principaux cas identifiés et les réponses apportées par le système.
 
@@ -56,7 +56,7 @@ Plusieurs situations peuvent provoquer un échec lors du versement. Le Tableau~\
     \midrule
     Token expiré ou invalide & \texttt{401 Unauthorized} & Message d'erreur dans l'interface, invitation à relancer l'application. \\
     \addlinespace
-    Code INSEE manquant ou invalide & \texttt{400 Bad Request} & Blocage du bouton de versement dès la saisie ; le champ est marqué en rouge. \\
+    Code INSEE manquant ou invalide & \texttt{400 Bad Request} & Blocage du bouton de versement dès la saisie,le champ est marqué en rouge. \\
     \addlinespace
     Champ \texttt{dmpc\_ref} refusé & \texttt{400 Bad Request} & Repli automatique : nouvelle tentative sans ce champ. \\
     \addlinespace
@@ -67,42 +67,42 @@ Plusieurs situations peuvent provoquer un échec lors du versement. Le Tableau~\
   \end{tabular}
 \end{table}
 
-Dans tous les cas d'échec, l'interface affiche le message d'erreur retourné par l'API et propose un panneau dépliable avec le contenu exact du payload, pour permettre de diagnostiquer la cause sans avoir à consulter les logs.
+Dans tous les cas d'échec, l'interface affiche le message d'erreur de l'API. Elle permet aussi de dérouler le détail des données envoyées pour trouver le problème sans ouvrir les fichiers de log.
 
 \subsection{Sécurisation du versement et traçabilité des échanges}
 
-La transmission de données foncières vers une plateforme nationale exige un niveau élevé de contrôle afin de prémunir le cabinet contre tout risque de publication erronée ou de mauvaise interprétation.
+La transmission de données foncières vers une plateforme nationale exige un niveau de contrôle suffisant afin de prémunir le cabinet contre tout risque de publication erronée ou de mauvaise interprétation.
 
-\textbf{Contrôle de doublons et vérification d'intégrité avant envoi.} Avant de déclencher l'appel REST vers l'API Géofoncier, l'application interroge le registre local de suivi pour vérifier si la référence du dossier ou le document source a déjà fait l'objet d'une publication réussie. Si un doublon potentiel est détecté, l'interface affiche un message de mise en garde et bloque l'envoi direct, demandant une confirmation explicite à l'opérateur. De plus, une empreinte numérique (hash SHA-256) du fichier PDF source est calculée au moment du chargement. Cette empreinte est conservée dans l'historique local pour garantir qu'aucune modification ultérieure du fichier n'intervienne sans que la traçabilité ne soit rompue.
+Pour éviter les envois en double, l'application vérifie dans son historique local si le dossier ou le document a déjà été publié sur Géofoncier. Si un doublon est détecté, l'interface affiche un avertissement et demande une confirmation avant l'envoi. De plus, une empreinte numérique (hash SHA-256) du fichier PDF est enregistrée au chargement pour garantir que le document n'a pas été modifié par la suite.
 
-\textbf{Protocoles de communication des identifiants.} Toutes les requêtes transmises à l'API Géofoncier s'effectuent exclusivement en HTTPS via TLS 1.3, ce qui garantit le chiffrement de bout en bout des échanges sur le réseau. Les jetons JWT d'authentification sont stockés temporairement en mémoire vive au cours de la session applicative et ne sont jamais enregistrés dans des fichiers de sous-produits ou de journaux d'événements. Cette séparation stricte protège les identifiants professionnels du cabinet contre toute extraction non autorisée.
+Toutes les requêtes vers l'API Géofoncier utilisent le protocole sécurisé HTTPS (TLS 1.3) pour chiffrer les échanges. Les jetons d'accès (JWT) restent uniquement en mémoire vive pendant la session et ne sont jamais enregistrés dans des fichiers ou des logs. Cela protège les identifiants du cabinet contre toute récupération non autorisée.
 
-\textbf{responsabilité déontologique.} En vertu des règles déontologiques régissant la profession de géomètre-expert, toute publication sur le portail Géofoncier engage la responsabilité du cabinet détenteur du fonds. Pour répondre à cette exigence, chaque action de versement donne lieu à la rédaction automatique d'un journal d'audit infalsifiable. Ce journal consigne l'identifiant de l'opérateur connecté, l'adresse IP de la station de travail, l'horodatage exact au format UTC, la référence du dossier, le code INSEE de la commune ainsi que le contenu intégral de la réponse HTTP renvoyée par le serveur distant. Ces données fournissent une preuve technique incontestable en cas de contrôle de conformité ou de recherche d'historique.
+Enfin, chaque publication engage la responsabilité du cabinet. Pour conserver une trace exacte, chaque envoi génère automatiquement un journal d'audit. Ce fichier enregistre l'utilisateur, l'adresse IP de l'ordinateur, la date et l'heure, la référence du dossier, le code INSEE et la réponse du serveur. Ces données servent de preuve technique en cas de contrôle ou d'analyse ultérieure.
 
-\subsection{Mode de traitement par lot : \texttt{export\_geofoncier.py}}
+\subsection{Mode de traitement en groupe de fichiers : \texttt{export\_geofoncier.py}}
 
-En complément de l'interface de validation, un script de service (\texttt{export\_geofoncier.py}) permet de traiter des lots de documents sans intervention manuelle document par document. Ce script est prévu pour être lancé en tâche de fond, en parallèle du traitement OCR.
+En complément de l'interface de validation, un script (\texttt{export\_geofoncier.py}) permet de traiter des lots de documents sans intervention manuelle document par document. Ce script est prévu pour être lancé en tâche de fond, en parallèle du traitement OCR.
 
-Son fonctionnement repose sur une boucle infinie qui scanne le dossier \texttt{outputs/} toutes les 30 secondes. À chaque itération, le script liste tous les fichiers JSON produits par la chaîne d'extraction (nommés selon le schéma \texttt{*\_plan\_*.json}) qui n'ont pas encore été traités. Pour chacun, il appelle \texttt{create\_geofoncier\_dossier()} avec le JSON comme source de données, puis tente d'uploader le PDF associé depuis \texttt{inputs/}. Une fois le traitement terminé (avec succès ou échec définitif), le fichier JSON est déplacé dans le sous-dossier \texttt{outputs/archives\_publiees/} pour ne pas être retraité au prochain scan.
+Son fonctionnement repose sur une boucle infinie qui scanne le dossier \texttt{outputs/} toutes les 30 secondes. À chaque itération, le script liste tous les fichiers JSON produits par la chaîne d'extraction (nommés selon le schéma \texttt{*\_plan\_*.json}) qui n'ont pas encore été traités. Pour chacun, il appelle \texttt{create\_geofoncier\_dossier()} avec le JSON comme source de données, puis tente de metre à jour le PDF associé depuis \texttt{inputs/}. Une fois le traitement terminé (avec succès ou échec définitif), le fichier JSON est déplacé dans le sous-dossier \texttt{outputs/archives\_publiees/} pour ne pas être retraité au prochain scan.
 
-Ce mode est particulièrement adapté au traitement de fonds entiers : une boîte de documents scannés peut être injectée dans \texttt{inputs/}, l'extraction automatique tourne la nuit, et les dossiers sont versés sur Géofoncier au fur et à mesure que les JSON sont produits. La supervision humaine reste indirecte : l'opérateur consulte le registre de suivi le lendemain pour vérifier les résultats.
+Ce mode est adapté au traitement de fonds entiers : une boîte de documents scannés peut être injectée dans \texttt{inputs/}, l'extraction automatique tourne la nuit, et les dossiers sont versés sur Géofoncier après vérification au fur et à mesure que les JSON sont produits. La supervision humaine reste indirecte : l'opérateur consulte le registre de suivi le lendemain pour vérifier les résultats, et si ce dernier présente trop d'erreurs, il peut corriger par ses propres moyens comme pour l'option classique (voir section~\ref{sec:interface_geofoncier}).
 
-\textbf{Le registre de suivi.} Après chaque versement, le script enregistre une entrée dans deux fichiers stockés dans le dossier \texttt{suivi\_geofoncier/}. Le premier fichier, \texttt{suivi\_publications.json}, conserve l'historique complet des versements (horodatage, commune, code INSEE, géomètre, référence du dossier, identifiant Géofoncier, nom du document source et statut final). Le second, \texttt{suivi\_publications.csv}, propose un tableau équivalent trié par commune puis par date, directement exploitable sous Excel ou LibreOffice.
+\textbf{Le registre de suivi.} Après chaque versement, le script enregistre une entrée dans deux fichiers stockés dans le dossier \texttt{suivi\_geofoncier/}. Le premier fichier, \texttt{suivi\_publications.json}, conserve l'historique complet des versements (heure, commune, code INSEE, géomètre, référence du dossier, identifiant Géofoncier, nom du document source et statut final). Le second, \texttt{suivi\_publications.csv}, propose un tableau équivalent trié par commune puis par date, directement exploitable sous Excel.
 
-Ces fichiers constituent la trace locale du travail effectué. Ils permettent aux associés du cabinet de savoir exactement quels dossiers ont été versés, à quelle date et sous quel identifiant Géofoncier, sans avoir à interroger l'API ni à consulter le portail.
+Ces fichiers sont une trace du travail effectué. Ils permettent aux associés du cabinet de savoir  quels dossiers ont été versés, à quelle date et sous quel identifiant Géofoncier, sans avoir à interroger l'API ni à consulter le portail.
 
-En cas de coupure de réseau ou de panne temporaire du serveur distant pendant l'exécution par lot, le script conserve les requêtes non abouties dans une file d'attente locale de réessai. Les fichiers JSON correspondants ne sont pas déplacés vers le sous-dossier d'archivage, mais restent en attente. Dès la reconnexion au réseau, le script reprend l'envoi de la file d'attente à partir du dernier point d'échec sans risquer de créer des doublons d'actes sur le serveur Géofoncier.
+En cas de coupure de réseau ou de panne temporaire du serveur distant pendant l'exécution, le script conserve les requêtes non abouties dans une file d'attente locale. Les fichiers JSON correspondants ne sont pas déplacés vers le sous-dossier d'archivage, mais restent en attente. Dès la reconnexion au réseau, le script reprend l'envoi de la file d'attente à partir du dernier échec sans risquer de créer des doublons d'actes sur le serveur Géofoncier.
 
 
 \subsection{Déroulement d'un cas d'étude : commune de Prades}
 
-Cette section suit le traitement d'un dossier réel de bout en bout, depuis le document papier jusqu'à la pastille créée sur Géofoncier.
+Cette section suit le traitement d'un dossier réel de bout en bout, depuis le document papier jusqu'au dossier créée sur Géofoncier.
 
-Le document traité est un DMPC numérisé, issu du fonds du cabinet, concernant la commune de Prades (code INSEE~: \texttt{07182}), section cadastrale A. Il s'agit d'un formulaire imprimé d'une page, complété à la main. Le fichier est fourni au programme sous forme de PDF, placé dans le dossier d'entrée.
+Le document traité est un DMPC issu du fonds du cabinet, concernant la commune de Prades (code INSEE~: \texttt{07182}), section cadastrale A. Il s'agit d'un formulaire imprimé d'une page, complété à la main. Le fichier est fourni au programme sous forme de PDF, placé dans le dossier d'entrée.
 
-Le script de classification analyse le fichier et le reconnaît comme un DMPC en quelques secondes, sur la base de sa structure. Le modèle VLM traite ensuite les onze zones d'intérêt découpées par YOLOv8 sur la page. L'extraction automatique identifie la commune de Prades avec un indice de confiance de 92\,\% (validé à 100\,\% dans le référentiel de l'Ardèche), la section cadastrale A à 95\,\%, ainsi que le numéro d'ordre 3854 à 70\,\% (la présence d'un chiffre parasite 4 étant provoquée par le coin d'un tampon en marge, rapidement relevé par le contrôle de cohérence). Le nom du géomètre est détecté par balayage textuel (80\,\%), et la nature de l'acte est déduite comme étant un bornage.
+Le script de classification analyse le fichier et le reconnaît comme un DMPC en quelques secondes, sur la base de sa structure. Le modèle VLM traite ensuite les onze zones d'intérêt découpées par YOLOv8 sur la page. L'extraction automatique identifie la commune de Prades avec un indice de confiance de 92\,\% (validé à 100\,\% dans le référentiel de l'Ardèche), la section cadastrale A à 95\,\%, ainsi que le numéro d'ordre 385 à 70\,\% (la présence d'un chiffre parasite 4 étant provoquée par le coin d'un tampon en marge, rapidement relevé par le contrôle de cohérence). Le nom du géomètre est détecté par balayage (80\,\%), et la nature de l'acte est déduite comme étant un bornage.
 
-Le contrôle de cohérence en quatre couches retourne un statut conforme avec un score de 100\,\%. L'image annotée générée par le traitement est reproduite en Figure~\ref{fig:harrois_annote}.
+Le contrôle de cohérence en quatre couches retourne un statut conforme avec un score de 83\,\%. L'image annotée générée par le traitement est reproduite en Figure~\ref{fig:harrois_annote}.
 
 \begin{figure}[H]
   \centering
@@ -111,11 +111,37 @@ Le contrôle de cohérence en quatre couches retourne un statut conforme avec un
   \label{fig:harrois_annote}
 \end{figure}
 
-L'interface de validation (présentée au chapitre~\ref{sec:fiabilisation}) affiche directement les données extraites du document. L'opérateur contrôle les informations, comme la commune ou la section, et corrige les petites erreurs si nécessaire, par exemple le numéro d'ordre (\texttt{3854} $\rightarrow$ \texttt{385}) perturbé par un tampon en marge.
+Cette figure montre le document source avec les cadres de couleur dessinés par le modèle YOLOv8 autour de chaque zone d'intérêt (comme la commune, la section cadastrale ou les numéros). Les bandes noires ont été ajoutées pour anonymiser les informations personnelles figurant sur l'acte. Cette représentation permet de vérifier d'un coup d'œil que l'algorithme a découpé les bonnes parties de la page avant l'extraction des données.
 
-À l'étape 1, la recherche dans le répertoire numérisé retrouve la référence interne du dossier au cabinet.
+L'interface de validation (présentée au chapitre~\ref{sec:fiabilisation}) affiche directement les données extraites du document. L'opérateur contrôle les informations, comme la commune ou la section, et corrige les petites erreurs si nécessaire, par exemple le numéro d'ordre (\texttt{3854} $\rightarrow$ \texttt{385}) perturbé par la forme du chiffre 4.
 
-À l'étape 2, la carte interactive affiche la parcelle sur le fond cadastral IGN. L'opérateur vérifie qu'aucune pastille n'existe déjà à cet endroit, puis confirme la localisation. Les coordonnées GPS sont automatiquement converties en Lambert-93 par la fonction \texttt{latlon\_to\_lambert93()}.
+À l'étape 1, la recherche dans le répertoire numérisé retrouve la référence du dossier au cabinet (Figure~\ref{fig:match_confirm}).
+
+\begin{figure}[H]
+  \centering
+  \setlength{\fboxsep}{0pt}%
+  \setlength{\fboxrule}{0.5pt}%
+  \fbox{\includegraphics[width=0.98\linewidth]{img/6.4_match_confirm.jpg}}
+  \caption{Validation de la correspondance de la référence dossier dans l'interface.}
+  \label{fig:match_confirm}
+\end{figure}
+
+Cette figure montre l'écran où l'application affiche la référence d'archive retrouvée dans le répertoire du cabinet. L'opérateur peut ainsi confirmer le rapprochement entre le document numérisé et l'affaire correspondante avant de passer à l'étape suivante. Le nom du propriétaire a été rogné par souci de confidentialité.
+
+À l'étape 2, la carte interactive affiche la parcelle sur le fond cadastral IGN (Figure~\ref{fig:etape2_parcelle}). L'opérateur vérifie qu'aucune pastille n'existe déjà à cet endroit, puis confirme la localisation. Les coordonnées GPS sont automatiquement converties en Lambert-93 par la fonction \texttt{latlon\_to\_lambert93()}.
+
+\begin{figure}[H]
+  \centering
+  \setlength{\fboxsep}{0pt}%
+  \setlength{\fboxrule}{0.5pt}%
+  \fbox{\includegraphics[width=0.95\linewidth]{img/6.4_etape2_parcelles.jpg}}
+  \caption{Localisation et vérification de la filiation parcellaire.}
+  \label{fig:etape2_parcelle}
+\end{figure}
+
+Cette figure illustre l'étape de vérification. On y observe bien la filiation parcellaire : l'emprise affichée correspond à l'ancienne parcelle d'origine, plus grande. L'opérateur peut alors deplacer le curseur ici en rouge pour placer au mieux le dossier en fonction du DMPC. 
+
+
 
 À l'étape 3, l'interface affiche le récapitulatif complet des données avant l'envoi.
 
@@ -123,26 +149,28 @@ L'opérateur clique sur \enquote{Créer le dossier sur Géofoncier}. L'API retou
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.95\textwidth]{img/6_succes_pastille.jpg}
+  \setlength{\fboxsep}{0pt}%
+  \setlength{\fboxrule}{0.5pt}%
+  \fbox{\includegraphics[width=0.98\linewidth]{img/6_succes_pastille.jpg}}
   \caption{Confirmation de la création du dossier sur Géofoncier.}
   \label{fig:confirmation_geofoncier}
 \end{figure}
 
-Le dossier est désormais visible sur GéofoncierEXPERT sous forme de pastille géolocalisée, consultable par l'ensemble de la profession. Le statut de la ligne dans le fichier CSV local est automatiquement mis à jour avec la mention \texttt{Versé sur Géofoncier} et l'horodatage exact de la publication.
+Le dossier est désormais visible sur GéofoncierEXPERT sous forme de pastille géolocalisée, consultable par l'ensemble de la profession. Le statut de la ligne dans le fichier CSV local est automatiquement mis à jour avec la mention \texttt{Versé sur Géofoncier} et l'heure de publication.
 
 \subsection{Évaluation des performances}
 
-Sans l'outil, retrouver un dossier dans les archives physiques prend au minimum une dizaine de minutes lorsque les boîtes sont bien organisées. Ce temps s'allonge si les dossiers sont mal rangés, si le registre du géomètre correspondant n'est pas encore numérisé, ou si plusieurs affaires correspondent aux mêmes références cadastrales.
+Sans l'outil, retrouver un dossier dans les archives physiques prend au minimum une dizaine de minutes lorsque les dossiers sont bien organisés. Ce temps s'allonge si les dossiers sont mal rangés, si le registre du géomètre correspondant n'est pas encore numérisé, ou si plusieurs affaires correspondent aux mêmes références cadastrales.
 
-Avec cet outil, le déroulement ne demande que quelques minutes de traitement OCR automatique (environ dix minutes pour un lot complet de cinq à six documents), suivies de deux ou trois minutes de contrôle dans l'interface pour relire les champs et valider la position cartographique, puis enfin quelques secondes pour le versement final par l'API.
+Avec cet outil, le déroulement ne demande que quelques minutes de traitement OCR automatique (environ dix minutes pour un groupe de cinq à six documents), suivies de deux ou trois minutes de contrôle dans l'interface pour relire les champs et valider la position, puis enfin quelques secondes pour le versement final par l'API.
 
-Le temps d'intervention humaine est réduit à un contrôle de qualité sur des données déjà pré-remplies. La tâche n'est plus une recherche manuelle dans des archives physiques mais une validation d'un formulaire déjà instruit (chapitre~\ref{sec:fiabilisation}).
+Le temps d'intervention humaine est réduit à un contrôle sur des données déjà pré-remplies. La tâche n'est plus une recherche manuelle dans des archives physiques mais une validation (chapitre~\ref{sec:fiabilisation}).
 
 Le système a été testé sur une trentaine de documents couvrant plusieurs fonds et plusieurs types d'actes. Le Tableau~\ref{tab:qualite_extraction} présente une synthèse des observations par type de document.
 
 \begin{table}[H]
   \centering
-  \caption{Synthèse qualitative de l'extraction par type de document.}
+  \caption{Synthèse des observations par type de document.}
   \label{tab:qualite_extraction}
   \small
   \begin{tabular}{p{3cm}p{3.5cm}p{3.5cm}p{2.5cm}}
@@ -167,32 +195,31 @@ Pour compléter les observations qualitatives, une évaluation statistique des t
 
 \begin{table}[H]
   \centering
-  \caption{Taux de précision et de rappel observés par champ d'indexation.}
+  \caption{Taux de précision et de rappel observés par champ (échantillon encore limité).}
   \label{tab:precision_par_champ}
   \small
   \begin{tabular}{p{4.5cm} c c c}
     \toprule
     \textbf{Champ d'indexation} & \textbf{Précision (\%)} & \textbf{Rappel (\%)} & \textbf{Score F1 (\%)} \\
     \midrule
-    Nom de la commune & 97,0 & 94,1 & 95,5 \\
-    Code INSEE & 97,0 & 97,0 & 97,0 \\
-    Section cadastrale & 91,2 & 88,6 & 89,9 \\
-    Numéro de parcelle & 88,5 & 85,0 & 86,7 \\
-    Date de l'acte & 86,1 & 82,4 & 84,2 \\
-    Nom du géomètre-expert & 94,1 & 91,3 & 92,7 \\
-    Référence du dossier & 82,8 & 79,3 & 81,0 \\
+    Nom de la commune & 88,0 & 85,0 & 86,5 \\
+    Code INSEE & 88,0 & 88,0 & 88,0 \\
+    Section cadastrale & 78,0 & 74,0 & 75,9 \\
+    Numéro de parcelle & 72,0 & 68,0 & 69,9 \\
+    Nom du géomètre-expert & 82,0 & 78,0 & 79,9 \\
+    Date de l'acte & 68,0 & 62,0 & 64,9 \\
+    Référence du dossier & 62,0 & 58,0 & 59,9 \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-Les informations comme la commune et le code INSEE atteignent des taux de précision élevés grâce au découpage d'image par YOLOv8 (chapitre~\ref{sec:architecture}) et au filtrage géographique par la distance de Levenshtein (chapitre~\ref{sec:fiabilisation}). Les numéros de section et de parcelles atteignent un score F1 proche de 90\,\%, les erreurs résiduelles s'expliquant par la superposition de traits de dessin ou de pliures du papier. Enfin, les dates et références de dossiers extraites des registres affichent une précision de 81 à 84\,\%.
-% >>>>>>>>>>>>>>>>>>>
+Les informations comme la commune et le code INSEE atteignent les taux les plus élevés (autour de 88\,\%) grâce au découpage par YOLOv8 (chapitre~\ref{sec:architecture}) et au filtrage (chapitre~\ref{sec:fiabilisation}). Les numéros de section et de parcelles atteignent un score F1 compris entre 70\,\% et 76\,\%, les erreurs s'expliquant par la superposition de traits de dessin sur le papier. Enfin, les dates et références de dossiers extraites d'actes anciens restent difficiles à lire en manuscrit, avec des taux entre 60\,\% et 68\,\%.
 
-Quelques situations posent des difficultés récurrentes. Les numéros de dossier interne sont rarement présents sur le plan lui-même et doivent être retrouvés dans les registres numérisés, ce qui n'est possible que pour les géomètres dont le répertoire a déjà été traité. Tant que certains fonds ne sont pas couverts, cette étape reste manuelle.
+Quelques situations posent des difficultés à chaques fois. Les numéros de dossier sont rarement présents sur le plan lui-même et doivent être retrouvés dans les registres numérisés, ce qui n'est possible que pour les géomètres dont le répertoire a déjà été traité. Tant que certains fonds ne sont pas couverts, cette étape reste manuelle.
 
 Par ailleurs, les parcelles très anciennes peuvent ne plus figurer dans la base cadastrale actuelle. La filiation parcellaire permet de remonter la chaîne dans la plupart des cas, mais certains historiques incomplets laissent des situations sans correspondance automatique.
 
-Enfin, le temps de traitement par lot reste significatif sur un poste sans accélération GPU. Ce point, ainsi que les perspectives d'amélioration, sont abordés dans le chapitre suivant (chapitre~\ref{sec:limites_perspectives}).
+L'intégration avec l'API Géofoncier et l'automatisation de la chaîne apportent un gain de temps précieux au cabinet. Toutefois, la diversité des fonds d'archives et l'état de certains documents imposent d'en analyser les limites. Le chapitre suivant (chapitre~\ref{sec:limites_perspectives}) dresse le bilan de ces contraintes et présente les pistes d'amélioration envisagées.
 
 
 
