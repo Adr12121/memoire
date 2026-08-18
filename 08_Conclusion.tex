@@ -1,38 +1,41 @@
 % !TeX root = main.tex
 
-\section{Conclusion générale}
+\section{Conclusion}
 \label{sec:conclusion_generale}
 
-Ce projet de fin d'études avait pour objectif de dématérialiser, d'analyser et de valoriser le fonds d'archives d'un cabinet de géomètres-experts. En combinant le traitement d'images, la reconnaissance de texte et des interfaces web simples, l'outil développé répond aux besoins quotidiens des équipes du cabinet.
+Ce projet avait un objectif  : lire automatiquement des archives foncières très diverses, extraire les informations utiles et les verser sur Géofoncier, le tout sans aucun transfert de données vers l'extérieur du cabinet.
 
-\subsection{Bilan du projet et apports pour le cabinet}
 
-Les travaux réalisés ont permis de construire une chaîne de traitement complète, qui part de la numérisation des documents papier et va jusqu'à la création automatique de fiches géolocalisées sur le portail Géofoncier.
+\subsection{Ce que le projet a produit}
 
-Le premier résultat réside dans la capacité à lire automatiquement des documents d'archives variés. L'utilisation du modèle YOLOv8 pour repérer les zones, d'EasyOCR pour les textes imprimés et du modèle MiniCPM-V pour les écritures manuscrites permet de traiter la plupart des pièces du fonds, comme exposé au chapitre~\ref{sec:architecture}. La comparaison automatique avec le fichier des communes de l'Ardèche et de la Drôme via la distance de Levenshtein corrige la majorité des fautes d'orthographe sur les noms de lieux (chapitre~\ref{sec:fiabilisation}).
+L'outil développé couvre la totalité de la chaîne : classification du document entrant, redressement de l'image, détection des zones d'intérêt par YOLOv8, lecture par EasyOCR ou MiniCPM-V selon le type d'écriture, validation des champs par l'opérateur, et versement sur Géofoncier via l'API REST. Sur un lot de test de 33 documents, 82\,\% ont été pré-remplis sans aucune correction. Le temps de validation par dossier tombe à moins de trois minutes, contre 10 à 30 minutes pour une recherche dans les archives physiques.
 
-Toutes les données sont traitées localement sur les ordinateurs du cabinet. Aucun document ne transite par des serveurs distants, ce qui garantit le respect du secret professionnel et la sécurité des informations foncières (chapitre~\ref{sec:analyse_metier}). L'exécution des tâches lourdes pendant la nuit évite de ralentir les postes de travail dans la journée.
+Toutes les données restent sur les machines du cabinet. Aucun document ne passe par un serveur distant. Ce choix, imposé par le secret professionnel, a contraint le choix des modèles mais a été tenu du début à la fin du projet.
 
-L'interface développée avec Streamlit propose un parcours simple en trois étapes. L'opérateur peut relire rapidement les informations extraites, vérifier le placement sur la carte interactive et valider l'envoi sur Géofoncier (chapitre~\ref{sec:integration}). Pour le cabinet, le gain de temps est très net : la recherche d'un dossier ancien, qui demandait autrefois 10 à 30 minutes dans les boîtes en carton, se fait maintenant en quelques secondes sur l'ordinateur. La numérisation protège aussi les documents originaux contre l'usure du temps.
+L'outil couvre aujourd'hui les deux principaux fonds du siège d'Aubenas, soit environ deux tiers des 23\,600 dossiers recensés. Le tiers restant, comprenant les registres des agences secondaires et les fonds d'anciens géomètres, sera traité progressivement par les opérateurs du cabinet.
 
-De plus, l'indexation systématique des archives permet d'offrir une meilleure réactivité aux sollicitations des notaires et des clients lors des demandes de renseignements fonciers, valorisant ainsi le patrimoine documentaire constitué au fil des décennies par le cabinet et ses prédécesseurs.
 
-\subsection{Limites et perspectives}
+\subsection{Ce qui reste à faire}
 
-% A RELIRE
-Deux limites importantes doivent toutefois être soulignées sur les résultats de ce projet, comme analysé en détail au chapitre~\ref{sec:limites_perspectives}. D'une part, la détection automatique fonctionne très mal sur le répertoire du Géomètre B. Comme ce registre est un livret entièrement manuscrit sans colonnes imprimées, avec des écritures penchées et des ratures, la lecture automatique échoue souvent et demande une correction manuelle presque complète de la part de l'opérateur. D'autre part, la solution ne couvre pas la totalité des archives du cabinet : seuls environ deux tiers des dossiers sont actuellement pris en compte, le tiers restant correspondant à des registres anciens non encore numérisés ou à des pièces conservées dans des agences secondaires.
-% >>>>>>>>>>>>>>>>>>>
+Le point faible le plus net est le répertoire du Géomètre B. Ce livret entièrement manuscrit, sans colonnes ni séparateurs, produit des résultats insuffisants avec le VLM généraliste utilisé. Un modèle HTR entraîné spécifiquement sur ces écritures, à partir des corrections accumulées, serait la piste la plus directe pour progresser.
 
-Malgré ces limites, la démarche reste intéressante pour la profession. La chaîne de traitement peut être adaptée à d'autres fonds d'archives en réglant simplement les zones de découpage et les listes de communes. À l'avenir, le réentraînement régulier des modèles avec les corrections des utilisateurs permettra d'améliorer la lecture des manuscrits. Le lien direct avec les services web du cadastre permettra aussi de mieux suivre l'historique des parcelles, tout en ouvrant la voie à une intégration directe dans les logiciels métier comme QGIS (chapitre~\ref{sec:limites_perspectives}).
+Plus généralement, l'outil a besoin d'un second cycle de développement pour être pleinement exploitable en production. La navigation entre documents dans l'interface Streamlit est encore peu pratique sur les grands lots. Le journal d'erreurs du versement n'est pas accessible depuis l'interface. La boucle d'apprentissage actif, qui permettrait d'enrichir automatiquement le jeu d'entraînement à partir des corrections des opérateurs, n'est pas encore fermée. Ce sont des améliorations faisables et identifiées, mais qui n'ont pas pu être menées dans le temps imparti du PFE.
 
-En outre, la généralisation d'un tel outil à l'échelle d'autres cabinets régionaux contribuerait à accélérer le versement des archives privées sur Géofoncier, renforçant ainsi la complétude du référentiel national des interventions foncières.
 
 \subsection{Bilan personnel}
 
-Ce projet de fin d'études a été une expérience très enrichissante, aussi bien sur le plan technique que professionnel. 
+Ce projet a confirmé que la problématique traitée ici n'est pas propre au cabinet GEO-SIAPP. Un grand nombre de documents sont stockés dans les archives des cabinets de géomètres, et la plupart des équipes les recherchent manuellement. Le besoin existe à grande échelle, et l'approche développée ici, même incomplète, montre qu'il est possible d'y répondre avec des outils accessibles, sans infrastructure cloud et sans budget matériel important.
 
-Sur le plan technique, il m'a permis de mettre en pratique mes connaissances en vision par ordinateur, en traitement de texte et en développement web, en réalisant une application complète de la donnée brute jusqu'à l'interface finale. La gestion des contraintes matérielles et de la sobriété numérique m'a amené à privilégier des architectures légères et des modèles quantifiés adaptés au matériel de l'entreprise.
+Des bases en Python existaient avant ce projet, mais la distance entre écrire des scripts simples et assembler une arborescence de traitement d'images fonctionnel sur des documents dégradés est réelle. La difficulté principale n'était pas technique, c'était de partir d'une problématique large, de la cadrer, et de produire quelque chose utile au cabinet en six mois. Les outils d'IA générative ont été une aide pour avancer plus vite sur les parties de code les moins familières, notamment le traitement d'image avec OpenCV et l'intégration des modèles via Ollama, avant tout application sur des exemples concrets pour ne pas diffuser ces mêmes plans.
 
-Sur le plan professionnel, cette immersion au sein du cabinet GEO-SIAPP m'a fait découvrir le métier de géomètre-expert et ses contraintes juridiques. Travailler quotidiennement avec les géomètres et les techniciens m'a permis de mieux comprendre leurs besoins du terrain et de concevoir des outils adaptés à leurs habitudes de travail. Ce projet a confirmé mon envie de travailler dans le développement de solutions informatiques appliquées à la géomatique et aux données du territoire.
+Ce projet a également rappelé que l'IA n'est pas une solution en soi. C'est un ensemble d'outils qui, bien choisis et bien assemblés, peuvent répondre à des problèmes très concrets. Mais chaque modèle a ses limites, et ces limites apparaissent vite dès qu'on sort des conditions idéales. Le travail de fiabilisation et de contrôle, décrit au chapitre~\ref{sec:fiabilisation}, est au moins aussi important que le choix des modèles.
+
+
+\subsection{Ouverture}
+
+Ce projet s'inscrit dans un mouvement plus large. Le 48\textsuperscript{e} Congrès des géomètres-experts, qui s'est tenu à Nantes du 23 au 25 juin 2026, a été entièrement consacré à l'impact de l'intelligence artificielle sur les technologies et les expertises de la profession. Plus de 1\,400 professionnels s'y sont réunis, ce qui en fait le plus grand rassemblement de l'Ordre depuis sa création. À l'issue de cette édition, une charte d'utilisation de l'IA, votée le 19 mai 2026, est entrée en application le 1\textsuperscript{er} septembre 2026. Elle repose sur quatre principes : transparence vis-à-vis du client, protection des données, traçabilité, et maintien de la responsabilité du professionnel sur le livrable final.
+
+Ce cadre correspond à ce que ce projet a cherché à respecter : l'outil produit des propositions, l'opérateur valide. Aucun versement ne se fait sans relecture humaine. La question de la place de l'IA dans le métier de géomètre-expert ne se limite d'ailleurs pas aux archives. Le traitement de nuages de points, la génération de procès-verbaux, l'analyse d'images issues de drones : autant de domaines où des approches similaires pourraient être utiles. Ce PFE est, à sa modeste échelle, un cas d'usage concret parmi ceux que la profession commence à explorer.
+
 
 

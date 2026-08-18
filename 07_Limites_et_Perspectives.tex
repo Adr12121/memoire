@@ -3,77 +3,161 @@
 \section{Limites du projet et perspectives d'évolution}
 \label{sec:limites_perspectives}
 
-Ce chapitre dresse le bilan du projet. Il présente les contraintes rencontrées sur les archives papier, les choix de sécurité et de sobriété numérique, l'impact sur le travail au cabinet, puis les perspectives d'amélioration envisagées.
-
-\subsection{Limites liées aux documents papier}
+Ce chapitre fait le bilan du projet : ce que le système ne lit pas correctement, ce qu'il ne couvre pas encore, les difficultés concrètes pour un opérateur non développeur, et les pistes d'amélioration les plus plausibles.
 
 
-L'automatisation du traitement se heurte à plusieurs difficultés liées à l'état et à la diversité des archives papier. Les documents s'étalent sur plusieurs dizaines d'années et présentent un état de conservation très variable. L'humidité, le papier pâli, les plis et la transparence des calques dégradent la lisibilité des caractères. Sur les formulaires anciens, les tampons administratifs et les signatures recouvrent parfois le texte imprimé, créant des bruits de lecture qui perturbent les modèles d'analyse visuelle. De plus, les variations de luminosité ou d'inclinaison lors de la numérisation peuvent provoquer des erreurs de lecture si la résolution du scan est inférieure au seuil recommandé.
+\subsection{Ce que le système ne sait pas lire}
 
-% A RELIRE
-Deux limites importantes doivent être soulignées sur ce projet. Tout d'abord, la détection automatique fonctionne très mal sur le répertoire du Géomètre B. Comme présenté lors du développement de l'interface d'extraction au chapitre~\ref{sec:fiabilisation}, le registre du Géomètre B est un livret entièrement manuscrit sans séparateur physique imprimé, contrairement au Géomètre A. Les écritures penchées, les ratures et le chevauchement des lignes entre les cases entraînent un taux d'échec élevé. La lecture automatique échoue souvent sur ce fonds et demande une correction manuelle presque complète de la part de l'opérateur. Ensuite, la solution actuelle ne couvre pas l'ensemble des archives du cabinet. Seuls environ deux tiers des dossiers sont pris en compte, le tiers restant correspondant à des registres d'anciens géomètres non encore numérisés, à des boîtes conservées dans les agences secondaires ou à des pièces de travail internes.
-% >>>>>>>>>>>>>>>>>>>
+Le système ne lit pas tout. Sur les documents dégradés, l'extraction échoue régulièrement sur un ou plusieurs champs, parfois sur la totalité du document.
 
-D'autres difficultés apparaissent lors de la lecture des pièces. Les notes ajoutées au crayon par les géomètres manquent parfois de contraste lors du balayage optique. Sur les documents DMPC des années 1970 à 1990, des tampons de réception du cadastre placés près des cases ajoutent des chiffres parasites qui exigent une vérification. De plus, sur les formulaires où l'encre est effacée, l'OCR peut confondre des chiffres proches comme le 3 et le 8. 
+Le cas le plus difficile est celui des plans papiers calques devenus transparents avec le temps. Au moment de la numérisation, le scanner traverse le papier et capte simultanément le recto et le verso. Les modèles reçoivent alors deux couches d'écriture superposées qu'ils ne peuvent pas distinguer, ce qui rend la correction manuelle systématique. Les tampons, apposés directement sur les numéros de parcelles des DMPC, masquent une partie des chiffres. Le VLM tente d'arbitrer ces zones mais se trompe souvent sur les chiffres visuellement proches sous un tampon, notamment les paires 3/8, 0/6 et 1/7. Enfin, les annotations au crayon ajoutées après signature manquent de contraste : l'OCR ne les détecte presque pas, et le VLM renvoie la mention \texttt{INCERTAIN}.
 
-Enfin, pour les dossiers très anciens créés avant les remembrements ou issus du cadastre napoléonien, les numéros de parcelles n'existent plus dans le cadastre actuel. Bien que le module de filiation parcellaire retrouve l'historique dans la plupart des cas récents, l'absence de table de concordance dans certaines communes rurales interrompt la recherche automatique. L'opérateur doit alors consulter les cartes anciennes pour placer le repère à la main sur le fond de carte.
+Sur les DMPC des années 1970 à 1990, ces mêmes confusions de chiffres surviennent aussi lorsque l'encre a partiellement disparu, sans qu'il y ait de tampon. Pour les documents numérisés de la forme registres ou encore feuille double, la courbure des pages au niveau de la reliure crée des lignes de texte incurvées que la simple rotation ne suffit pas à redresser. L'homographie appliquée en prétraitement (chapitre~\ref{sec:architecture}) atténue ce problème, mais ne le résout pas sur les documents présentant une courbure forte, étant donc entierement dépendant de la qualité de la numérisation.
 
-\subsection{Choix d'architecture, sobriété et sécurité}
+Les numéros de dossier posent un autre problème : ils n'apparaissent presque jamais sur le plan lui-même. Ils doivent être retrouvés en croisant les données avec le registre du géomètre correspondant, c'est d'ailleurs pour cette raison qu'un travail de numérisation de ces registres a été entrepris. Si ce registre n'a pas encore été numérisé et indexé, le champ reste vide et doit être renseigné manuellement. Pour les dossiers antérieurs aux grands remembrements ou issus du cadastre napoléonien, les numéros de parcelles n'ont plus de correspondance dans le cadastre actuel. Le module de filiation parcellaire décrit au chapitre~\ref{sec:analyse_metier} remonte la chaîne dans la plupart des cas, mais certaines communes plutôt rurales ne disposent pas d'un historique complet dans la base DGFiP. Sur ces cas, le marqueur de localisation ne peut pas être placé automatiquement sur la carte et reste à la charge de l'opérateur, qui peut ne pas être possible du fait de la qualité du plan ou du manque d'information.
 
-Plusieurs modèles d'intelligence artificielle ont été comparés lors du développement pour mesurer leur efficacité sur les archives foncières, comme analysé dans l'état de l'art (chapitre~\ref{sec:etat_art}). Le Tableau~\ref{tab:comparatif_architectures} résume les observations principales.
+
+\subsection{Le répertoire du Géomètre B : les limites face au manuscrit sans mise en page}
+
+Le répertoire du Géomètre B est le point faible le plus net du projet. Il s'agit d'un livret entièrement manuscrit, sans séparateurs prédéfinis. Chaque ligne de dossier est rédigée à la main dans une écriture cursive, avec des ratures et des chevauchements fréquents entre lignes.
+
+La stratégie hybride adoptée (redressement de page, détection des lignes de texte, puis soumission de chaque ligne découpée au VLM via Ollama) réduit le nombre d'erreurs par rapport à un OCR seul, mais le résultat reste insuffisant sur les pages les plus chargées ou les plus sujettes à interprétation. Sur ces pages, l'opérateur doit corriger la majorité des champs : le gain de temps par rapport à une saisie entièrement manuelle est donc faible. Le taux de réussite sur ce fonds est inférieur de 15 à 20\,\% à celui du répertoire du Géomètre A, dont la mise en page, avec colonnes fixes et séparateurs de couleur, rend la segmentation automatique bien plus fiable.
+
+Ce fonds nécessiterait un modèle HTR entraîné spécifiquement sur les écritures de ce géomètre, à partir des paires (image de ligne, texte corrigé) accumulées lors des corrections manuelles. Un VLM généraliste, qui n'a pas été exposé à ce type d'écriture lors de son entraînement, ne peut pas compenser ce manque par des instructions seules.
+
+
+\subsection{Ce que le projet ne couvre pas encore}
+
+Sur les 23~600 dossiers recensés au siège d'Aubenas visé par l'étude, la solution traite aujourd'hui les deux principaux fonds, ce qui représente environ deux tiers du total. Le tiers restant comprend des registres d'anciens géomètres avec peu de dossiers chacun, des boîtes conservées dans les agences de Vallon-Pont-d'Arc et Guilherand-Granges, et des pièces internes (devis, factures, croquis de terrain) qui ne sont pas des actes fonciers et ne sont donc pas concernés par le versement Géofoncier.
+
+Du côté du versement, seule quelques dizaines de dossiers ont été publiés sur le portail pendant la durée du PFE. L'outil est fonctionnel, mais traiter l'ensemble des dossiers demande bien plus de six mois. Le reste sera versé progressivement par les opérateurs du cabinet, en parallèle de leur activité courante.
+
+Le système a été conçu pour les fonds d'un seul cabinet, avec ses propres conventions de mise en page, ses géomètres attitrés et sa structure d'archivage. Transposer la solution dans un autre cabinet demanderait un travail de reconfiguration. En effet, il faudrait notamment redéfinir les gabarits de champs attendus, adapter les règles aux nouvelles mises en page, et ré-entraîner ou affiner les modèles sur les nouvelles écritures rencontrées. Il n'existe pas de configuration générique utilisable telle quelle.
+
+Une autre limite concerne les données déjà versées sur Géofoncier. Une fois un dossier publié, aucun mécanisme ne détecte une erreur qui aurait échappé à la validation manuelle. Si un numéro de parcelle a été mal lu et validé par l'opérateur, il reste dans la base sans signal d'alerte. Un contrôle qualité a posteriori, par recoupement avec d'autres sources (registres, cadastre, actes notariés), n'est pas prévu dans l'outil actuel et supposerait un développement dédié.
+
+
+
+
+\subsection{Difficultés pour l'opérateur en cas de problème}
+
+Un aspect rarement abordé dans les projets de ce type est la difficulté de maintenance pour un utilisateur non développeur. Le système repose sur plusieurs composants qui doivent fonctionner ensemble : un environnement Python avec plusieurs dizaines de bibliothèques, un serveur Ollama qui tourne en tâche de fond avec le modèle VLM chargé en mémoire, et une application Streamlit accessible depuis le navigateur. Si l'un de ces composants ne répond plus, l'opérateur ne voit qu'un message d'erreur dans le navigateur ou un blocage de l'interface, sans indication sur l'origine du problème.
+
+Si Ollama n'est pas démarré, l'arbitrage VLM échoue et le champ est marqué \texttt{INCERTAIN} sans explication. Si une bibliothèque Python a été mise à jour par inadvertance, l'application peut refuser de démarrer avec un message d'erreur pas forcément facile à interpréter. La procédure de redémarrage complète (relancer Ollama, activer l'environnement virtuel, lancer Streamlit) n'est pas triviale pour quelqu'un qui n'a pas participé au développement.
+
+L'interface de validation elle-même présente un point pouvant poser problème : passer d'un document au suivant dans un groupe choisi (une dizaine de documents en général) oblige à attendre un rechargement complet de la page, ce qui devient lourd sur des dizaines de documents. Les corrections saisies disparaissent si l'opérateur oublie de cliquer sur le bouton de sauvegarde avant de naviguer. Ce comportement, propre à Streamlit et décrit au chapitre~\ref{sec:fiabilisation}, est difficile à corriger sans changer de framework.
+
+Sur le versement par lot (\texttt{export\_geofoncier.py}), les erreurs renvoyées par l'API sont enregistrées dans un fichier journal, mais ce fichier n'est pas affiché dans l'interface. L'opérateur doit l'ouvrir manuellement pour comprendre pourquoi un versement a échoué, ce qui suppose de savoir où le trouver et comment l'interpréter. Ce choix est justifié par le fait que les messages d'erreurs sont difficiles à interpreter sans la documentation sur l'api en parallèle. 
+
+
+\subsection{Ce que la contrainte locale a imposé sur le choix des modèles}
+
+L'exécution locale sur Windows imposée par le secret professionnel (voir chapitre~\ref{sec:analyse_metier}) a écarté d'emblée les solutions cloud et les architectures nécessitant un GPU. Cela a orienté le choix vers des modèles légers et vers la quantification 4 bits du VLM via Ollama, qui permet de passer de 14~Go à moins de 4~Go en mémoire. Le Tableau~\ref{tab:comparatif_approches} rappelle les quatre approches testées.
 
 \begin{table}[H]
   \centering
-  \caption{Synthèse comparative des architectures d'IA testées sur les archives.}
-  \label{tab:comparatif_architectures}
+  \caption{Approches testées pour l'extraction d'information sur les archives foncières du cabinet.}
+  \label{tab:comparatif_approches}
   \small
   \begin{tabular}{p{3.2cm}p{3cm}p{3cm}p{3cm}}
     \toprule
-    \textbf{Architecture} & \textbf{Tâche visée} & \textbf{Avantages} & \textbf{Limites} \\
+    \textbf{Approche} & \textbf{Tâche} & \textbf{Avantages} & \textbf{Limites} \\
     \midrule
-    OCR classique (EasyOCR) & Textes imprimés & Traitement très rapide sur processeur simple & Échec sur manuscrits et formulaires dégradés \\
+    OCR classique (EasyOCR) & Textes imprimés & Très rapide sur CPU, aucun entraînement nécessaire & Inefficace sur les écritures manuscrites \\
     \addlinespace
-    LayoutLMv3 & Documents à mise en page fixe & Bonne prise en compte de la structure du document & Exige un réentraînement lourd sur données annotées \\
+    LayoutLM(v3) & Documents à mise en page fixe & Intègre la structure du document dans l'analyse & Nécessite des pages annotées pour l'entraînement \\
     \addlinespace
-    GLiNER & Extraction d'entités dans le texte & Aucune étape d'entraînement préalable & Dépend directement de la qualité du texte OCR \\
+    GLiNER & Extraction d'entités nommées & Fonctionne sans entraînement préalable sur le domaine & Dépendant de la qualité de la lecture OCR \\
     \addlinespace
-    VLM local (MiniCPM-V) & Registres manuscrits & Bonne lecture du contexte et de l'écriture cursive & Traitement plus lent sur processeur standard \\
+    VLM local (MiniCPM-V) & Registres manuscrits & Analyse visuelle et contextuelle des zones complexes & Lent sur CPU, résultats variables sur documents dégradés \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-Ces essais montrent qu'aucun modèle ne répond seul à l'ensemble des besoins du cabinet. L'OCR classique est très rapide sur le texte imprimé mais échoue sur les manuscrits, tandis que les modèles de mise en page comme LayoutLMv3 demandent un réentraînement lourd et fastidieux sur données annotées. L'association du modèle YOLOv8 pour repérer les zones, d'EasyOCR pour le texte imprimé et du modèle VLM MiniCPM-V pour le manuscrit offre le meilleur équilibre entre précision, souplesse et autonomie locale (chapitre~\ref{sec:architecture}).
-
-Pour respecter le secret professionnel et protéger les données personnelles des propriétaires, tous les traitements s'exécutent localement sur les serveurs du cabinet. Aucun document ni aucune information foncière n'est envoyé vers des serveurs cloud distants. Le géomètre-expert conserve ainsi la responsabilité et le contrôle de toutes les données validées avant leur publication sur le portail Géofoncier, conformément aux règles déontologiques prévues par la réglementation de la profession, exposées au chapitre~\ref{sec:analyse_metier}.
-
-Ce fonctionnement local permet aussi de maîtriser les coûts informatiques et la consommation d'énergie. Pour exécuter le modèle VLM sans surcharger les cartes graphiques du cabinet, les poids du modèle ont été quantifiés au format 4 bits via Ollama. Cette opération réduit la mémoire vidéo nécessaire de 14 Go à moins de 4 Go tout en conservant une bonne qualité de lecture. Le traitement par lot exécuté durant la nuit permet de lisser la charge de calcul sans ralentir les ordinateurs pendant les heures de bureau. De plus, les données consolidées sont conservées dans des formats ouverts (JSON, CSV, PDF/A) et sauvegardées chaque jour sur un serveur interne sécurisé.
-
-\subsection{Impact sur le cabinet et retours d'expérience}
-
-L'utilisation de la solution modifie en profondeur le travail quotidien au cabinet. La recherche d'un dossier ancien ne nécessite plus de compulser physiquement des répertoires papier ou de chercher dans les boîtes d'archives pendant 10 à 30 minutes. Les géomètres et techniciens retrouvent les affaires en quelques secondes par nom, commune, année ou carte interactive, ce qui permet de répondre plus rapidement aux clients et aux notaires lors des demandes d'antériorités.
-
-Les retours des utilisateurs lors des essais montrent une bonne appropriation de l'interface Streamlit (chapitre~\ref{sec:fiabilisation}). La présentation en deux colonnes avec l'image scannée d'un côté et le formulaire de saisie de l'autre simplifie la relecture. La possibilité de zoomer sur les zones découpées réduit la fatigue visuelle par rapport à une saisie manuelle complète sur des documents papier jaunis ou effacés.
-
-Sur un lot de test de 33 documents évalué avec l'équipe du cabinet, 27 dossiers ont été pré-remplis automatiquement sans besoin de correction (soit 82\,\%), 5 dossiers ont demandé la retouche d'un seul champ (généralement la date ou le numéro de dossier), et 1 seul document très dégradé a dû être ressaisi en entier. Le temps moyen de validation par dossier tombe ainsi à 2 minutes et 40 secondes, ce qui réduit par 6 le temps d'intervention humaine tout en assurant un contrôle systématique des pièces avant versement (chapitre~\ref{sec:integration}).
-
-La numérisation et l'indexation des pièces assurent également la conservation à long terme des originaux contre les risques de dégradation physique, d'incendie ou de dégât des eaux, répondant ainsi aux exigences de conservation de la profession.
-
-\subsection{Perspectives d'évolution et déploiement}
-
-Concernant la publication sur Géofoncier, seule une toute petite partie des dossiers d'archives a été versée sur la plateforme par manque de temps pendant le projet. L'outil est aujourd'hui opérationnel, et c'est aux opérateurs du cabinet de verser le reste des archives au fur et à mesure.
-
-Plusieurs améliorations sont envisageables pour poursuivre le développement de l'outil et augmenter le taux d'automatisation. Les corrections apportées chaque jour par les utilisateurs dans l'interface pourront alimenter un module d'apprentissage actif pour réentraîner périodiquement le modèle YOLOv8 et le moteur de lecture manuscrite. Cette boucle d'amélioration continue permettra d'adapter progressivement les modèles aux écritures spécifiques des anciens géomètres du cabinet, prolongeant ainsi les travaux d'annotation décrits au chapitre~\ref{sec:architecture}.
-
-Une connexion automatique avec les services web géographiques de la DGFiP permettra également de mieux suivre l'historique des parcelles supprimées et de calculer le centroïde du périmètre sans recherche manuelle, en s'appuyant sur la filiation parcellaire présentée au chapitre~\ref{sec:analyse_metier}. L'intégration d'un plugin d'extension pour le logiciel SIG QGIS facilitera aussi l'accès aux archives directement depuis l'outil de traitement cartographique quotidien des techniciens.
-
-En outre, la mise en place d'un système d'alerte automatique lors de la détection de doublons géographiques évitera les re-titrages inutiles. Ce contrôle s'inscrira en amont du versement sur le portail Géofoncier (chapitre~\ref{sec:integration}).
-
-Pour renforcer la démarche de sobriété numérique, une compression adaptative des images scannées pourra être mise en place lors de l'archivage définitif, afin de réduire l'empreinte de stockage sur les serveurs locaux sans altérer la valeur légale des pièces numérisées.
-
-Enfin, l'architecture modulaire développée permet d'étendre la solution à d'autres fonds d'archives. En cas de rachat d'un cabinet confrère ou d'ajout de nouveaux répertoires, il suffit de régler les zones de découpage dans les fichiers de configuration et de charger la liste des communes concernées. La démarche générale, la structure des bases de données et les règles de validation restent les mêmes pour toutes les archives foncières.
+LayoutLM aurait nécessité un réentraînement sur plusieurs centaines de pages annotées par type de document, sans garantie de résultats suffisants sur les registres manuscrits. GLiNER n'extrait que ce que l'OCR a déjà lu : si la lecture est mauvaise, l'entité extraite l'est aussi. Le VLM reste la solution la plus adaptée aux registres manuscrits, mais son temps de calcul (10 à 30 secondes par zone) le réserve aux seuls cas incertains. Le fonctionnement en boucle (EasyOCR, puis GLiNER, puis MiniCPM-V) est une réponse à ces contraintes et non un optimum : avec un GPU dédié et des services cloud autorisés, les performances seraient probablement meilleures.
 
 
+\subsection{Résultats et retours du cabinet}
+
+Sur un lot de test de 33 documents couvrant plusieurs fonds et types d'actes, 27 ont été pré-remplis correctement sans aucune correction (82\,\%), 5 ont demandé la retouche d'un seul champ et 1 a dû être ressaisi entièrement. Le temps moyen de validation par l'opérateur tombe à 2 minutes et 40 secondes par dossier\footnote{Ce chiffre est une estimation issue des observations réalisées lors des sessions de test de l'étudiant. Il n'a pas fait l'objet d'une mesure dans un cas réel : les durées ont été relevées manuellement sur un nombre limité de dossiers, dans des conditions proches mais non représentatives de l'usage en production. Il doit donc être interprété comme un ordre de grandeur.}, contre 10 à 30 minutes pour une recherche dans les archives physiques. Ces chiffres sont encourageants, mais le lot de test est constitué en majorité de DMPC, qui sont les documents les plus faciles à traiter car structurés. Les résultats seraient moins encourageants (par supposition) sur un lot composé de plans calqués, de bornages dessinés, ou de documents très dégradés.
+
+Les scores F1 par champ, détaillés au Tableau~\ref{tab:precision_par_champ} du chapitre~\ref{sec:integration} et représentés sur la Figure~\ref{fig:f1_par_champ}, montrent quels champs sont fiables et lesquels concentrent les corrections.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xbar,
+      width=0.85\textwidth,
+      height=7cm,
+      xlabel={Score F1 (\%)},
+      xmin=0, xmax=100,
+      ytick=data,
+      yticklabels={
+        Référence dossier,
+        Date de l'acte,
+        N° de parcelle,
+        Section cadastrale,
+        Nom du géomètre,
+        Code INSEE,
+        Nom de commune
+      },
+      nodes near coords,
+      nodes near coords align={horizontal},
+      bar width=0.45cm,
+      enlarge y limits=0.15,
+      tick label style={font=\small},
+      label style={font=\small},
+    ]
+      \addplot[fill=gray!60] coordinates {
+        (59.9, 0)
+        (64.9, 1)
+        (69.9, 2)
+        (75.9, 3)
+        (79.9, 4)
+        (88.0, 5)
+        (86.5, 6)
+      };
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Scores F1 par champ d'indexation, mesurés sur le jeu de test de 33 documents. La commune et le code INSEE bénéficient du filtrage par distance de Levenshtein contre le référentiel INSEE. La date et la référence de dossier sont les champs les moins bien lus, notamment sur les actes manuscrits.}
+  \label{fig:f1_par_champ}
+\end{figure}
+
+La commune et le code INSEE atteignent les meilleurs taux (autour de 88\,\%), grâce à l'appariement avec le référentiel INSEE (chapitre~\ref{sec:fiabilisation}). Les numéros de section et de parcelle (F1 entre 70 et 76\,\%) concentrent la majorité des corrections, à cause des tampons et des superpositions de traits sur les registres. Les dates et références de dossier (F1 entre 60 et 65\,\%) restent les champs les moins fiables : leur format varie beaucoup d'un géomètre à l'autre et d'une époque à l'autre. Ces résultats semblent coroborer avec les observations visuelles des différents documents.
+
+Les retours recueillis lors des sessions de test avec les opérateurs du cabinet montrent que l'interface est prise en main rapidement. Le point d'amélioration le plus souvent mentionné est la navigation entre documents et le risque de perdre une correction non sauvegardée, ce qui rejoint les difficultés évoquées à la section précédente. Il a également été question d'une fenêtre pour afficher le rendu une fois le dossier publié sur Géofoncier, et de l'affichage d'une carte interactive pour visualiser les données extraites.
 
 
+\subsection{Perspectives d'évolution}
 
+L'amélioration la plus intéressante à court terme est l'apprentissage actif. Le système est déjà conçu pour être réentraîné sans intervention (chapitre~\ref{sec:architecture}) : un script relance l'entraînement YOLOv8 dès qu'un nouveau lot d'annotations est disponible. Ce qui n'est pas encore en place, c'est la génération automatique de ces annotations à partir des corrections de l'opérateur. Chaque validation ou retouche dans l'interface produit implicitement une paire (image de zone, valeur attendue) : si cette paire est enregistrée et formatée automatiquement, le jeu d'entraînement s'enrichit à chaque cycle sans effort supplémentaire. Pour YOLOv8, quelques dizaines de nouvelles annotations suffisent à un réentraînement rapide. Pour le VLM sur le fonds du Géomètre B, un ajustement ciblé du modèle permettrait d'améliorer significativement ses performances sur ces écritures spécifiques, au lieu de continuer à s'appuyer sur un modèle général.
 
+La Figure~\ref{fig:apprentissage_actif} illustre cette boucle d'amélioration continue.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    node distance=1.4cm and 2cm,
+    block/.style={draw, rectangle, rounded corners=3pt, fill=gray!10, align=center, font=\small, minimum height=0.9cm, minimum width=2.8cm},
+    arrow/.style={-Stealth, thick, color=black!70}
+  ]
+    \node[block] (saisie) {Validation \& correction\\par l'opérateur};
+    \node[block, right=of saisie] (dataset) {Enrichissement du\\jeu d'entraînement};
+    \node[block, below=of dataset] (retrain) {Réentraînement local\\(YOLOv8 / HTR)};
+    \node[block, left=of retrain] (modele) {Mise à jour\\des modèles};
+
+    \draw[arrow] (saisie) -- (dataset);
+    \draw[arrow] (dataset) -- (retrain);
+    \draw[arrow] (retrain) -- (modele);
+    \draw[arrow] (modele) -- (saisie);
+  \end{tikzpicture}
+  \caption{Principe de la boucle d'apprentissage actif pour l'amélioration des modèles en local.}
+  \label{fig:apprentissage_actif}
+\end{figure}
+
+Côté interface, migrer de Streamlit vers un framework web classique (Flask ou FastAPI avec un frontend HTML) supprimerait le rechargement complet de page entre chaque document et permettrait de sauvegarder automatiquement les saisies en cours. Ce changement améliorerait directement le confort sur les grands lots et réduirait les risques de perte de corrections.
+
+La connexion aux services WFS de la DGFiP permettrait de calculer automatiquement la position d'une parcelle à partir de son numéro, sans que l'opérateur ait à positionner le marqueur manuellement pour les parcelles dont la géométrie a évolué. Un plugin QGIS donnerait aux géomètres un accès direct aux archives depuis leur outil de travail, sans passer par une page séparée dans le navigateur.
+
+Enfin, le système pourrait être transposé à un autre cabinet sans tout reprendre de zéro. Le traitement est découpé en étapes indépendantes : la détection des zones sur la page, la lecture du texte, la validation des champs, le versement sur Géofoncier. Ces étapes ne sont pas liées à un fonds particulier. Ce qui est spécifique au cabinet d'Aubenas, c'est d'une part la position des champs sur les documents (le cartouche de la commune, la date, les numéros de parcelles), d'autre part la liste des communes du secteur de l'Ardèche et de la Drôme utilisée pour valider les lectures. Pour un autre cabinet, redéfinir ces deux paramètres dans le fichier de configuration permettrait un fonctionnement de l'outil. Cette adaptation demanderait un travail d'annotation des nouveaux documents pour réentraîner YOLOv8 sur les mises en page du nouveau fonds, mais la durée serait bien inférieure à un développement complet.
