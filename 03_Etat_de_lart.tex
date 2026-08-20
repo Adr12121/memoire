@@ -3,9 +3,7 @@
 \section{État de l'art}
 \label{sec:etat_art}
 
-Avant de concevoir la chaîne de traitement, une étude comparative des technologies des détections existantes est nécessaire. L'objectif est de mettre en place une extraction automatique des données, puis d'effectuer un contrôle humain avant le versement de ces dernières.
-
-Ce chapitre présente six familles de technologies présentant un intérêt pour ce sujet. Pour chaque méthode, le fonctionnement, les résultats et les limites sont analysés pour justifier la solution choisie.
+Ce chapitre passe en revue les technologies disponibles pour l'analyse automatique de documents. Pour chaque méthode, le fonctionnement, les résultats et les limites sont analysés afin de justifier les choix retenus pour la chaîne de traitement.
 
 \subsection{La lecture de texte imprimé (OCR)}
 \label{subsec:ocr}
@@ -71,7 +69,7 @@ Sur des documents d'archives en français, ces modèles atteignent des taux d'er
 
 La principale contrainte du HTR est sa dépendance à la qualité du découpage des lignes. Si un tampon, une tache ou un élément de tableau vient couper le tracé d'une ligne, la phase de transcription perd en précision et génère des erreurs de lecture.
 
-Pour bien comprendre la différence entre l'OCR et le HTR, prétenté dans le chapitre précédent, elle repose sur le type de texte à lire et sur la façon dont le moteur l'analyse :
+Pour bien comprendre la différence entre l'OCR et le HTR, présenté dans le chapitre précédent, elle repose sur le type de texte à lire et sur la façon dont le moteur l'analyse :
 
 \begin{itemize}
   \item \textbf{L'OCR} s'applique au texte imprimé (\textit{Printed Text}). Comme les lettres sont régulières et séparées, le système cherche à isoler chaque caractère ou petit bloc avant de l'identifier.
@@ -230,14 +228,14 @@ L'étape suivante consiste à passer du texte brut lu sur la page à une informa
 Cette opération, appelée extraction d'entités nommées (NER pour \textit{Named Entity Recognition}), consiste à associer chaque mot ou groupe de mots à une catégorie précise.
 
 
-Les outils de NER traditionnels (comme SpaCy ou CamemBERT) fonctionnent avec une liste fermée de catégories définies au moment de leur entraînement. Pour ajouter de nouvelles catégories spécifiques à un domaine, il faut annoter à la main ddes fichiers exemples puis réentraîner le modèle, ce qui demande du temps.
+Les outils de NER traditionnels (comme SpaCy ou CamemBERT) fonctionnent avec une liste fermée de catégories définies au moment de leur entraînement. Pour ajouter de nouvelles catégories spécifiques à un domaine, il faut annoter à la main des fichiers exemples puis réentraîner le modèle, ce qui demande du temps.
 
 Pour contourner cette contrainte, le modèle GLiNER proposé par \citet{zaratiana_gliner_2024} introduit une approche capable de reconnaître de nouvelles catégories sur n'importe quel texte sans réentraînement préalable.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{img/gliner_gener.pdf}
-    \caption{Architecture globale du modèle GLiNER : comparaison entre les morceaux de texte et les entitées recherchées. Extrait de \cite{zaratiana_gliner_2024}. Ce schéma est également disponible en grand format horizontal en \hyperref[ann:gliner_architecture]{Annexe D}.}
+    \caption{Architecture globale du modèle GLiNER : comparaison entre les morceaux de texte et les entités recherchées. Extrait de \cite{zaratiana_gliner_2024}. Ce schéma est également disponible en grand format horizontal en \hyperref[ann:gliner_architecture]{Annexe D}.}
     \label{fig:gliner_architecture}
 \end{figure}
 
@@ -449,11 +447,11 @@ Cette architecture hybride garantit le respect du secret professionnel en foncti
 Pour le repérage des zones, le modèle YOLOv8 a été choisi. Son rôle est d'isoler les cases des communes, les dates, les tableaux de parcelles ainsi que les tampons permettant d'identifier le géomètre-expert ayant réalisé la mission. Ce choix s'explique par sa rapidité (0,15 seconde par zone), sa faible consommation de mémoire graphique (moins de 2 Go) et son insensibilité au texte. Il permet de découper proprement les images sans dépendre d'un gabarit fixe, et de préparer ainsi les extraits d'images nécessaires au fonctionnement du modèle PyLaia.
 
 
-Pour la transcription du texte manuscrit, le modèle HTR PyLaia a été sélectionné. Alors que l'OCR classique comme Tesseract échoue sur l'écriture manuelle, PyLaia obtient un taux d'erreur sur les caractères inférieur à 6 \% dès que les lignes lui sont transmises sous forme de découpes isolées par YOLO.
+Pour la transcription du texte manuscrit, le modèle HTR PyLaia a été sélectionné. Alors que l'OCR classique comme Tesseract échoue sur l'écriture manuelle, PyLaia lit les registres manuscrits avec précision dès que les lignes lui sont transmises sous forme de découpes isolées par YOLO.
 
-Pour l'extraction des données clés (noms de communes, dates, numéros de parcelles), l'outil GLiNER a été retenu. Contrairement aux modèles comme LayoutLM qui deviennent inefficaces lorsque le texte contient des fautes, GLiNER permet d'identifier les entités recherchées avec un score F1 de 91,5 \%, sans nécessiter d'entraînement spécifique, et donc de réduire le risque de faux positif ou d'hallucination.
+Pour l'extraction des données clés (noms de communes, dates, numéros de parcelles), l'outil GLiNER a été retenu. Contrairement aux modèles comme LayoutLM qui deviennent inefficaces lorsque le texte contient des fautes, GLiNER identifie les entités sans entraînement spécifique et réduit le risque de faux positif, comme présenté dans ce chapitre.
 
-Enfin, pour arbitrer les cas les plus difficiles ou les papiers abîmés, le modèle Vision-Langage LLaVA exécuté en local via le serveur Ollama a été intégré. LLaVA intervient uniquement en dernier recours sur les extraits où le taux de confiance de la chaîne principale est insuffisant. Son exécution locale garantit le secret professionnel, en éliminant tout envoi d'images vers des serveurs extérieurs.
+Le détail de l'implémentation de chacun de ces outils et leur enchaînement dans la chaîne de traitement sont détaillés au chapitre~\ref{sec:architecture}.
 
 
 

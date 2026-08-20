@@ -3,7 +3,7 @@
 \section{Intégration à Géofoncier et évaluation des résultats}
 \label{sec:integration}
 
-Ce chapitre présente la dernière phase du traitement : le versement sur Géofoncier. Il décrit d'abord en détail comment l'appel à l'API est géré techniquement, puis expose le mode de traitement, avant de suivre un dossier réel de bout en bout et de conclure sur une évaluation du système.
+Ce chapitre présente la dernière phase du traitement : le versement sur Géofoncier. Il décrit d'abord comment l'appel à l'API est géré techniquement, présente le mode de traitement par lot, puis suit un cas concret et conclut sur une évaluation du système.
 
 \subsection{Fonctionnement du versement}
 
@@ -128,7 +128,7 @@ L'interface de validation (présentée au chapitre~\ref{sec:fiabilisation}) affi
 
 Cette figure montre l'écran où l'application affiche la référence d'archive retrouvée dans le répertoire du cabinet. L'opérateur peut ainsi confirmer le rapprochement entre le document numérisé et l'affaire correspondante avant de passer à l'étape suivante. Le nom du propriétaire a été rogné par souci de confidentialité.
 
-À l'étape 2, la carte interactive affiche la parcelle sur le fond cadastral IGN (Figure~\ref{fig:etape2_parcelle}). L'opérateur vérifie qu'aucune pastille n'existe déjà à cet endroit, puis confirme la localisation. Les coordonnées GPS sont automatiquement converties en Lambert-93 par la fonction \texttt{latlon\_to\_lambert93()}.
+À l'étape 2, la carte interactive affiche la parcelle sur le fond cadastral IGN (Figure~\ref{fig:etape2_parcelle}). L'opérateur vérifie qu'aucune pastille n'existe déjà à cet endroit, puis confirme la localisation. Les coordonnées GPS sont automatiquement converties en Lambert-93 par la fonction \texttt{latlon\_}\linebreak[0]\texttt{to\_}\linebreak[0]\texttt{lambert93()}.
 
 \begin{figure}[H]
   \centering
@@ -139,7 +139,7 @@ Cette figure montre l'écran où l'application affiche la référence d'archive 
   \label{fig:etape2_parcelle}
 \end{figure}
 
-Cette figure illustre l'étape de vérification. On y observe bien la filiation parcellaire : l'emprise affichée correspond à l'ancienne parcelle d'origine, plus grande. L'opérateur peut alors deplacer le curseur ici en rouge pour placer au mieux le dossier en fonction du DMPC. 
+Cette figure illustre l'étape de vérification. On y observe bien la filiation parcellaire : l'emprise affichée correspond à l'ancienne parcelle d'origine, plus grande. L'opérateur peut déplacer le curseur (en rouge sur la figure) pour positionner au mieux le dossier en fonction du DMPC. 
 
 
 
@@ -215,7 +215,7 @@ Pour compléter les observations qualitatives, une évaluation statistique des t
 
 Les informations comme la commune et le code INSEE atteignent les taux les plus élevés (autour de 88\,\%) grâce au découpage par YOLOv8 (chapitre~\ref{sec:architecture}) et au filtrage (chapitre~\ref{sec:fiabilisation}). Les numéros de section et de parcelles atteignent un score F1 compris entre 70\,\% et 76\,\%, les erreurs s'expliquant par la superposition de traits de dessin sur le papier. Enfin, les dates et références de dossiers extraites d'actes anciens restent difficiles à lire en manuscrit, avec des taux entre 60\,\% et 68\,\%.
 
-Quelques situations posent des difficultés à chaques fois. Les numéros de dossier sont rarement présents sur le plan lui-même et doivent être retrouvés dans les registres numérisés, ce qui n'est possible que pour les géomètres dont le répertoire a déjà été traité. Tant que certains fonds ne sont pas couverts, cette étape reste manuelle.
+Quelques situations posent des difficultés à chaque fois. Les numéros de dossier sont rarement présents sur le plan lui-même et doivent être retrouvés dans les registres numérisés, ce qui n'est possible que pour les géomètres dont le répertoire a déjà été traité. Tant que certains fonds ne sont pas couverts, cette étape reste manuelle.
 
 Par ailleurs, les parcelles très anciennes peuvent ne plus figurer dans la base cadastrale actuelle. La filiation parcellaire permet de remonter la chaîne dans la plupart des cas, mais certains historiques incomplets laissent des situations sans correspondance automatique.
 

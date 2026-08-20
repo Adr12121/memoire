@@ -20,10 +20,9 @@ Ainsi, alors que le cadastre ne propose qu'un découpage administratif et fiscal
 
 Cette opposition entre le rôle fiscal du cadastre et le rôle juridique du géomètre-expert explique pourquoi la conservation des archives privées est importante pour les cabinets. Lorsqu'un litige survient entre des propriétaires riverains, les juges s'appuient en priorité sur les procès-verbaux de bornage et les plans d'arpentage anciens rédigés sur le terrain par le géomètre. Le plan cadastral n'est consulté qu'à titre subsidiaire. La disparition ou l'altération d'un dossier historique priverait le cabinet et les propriétaires des éléments de preuve nécessaires pour rétablir une limite de propriété.
 
-
 \subsection{Le versement sur Géofoncier (API REST et Swagger)}
 
-Les opérations foncières réalisées par les géomètres-experts font l'objet d'un versement sur le portail Géofoncier, créé par l'OGE en 2010. Ce versement répond à l'obligation de centraliser et de référencer toutes les interventions sur le territoire. Comme l'illustre la figure~\ref{fig:interface_geofoncier}, ce dernier affiche sous forme de pastilles la géolocalisation des opérations réalisées par l'ensemble de la profession \citep{geofoncier_portal},ici pour une commune locale. Ce système permet aux cabinets de vérifier immédiatement si des travaux de bornage ou de division existent déjà sur une parcelle et de retrouver le géomètre qui a réalisé l'opération.
+Les opérations foncières réalisées par les géomètres-experts font l'objet d'un versement sur le portail Géofoncier, créé par l'OGE en 2010. Ce versement répond à l'obligation de centraliser et de référencer toutes les interventions sur le territoire. Comme l'illustre la figure~\ref{fig:interface_geofoncier}, ce dernier affiche sous forme de pastilles la géolocalisation des opérations réalisées par l'ensemble de la profession \citep{geofoncier_portal}, ici pour une commune locale. Ce système permet aux cabinets de vérifier immédiatement si des travaux de bornage ou de division existent déjà sur une parcelle et de retrouver le géomètre qui a réalisé l'opération.
 
 \begin{figure}[H]
   \centering
@@ -125,7 +124,7 @@ La recherche d'informations au sein de ces fonds d'archives nécessite de croise
 
 \subsection{Analyse des registres et des difficultés de lecture}
 
-Les registres récapitulent l'ensemble des affaires traitées au fil du temps. Dans un registre il y figure quelques informations clés de chaque dossier : le numéro d'affaire, la date de l'opération, le nom du client, la commune et les références parcellaires. En fonction du fonds, ces informations ne sont pas toutes présentes, rendant l'interpretation de la mission difficile. 
+Les registres récapitulent l'ensemble des affaires traitées au fil du temps. Dans un registre il y figure quelques informations clés de chaque dossier : le numéro d'affaire, la date de l'opération, le nom du client, la commune et les références parcellaires. En fonction du fonds, ces informations ne sont pas toutes présentes, rendant l'interprétation de la mission difficile. 
 
 De plus, ces registres ne sont pas tous identiques. Chaque géomètre avait sa propre tenue. Certains traçaient des colonnes fixes à la règle, d'autres écrivaient en texte libre ou utilisaient des imprimés différents.
 
@@ -150,12 +149,12 @@ Pour résoudre la présence de dits ou de guillemets de répétition dans les re
 Sur les registres tenus sur plusieurs années par des géomètres différents, la couleur de l'encre varie du noir au bleu ou au sepia, et l'épaisseur du trait change d'un rédacteur à l'autre. Comme expliqué plus loin lors de l'étape de prétraitement (section~\ref{sec:architecture}), l'application d'un filtre de contraste améliore la lisibilité du trait manuscrit avant sa lecture par le modèle.
 % >>>>>>>>>>>>>>>>>>>
 
-Ainsi, la lecture des registres nécessite de traiter ces difficultés de présentation pour extraire correctement les données. Cependant, une fois ces informations récupérées, une autre étape est indispensable : réussir à lier les anciens numéros de parcelles aux références actuelles, qui par supposition ont dû changer au fil des années.
+Ainsi, la lecture des registres nécessite de traiter ces difficultés de présentation pour extraire correctement les données. Cependant, une fois ces informations récupérées, une autre étape est indispensable : réussir à lier les anciens numéros de parcelles aux références actuelles, qui ont pour la plupart évolué au fil des années.
 
 
 \subsection{La filiation parcellaire}
 
-La filiation parcellaire est importante pour retrouver les parcelles concernées par les archives du cabinet. Lorsqu'un géomètre recherche un dossier aujourd'hui, il dispose souvent uniquement du numéro de la parcelle actuelle. Cette même logique est a appliquer lors de la creation de ces anciens dossiers. Les actes anciens ont été enregistrés sous les numéros parcellaires qui pour la plupart ont subit une modification, un découpage, ou tout autre intervention. L'un des objectif de ce projet est donc de remonter dans le temps pour retrouver les numéros de parcelles d'époques.
+La filiation parcellaire est importante pour retrouver les parcelles concernées par les archives du cabinet. Lorsqu'un géomètre recherche un dossier aujourd'hui, il dispose souvent uniquement du numéro de la parcelle actuelle. Cette même logique est à appliquer lors de la création de ces anciens dossiers. Les actes anciens ont été enregistrés sous les numéros parcellaires qui pour la plupart ont subi une modification, un découpage, ou tout autre intervention. L'un des objectif de ce projet est donc de remonter dans le temps pour retrouver les numéros de parcelles d'époques.
 
 Lors d'une division foncière réalisée par un DMPC, l'ancien numéro de parcelle (la parcelle mère, par exemple \texttt{A 14}) est supprimé du cadastre et remplacé par de nouveaux numéros (les parcelles filles, par exemple \texttt{A 115} et \texttt{A 116}). Au fil du temps, ces nouvelles parcelles peuvent elles aussi être divisées. Sans le suivi de ces changements successifs, une recherche effectuée sur la parcelle actuelle ne permet de retrouver aucune localisation, le portail Géofoncier étant mis à jour régulièrement.
 

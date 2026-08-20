@@ -29,7 +29,7 @@ Cette séparation en différents scripts permet de dérouler le traitement étap
 
 \subsection{Environnement technique et organisation du code}
 
-Tout l'outil fonctionne directement sur l'ordinateur du cabinet sous Windows. Aucune donnée n'est envoyée sur Internet, ce qui garantit le respect du secret professionnel evoqué plus tôt.
+Tout l'outil fonctionne directement sur l'ordinateur du cabinet sous Windows. Aucune donnée n'est envoyée sur Internet, ce qui garantit le respect du secret professionnel évoqué plus tôt.
 
 Les outils et bibliothèques utilisés dans le projet sont les suivants :
 \begin{itemize}
@@ -47,7 +47,7 @@ Pour garantir la stabilité de l'application et éviter les conflits entre les b
 
 L'arborescence du projet s'organise autour d'un dossier principal regroupant les scripts d'exécution, les fichiers de configuration JSON et les répertoires de données. Les modèles d'intelligence artificielle entraînés (poids YOLOv8 et modèles de lecture) sont stockés dans un dossier spécifique pour séparer la logique du programme des fichiers de paramètres. De même, les fichiers temporaires créés lors du découpage des images sont automatiquement nettoyés en fin de traitement pour ne pas surcharger l'espace disque du serveur local.
 
-Chaque script répond à un rôle précis au sein du flux de travail, facilitant ainsi les évolutions futures. Comme évoqué lors de l'étude des contraintes de sécurité (chapitre~\ref{sec:analyse_metier}), l'ensemble de ces modules s'exécute en local sans dépendance externe vers des API distantes payantes.
+Chaque script répond à un rôle précis au sein du flux de travail, facilitant ainsi les évolutions futures.
 
 
 
@@ -99,7 +99,7 @@ Du fait de cette problématique, un script Python a été développé pour l'acq
 
 \subsection{Classification et orientation du document}
 
-Le tri permet de savoir quel type de document est à traiter (plan récent fait sur ordinateur, plan ancien scanné, registre manuscrit ou document imprimé), et orienter le traitement en conséquence, vers la bonne branche du programme. Pour gagner du temps, le script \texttt{plan\_classifier.py} utilise des règles simples qui s'exécutent en quelques isecondes, présenté ci-dessous.
+Le tri permet de savoir quel type de document est à traiter (plan récent fait sur ordinateur, plan ancien scanné, registre manuscrit ou document imprimé), et orienter le traitement en conséquence, vers la bonne branche du programme. Pour gagner du temps, le script \texttt{plan\_classifieur.py} utilise des règles simples qui s'exécutent en quelques secondes.
 
 Le choix repose sur trois critères :
 
@@ -119,7 +119,7 @@ Envoyer une page entière vers le modèle de lecture cause des erreurs, car une 
 
 Il est donc nécessaire d'isoler les zones utiles avant la lecture. Le script \texttt{spatial\allowbreak\_extracteur\allowbreak.py} s'appuie sur le modèle pré-entraîné YOLOv8 (\texttt{yolov8n.pt}) pour découper directement les régions d'intérêt sur la page (cartouches DMPC, blocs de texte, tableaux de parcelles, tampons des géomètres).
 
-L'utilisation  de ce modèle pré-entraîné permet d'identifier les boîtes englobantes sans nécessiter une phase d'entraînement. L'algorithme NMS (Non-Maximum Suppression) supprime les encadrements doubles qui se chevauchent sur une même région pour ne conserver que la boîte ayant le meilleur score de confiance. Ces boites peuvent être observées sur la figure \ref{fig:nms_exemple}.
+L'utilisation  de ce modèle pré-entraîné permet d'identifier les boîtes englobantes sans nécessiter une phase d'entraînement. L'algorithme NMS (présenté au chapitre~\ref{sec:etat_art}) supprime les encadrements doubles pour ne conserver que la boîte ayant le meilleur score de confiance. Ces boites peuvent être observées sur la figure \ref{fig:nms_exemple}.
 
 \begin{figure}[H]
   \centering
@@ -181,7 +181,7 @@ En complément du redressement et de la binarisation, une opération de filtrage
 
 Une fois les zones du document recadrées et nettoyées par le prétraitement, l'étape de lecture s'exécute via le script \texttt{outil\_ocr.py}. Cette phase contient deux approches  selon le texte du document:
 \begin{itemize}
-  \item Le moteur Tesseract traite les caractères tappés. Il convertit les zones imprimées en chaînes de texte.
+  \item Le moteur Tesseract traite les caractères tapés. Il convertit les zones imprimées en chaînes de texte.
   \item Le modèle PyLaia prend le relais pour l'écriture manuscrite. Il lit les mots lettre par lettre.
 \end{itemize}
 
@@ -196,7 +196,7 @@ Ce dernier analyse directement la chaîne de texte brute et y recherche les cham
 Ce score de confiance ne repose pas uniquement sur la probabilité calculée par le modèle GLiNER. Le script de contrôle (\texttt{coherence\_controle.py}) vient aussi vérifier la cohérence des réponses. Par exemple, si la commune trouvée existe bien dans la base de données de l'Ardèche (\texttt{ardeche.json}) et que le format de la section est correct, la note globale reste élevée. En revanche, si une lecture est étrange ou que le format ne correspond pas, le score baisse en dessous de 0,45 pour demander une confirmation par le modèle suivant.
 
 
-La Figure~\ref{fig:extraction_ocr_gliner} illustre l'exécution de l'outil sur un documentde type DA.
+La Figure~\ref{fig:extraction_ocr_gliner} illustre l'exécution de l'outil sur un document de type DA.
 
 \begin{figure}[H]
   \centering
@@ -207,7 +207,7 @@ La Figure~\ref{fig:extraction_ocr_gliner} illustre l'exécution de l'outil sur u
 
 En haut de l'image, le script découpe d'abord la zone d'intérêt du cartouche. Au milieu, le moteur de lecture extrait la chaîne de texte brute, avec ses fautes d'impression ou ses abréviations. Enfin, en bas, GLiNER et le script de vérification classent les informations dans les bons champs en leur attribuant une note de confiance et des alertes si une donnée semble fausse, l'envoyant dans ce cas à l'étape suivante d'arbitrage.
 
-Lorsquer le document contient plusieurs lignes de texte proches (par exemple dans le tableau des parcelles ou dans l'en-tête du procès-verbal), la simple extraction linéaire des mots ne suffit pas. Le script calcule le rectangle englobant de chaque mot reconnu et regroupe les termes appartenant à une même ligne selon leur chevauchement vertical. Les paires clé-valeur (comme la mention "Commune de" suivie du nom de la localité) sont associées en mesurant la distance horizontale minimale entre le libellé imprimé et la réponse manuscrite.
+Lorsque le document contient plusieurs lignes de texte proches (par exemple dans le tableau des parcelles ou dans l'en-tête du procès-verbal), la simple extraction linéaire des mots ne suffit pas. Le script calcule le rectangle englobant de chaque mot reconnu et regroupe les termes appartenant à une même ligne selon leur chevauchement vertical. Les paires clé-valeur (comme la mention "Commune de" suivie du nom de la localité) sont associées en mesurant la distance horizontale minimale entre le libellé imprimé et la réponse manuscrite.
 
 Pour éviter que des mots communs du vocabulaire juridique ou topographique (tels que "voie", "chemin", "parcelle", "section") ne soient interprétés à tort comme des noms de personnes ou de lieux, les réponses proposées par le modèle d'entités sont filtrées par un dictionnaire de mots exclus. Seules les entités qui passent ce filtre et qui présentent une similarité suffisante avec les référentiels régionaux sont conservées avec un score de confiance supérieur au seuil de validation.
 
@@ -231,7 +231,7 @@ Contrairement à l'OCR qui lit le texte caractère par caractère, le modèle VL
 
 Si le modèle parvient à lire la zone, il met à jour la valeur. S'il hésite, il répond « INCERTAIN », ce qui signale le dossier pour la vérification humaine.
 
-La Figure~\ref{fig:ollama_vlm_schema} montre cet arbitrage sur un document issu du fonds du Géomètre B (\texttt{EXEMPLE\_GEOMETRE\_B.pdf}). L'OCR brut lit la chaîne manuscrite (\texttt{St Didier suus Aubenas}) et retient initialement la commune d'Aubenas. Le script de contrôle détecte alors une alerte de cohérence, due à une longueur anormale de caractères, ce qui déclenche automatiquement le modèle VLM. Ce dernier réexamine la zone et valide la commune exacte de Saint-Didier-sous-Aubenas.
+La Figure~\ref{fig:ollama_vlm_schema} montre cet arbitrage sur un document issu du fonds du Géomètre B (\texttt{EXEMPLE\_}\linebreak[0]\texttt{GEOMETRE\_}\linebreak[0]\texttt{B.pdf}). L'OCR brut lit la chaîne manuscrite (\texttt{St Didier suus Aubenas}) et retient initialement la commune d'Aubenas. Le script de contrôle détecte alors une alerte de cohérence, due à une longueur anormale de caractères, ce qui déclenche automatiquement le modèle VLM. Ce dernier réexamine la zone et valide la commune exacte de Saint-Didier-sous-Aubenas.
 
 
 
@@ -253,7 +253,7 @@ En plus des communes, le modèle VLM est utilisé pour d'autres cas sur les docu
 
 L'utilisation de consignes textuelles ciblées permet d'adapter la sensibilité du modèle VLM selon la nature du champ. Pour réduire le temps de réponse et éviter que le modèle ne génère des phrases trop longues, la température de génération est réglée à une valeur très faible (0,1). Cette contrainte force le modèle à retourner des réponses concises et directes, immédiatement nettoyées par une fonction de filtrage qui supprime la ponctuation inutile et met en majuscules le texte extrait avant sa validation.
 
-En cas d'échec de réponse du modèle VLM ou si le temps de calcul dépasse un seuil tolérable de 45 secondes, l'arbitrage s'interrompt proprement et attribue la mention par défaut pour que l'opérateur effectue lui-même la vérification dans l'interface web.
+En cas d'échec de réponse du modèle VLM ou si le temps de calcul dépasse un seuil tolérable de 45 secondes, l'arbitrage est interrompu et la mention par défaut est attribuée au champ, pour que l'opérateur effectue lui-même la vérification dans l'interface web.
 
 Comme indiqué lors de la présentation théorique des VLM (section~\ref{sec:vlm_execution}), cette exécution en local via l'outil Ollama garantit l'autonomie complète du cabinet sans transmettre d'images sur des serveurs externes.
 
@@ -275,7 +275,7 @@ Ce schéma de données structuré permet de conserver la traçabilité complète
 
 À la fin de ce processus, toutes les informations contrôlées sont enregistrées dans un fichier JSON propre pour chaque document.
 
-Même si le système automatise la majorité du travail de lecture, des erreurs peuvent persister, car elles sont existantes sur ces écrits. Il s'agit alors d'une faute, ou la résolution est sujette à interprétation, ou un système d'intelligence artificielle ne peut pas résoudre le problème. Un contrôle humain est alors nécessaire. Le chapitre suivant présente la partie fiabilisation et l'interface graphique permettant à l'utilisateur de contrôler et valider les dossiers avant l'envoi final sur Géofoncier.
+Même si le système automatise la majorité du travail de lecture, des erreurs peuvent persister : une information est parfois illisible, sujette à interprétation, ou simplement hors de portée des modèles. Un contrôle humain est alors nécessaire. Le chapitre suivant présente la partie fiabilisation et l'interface graphique permettant à l'utilisateur de contrôler et valider les dossiers avant l'envoi final sur Géofoncier.
 
 
 \subsection{Constitution du jeu de données d'entraînement}
