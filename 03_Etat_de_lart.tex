@@ -3,48 +3,48 @@
 \section{État de l'art}
 \label{sec:etat_art}
 
-Ce chapitre passe en revue les technologies disponibles pour l'analyse automatique de documents. Pour chaque méthode, le fonctionnement, les résultats et les limites sont analysés afin de justifier les choix retenus pour la chaîne de traitement.
+Ce chapitre présente l'état de l'art des technologies disponibles pour l'analyse automatique de documents. Pour chaque méthode, le fonctionnement, les résultats et les limites sont analysés afin de justifier les choix retenus pour la chaîne de traitement.
 
 \subsection{La lecture de texte imprimé (OCR)}
 \label{subsec:ocr}
 
-La reconnaissance optique de caractères (OCR - \textit{Optical Character Recognition}) a été conçue pour automatiser la lecture de documents imprimés ou dactylographiés. L'objectif est de transformer une image de texte en caractères numériques exploitables par un ordinateur.
+La reconnaissance optique de caractères (OCR - \textit{Optical Character Recognition}) a été conçue pour automatiser la lecture de documents imprimés. L'objectif est de transformer une image de texte en caractères numériques exploitables par un ordinateur.
 
-Le fonctionnement classique repose sur le découpage successif des éléments du document. L'image est d'abord binarisée pour séparer l'encre du papier. Le moteur repère ensuite les lignes de texte, puis découpe chaque ligne en mots et chaque mot en caractères isolés. Enfin, chaque caractère découpé est comparé à des modèles connus pour être identifié. Le moteur Tesseract illustre bien ce principe : pour repérer la ligne de base du texte même si la page est penchée ou courbée (comme près de la reliure d'un livre numérisé), il trace une ligne courbe mathématique (une spline quadratique) qui épouse l'ondulation des mots. Cela lui permet de lire le texte sans devoir redresser ou déformer l'image au préalable \citep{smith_tesseract_2007}.
+Le fonctionnement classique repose sur le découpage successif des éléments du document. L'image est d'abord binarisée pour séparer l'encre du papier. Le moteur repère ensuite les lignes de texte, puis découpe chaque ligne en mots et chaque mot en caractères isolés. Enfin, chaque caractère découpé est comparé à des modèles connus pour être identifié. Le moteur Tesseract, par exemple, repère la ligne de base du texte même si la page est penchée ou courbée (comme près de la reliure d'un livre numérisé), il trace une ligne courbe mathématique (une spline quadratique) qui suit l'ondulation des mots. Cela lui permet de lire le texte sans devoir redresser ou déformer l'image au préalable \citep{smith_tesseract_2007}.
 
 Avec l'arrivée du deep learning, l'OCR n'a plus besoin de découper chaque caractère un par un. Les modèles modernes lisent la ligne entière d'un seul coup \citep{shi_crnn_2015}. \cite{baek_stract_2019} décomposent ce fonctionnement en quatre étapes principales, illustrées par la Figure~\ref{fig:ocr_pipeline} :
 
 \begin{itemize}
-  \item \textbf{La transformation géométrique (Trans.)} : normaliser la forme de la ligne de texte pour corriger les angles ou les déformations.
-  \item \textbf{L'extraction de caractéristiques (Feat.)} : analyser les formes visuelles de l'image à l'aide d'un réseau de convolution (CNN).
-  \item \textbf{La modélisation de séquence (Seq.)} : prendre en compte le contexte entre les lettres grâce à un réseau récurrent (BiLSTM).
-  \item \textbf{La prédiction (Pred.)} : convertir la séquence visuelle en texte final grâce à une fonction d'alignement (CTC) ou d'attention.
+  \item La transformation géométrique (Trans.) : normaliser la forme de la ligne de texte pour corriger les angles ou les déformations.
+  \item L'extraction de caractéristiques (Feat.) : analyser les formes visuelles de l'image à l'aide d'un réseau de convolution (CNN).
+  \item La modélisation de séquence (Seq.) : prendre en compte le contexte entre les lettres grâce à un réseau récurrent (BiLSTM).
+  \item La prédiction (Pred.) : convertir la séquence visuelle en texte final grâce à une fonction d'alignement (CTC) ou d'attention.
 \end{itemize}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{img/baek_ocr_pipeline_crop.png}
-    \caption{Chaîne de reconnaissance de texte imprimé en quatre étapes : transformation géométrique (Trans.), extraction de caractéristiques visuelles (Feat.), modélisation de séquence (Seq.) et prédiction du texte (Pred.). Extrait de \cite{baek_stract_2019}.}
+    \caption{Chaîne de reconnaissance de texte imprimé en quatre étapesExtrait de \cite{baek_stract_2019}.}
     \label{fig:ocr_pipeline}
 \end{figure}
 
-Cette méthode est fiable sur du texte imprimé ou dactylographié. En revanche, elle trouve sa limite sur l'écriture manuscrite, car le chevauchement des lettres empêche le modèle de distinguer les caractères correctement, et donc de trouver une correspondance avec son entraînement.
+Cette méthode est fiable sur du texte imprimé. En revanche, elle trouve sa limite sur l'écriture manuscrite, car le chevauchement des lettres empêche le modèle de distinguer les caractères correctement, et donc de trouver une correspondance avec son entraînement.
 
-Pour surmonter les dégradations physiques des papiers anciens, les moteurs de numérisation s'appuient souvent sur des filtres de binarisation adaptative. La méthode d'Otsu cherche un seuil global optimal en minimisant la variance intra-classe des intensités de gris, ce qui fonctionne bien sur un fond homogène. Néanmoins, lorsque le document présente des taches d'humidité ou un jaunissement inégal, la binarisation de Sauvola calcule un seuil local pour chaque pixel en fonction de la moyenne et de l'écart-type de son voisinage. Ce traitement local préserve les traits fins des caractères imprimés sans amplifier les ombres de fond ou le bruit du papier.
+Certains moteurs de numérisation s'appuient sur des filtres de binarisation adaptative. La méthode d'Otsu cherche un seuil global optimal en minimisant la variance intra-classe des intensités de gris, ce qui fonctionne bien sur un fond homogène. Néanmoins, la binarisation calcule un seuil local pour chaque pixel en fonction de la moyenne et de l'écart-type de son voisinage. Ce traitement préserve les traits fins des caractères imprimés et présente ainsi un résultat pour l'écriture manuscrite. Le retraitement de l'image peut améliorer significativement la lisibilité de l'écriture et réduire le taux d'erreur de l'OCR.
 
 
 
 \subsection{La reconnaissance de l'écriture manuscrite (HTR)}
 \label{subsec:htr}
 
-La reconnaissance de texte manuscrit (HTR - \textit{Handwritten Text Recognition}) a été conçue pour lire l'écriture à la main, sur laquelle l'OCR échoue. En écriture manuscrite, les lettres sont attachées, déformées et de tailles variables. Tenter de séparer chaque caractère individuellement provoque des erreurs systématiques. Pour résoudre ce problème, les systèmes HTR ne découpent pas les lettres : ils analysent la ligne entière comme un signal visuel continu.
+La reconnaissance de texte manuscrit (HTR - \textit{Handwritten Text Recognition}) a été conçue pour lire l'écriture à la main, sur laquelle l'OCR échoue. En écriture manuscrite, les lettres sont attachées, déformées et de tailles variables. Séparer chaque caractère individuellement provoque des erreurs systématiques. Pour résoudre ce problème, les systèmes HTR ne découpent pas les lettres, ils analysent la ligne entière comme un signal visuel continu.
 
-La Figure~\ref{fig:rem_workflow} détaille le fonctionnement général de cette approche en trois étapes \citep{chague_htr-united_nodate} :
+La Figure~\ref{fig:rem_workflow} détaille le fonctionnement général de cette approche en trois étapes :
 
 \begin{itemize}
-  \item \textbf{La segmentation en lignes} : le système repère l'emplacement exact de chaque ligne de texte dans la page. Il trace une ligne de base (\textit{baseline}) sous l'écriture et extrait le masque d'image correspondant à la ligne.
-  \item \textbf{L'analyse de la mise en page} : le modèle détermine l'ordre logique de lecture des différents blocs ou segments extraits de la page.
-  \item \textbf{La transcription} : chaque portion d'image de ligne est convertie directement en une chaîne de caractères.
+  \item La segmentation en lignes : le système repère l'emplacement exact de chaque ligne de texte dans la page. Il trace une ligne de base (\textit{baseline}) sous l'écriture et extrait le masque d'image correspondant à la ligne.
+  \item L'analyse de la mise en page : le modèle détermine l'ordre logique de lecture des différents blocs ou segments extraits de la page.
+  \item La transcription : chaque portion d'image de ligne est convertie directement en une chaîne de caractères.
 \end{itemize}
 
 \begin{figure}[H]
@@ -69,11 +69,11 @@ Sur des documents d'archives en français, ces modèles atteignent des taux d'er
 
 La principale contrainte du HTR est sa dépendance à la qualité du découpage des lignes. Si un tampon, une tache ou un élément de tableau vient couper le tracé d'une ligne, la phase de transcription perd en précision et génère des erreurs de lecture.
 
-Pour bien comprendre la différence entre l'OCR et le HTR, présenté dans le chapitre précédent, elle repose sur le type de texte à lire et sur la façon dont le moteur l'analyse :
+La différence entre l'OCR et le HTR, présenté dans la sous-partie précédente, repose sur le type de texte à lire et sur la façon dont le moteur l'analyse :
 
 \begin{itemize}
-  \item \textbf{L'OCR} s'applique au texte imprimé (\textit{Printed Text}). Comme les lettres sont régulières et séparées, le système cherche à isoler chaque caractère ou petit bloc avant de l'identifier.
-  \item \textbf{Le HTR} s'applique à l'écriture manuscrite (\textit{Handwritten Text}). Comme les lettres sont attachées et varient selon les personnes, le système ne cherche pas à découper les caractères : il lit la ligne entière comme un tracé continu.
+  \item \textbf{L'OCR} s'applique au texte imprimé. Comme les lettres sont régulières et séparées, le système cherche à isoler chaque caractère ou petit bloc avant de l'identifier.
+  \item \textbf{Le HTR} s'applique à l'écriture manuscrite. Comme les lettres varient selon les personnes, le système ne cherche pas à découper les caractères, il lit la ligne entière comme un tracé continu.
 \end{itemize}
 
 La Figure~\ref{fig:text_recognition_taxonomy} illustre cette séparation entre les technologies de reconnaissance de texte.
@@ -87,25 +87,21 @@ La Figure~\ref{fig:text_recognition_taxonomy} illustre cette séparation entre l
 
 Cette arborescence résume la classification des systèmes de reconnaissance de texte. Elle sépare le traitement en deux branches : le traitement hors ligne sur des images scannées et le traitement en ligne en temps réel. Pour les images d'archives, la classification distingue le texte imprimé (OCR) et le texte manuscrit (HTR), qui nécessite une lecture globale sans découpage préalable des caractères.
 
-Comme nous le verrons lors de la présentation de l'architecture (chapitre~\ref{sec:architecture}), le choix s'est porté sur une utilisation conjointe d'EasyOCR pour les parties imprimées et du modèle HTR PyLaia pour l'écriture manuscrite des anciens registres. PyLaia permet d'obtenir un compromis efficace entre rapidité d'exécution et autonomie locale, évitant ainsi d'alourdir les calculs sur les serveurs du cabinet.
-
-
 Lorsque des documents associent texte imprimé et écriture manuscrite, des approches hybrides peuvent être envisagées.
 
 
 \subsection{Les approches hybrides : OCR et HTR combinés}
 \label{subsec:hybrid_ocr_htr}
 
-En réalité, beaucoup de documents mélangent du texte imprimé et des ajouts écrits à la main, comme un formulaire pré-rempli. Un modèle OCR classique échoue sur les écritures manuscrites, tandis qu'un modèle HTR peut faire des erreurs sur du texte imprimé.
+En réalité, beaucoup de documents mélangent du texte imprimé et des ajouts écrits à la main, notamment avec utilisation de documents pré-remplis. Un modèle OCR classique échoue sur les écritures manuscrites, tandis qu'un modèle HTR peut faire des erreurs sur du texte imprimé.
 
 Pour résoudre ce problème, des approches hybrides ont été développées afin de traiter conjointement les deux types d'écriture. 
 
-D'après la littérature scientifique, deux méthodes principales existent :
+Deux méthodes principales existent :
 
 \begin{itemize}
-  \item L'entraînement sur des exemples variés : le modèle TrOCR \citep{li_trocr_2021} s'appuie sur une architecture Transformer entraînée à la fois sur du texte imprimé et du texte écrit à la main. La Figure~\ref{fig:trocr_arch} montre ce principe : l'image de la ligne est découpée en petits carrés visuels (\textit{Image Patches}), convertis en vecteurs avec leur position, puis transmis à un encodeur visuel. Le décodeur produit ensuite le texte mot à mot. Comme le modèle a appris sur les deux formes d'écriture, il s'adapte tout seul sans étape de tri.
-  \item La combinaison de deux outils successifs : des systèmes comme PaddleOCR \citep{du_ppocr_2020} ou EasyOCR utilisent un premier modèle pour repérer l'emplacement des lignes sur la page (comme DBNet \citep{liao_dbnet_2020}), puis un second modèle chargé uniquement de lire le texte présent dans ces zones.
-
+  \item \textbf{L'entraînement sur des données mixtes} : certains modèles comme TrOCR \citep{li_trocr_2021}, déjà évoqué, s'appuient sur un pré-entraînement combinant à la fois du texte imprimé et de l'écriture manuscrite. Comme le montre la Figure~\ref{fig:trocr_arch}, le modèle traite l'image de la ligne de façon unifiée et s'adapte automatiquement sans étape de tri préalable.
+  \item \textbf{La combinaison de deux outils successifs} : des systèmes comme PaddleOCR \citep{du_ppocr_2020} ou EasyOCR utilisent un premier modèle pour repérer l'emplacement des lignes sur la page (comme DBNet \citep{liao_dbnet_2020}), puis un second modèle chargé uniquement de lire le texte présent dans ces zones.
 \end{itemize}
 
 \begin{figure}[H]
@@ -124,26 +120,26 @@ Quelle que soit l'approche retenue (OCR, HTR ou hybride), envoyer une page enti�
 
 \subsection{La détection spatiale et l'analyse de mise en page par YOLO}
 
-Envoyer directement la photo complète d'un document à un moteur de lecture pose un problème : la page contient des marges blanches, des tampons, des lignes de cadres et des annotations. Si le moteur essaie de tout lire sans tri, ce dernier perd du temps et produit du texte parasite. Il est donc important d'isoler d'abord les zones d'intérêt dans la page avant d'extraire le texte.
+Envoyer directement une photographie ou un scan d'un document à un moteur de lecture pose un problème : la page contient de nombreuse zones potentiellement inintéressantes, ou de nombreuses sources d'erreurs. Si le moteur essaie de tout lire sans tri, ce dernier perd du temps et produit du texte parasite qui peut nuire à la qualité des résultats finaux. Il est donc important d'isoler d'abord les zones d'intérêt dans la page avant d'extraire le texte.
 
-Le modèle YOLO (\textit{You Only Look Once}) \citep{redmon_yolo_2016, jiang_review_2022} a été conçu pour détecter des objets et des zones visuelles en un seul passage rapide sur l'image.
+Proposé à l'origine par \cite{redmon_yolo_2016}, le modèle YOLO (\textit{You Only Look Once}) a été conçu pour détecter des zones visuelles en un seul passage rapide sur l'image. Depuis sa création, cet algorithme a connu de nombreuses évolutions permettant d'en améliorer la précision et la vitesse \citep{jiang_review_2022}.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{img/yolo_system.pdf}
-    \caption{Principe de détection de YOLO : traitement en un seul passage (\textit{Single-Shot}) sur une grille spatiale. Extrait de \cite{redmon_yolo_2016}.}
+    \caption{Principe de détection de YOLO : traitement en un seul passage sur une grille spatiale. Extrait de \cite{redmon_yolo_2016}.}
     \label{fig:yolo_architecture}
 \end{figure}
 
 La Figure~\ref{fig:yolo_architecture} illustre ce procédé. Dans un premier temps, l'image complète du document est redimensionnée pour être analysée d'un seul coup. Le réseau divise ensuite la page en une grille de cellules et calcule simultanément la position des boîtes englobantes et leur catégorie. Enfin, un filtre d'élimination des doublons (\textit{Non-Max Suppression}) ne conserve que le cadre le plus précis autour de chaque zone.
 
-Pour garantir un bon cadrage cases et des tableaux, l'entraînement de YOLOv8 utilise la fonction de perte CIoU (\textit{Complete Intersection over Union}) \citep{zheng_ciou_2020} :
+Pour garantir un bon cadrage des zones d'intérêt, l'entraînement de YOLOv8 utilise la fonction de perte CIoU (\textit{Complete Intersection over Union}) \citep{zheng_ciou_2020} :
 
 \begin{equation}
   \mathcal{L}_{CIoU} = 1 - IoU + \frac{\rho^2(\mathbf{b}, \mathbf{b}^{gt})}{c^2} + \alpha v
 \end{equation}
 
-Cette formule mesure la qualité du cadrage selon trois critères : le chevauchement ($IoU$) entre la boîte prédite et la vraie zone, l'écart de distance ($\rho^2 / c^2$) entre leurs centres respectifs, et la cohérence de la forme ($\alpha v$) pour préserver les proportions en hauteur et en largeur. Concrètement, l'entraînement cherche à réduire cette perte $\mathcal{L}_{CIoU}$ vers 0. Lorsque le chevauchement $IoU$ augmente, le terme $1 - IoU$ diminue. À l'inverse, si la distance $\rho$ entre les centres s'agrandit ou si les proportions se déforment (hausse de $v$), la perte augmente et pénalise le modèle, l'obligeant à recentrer le cadre et ajuster ses dimensions. Grâce à cette astuce, YOLOv8 ajuste le contour des zones, même lorsqu'il s'agit de lignes fines ou de petites cases.
+Cette formule mesure la qualité du cadrage selon trois critères : le chevauchement ($IoU$) entre la boîte prédite et la vraie zone, l'écart de distance ($\rho^2 / c^2$) entre leurs centres respectifs, et la cohérence de la forme ($\alpha v$) pour préserver les proportions en hauteur et en largeur. Concrètement, l'entraînement cherche à réduire cette perte $\mathcal{L}_{CIoU}$ vers 0. Lorsque le chevauchement $IoU$ augmente, le terme $1 - IoU$ diminue. À l'inverse, si la distance $\rho$ entre les centres s'agrandit ou si les proportions se déforment (hausse de $v$), la perte augmente et pénalise le modèle, l'obligeant à recentrer le cadre et ajuster ses dimensions. Grâce à cette astuce, YOLO ajuste le contour des zones, même lorsqu'il s'agit de lignes fines ou de petites cases.
 
 Pour comprendre comment le réseau extrait ces caractéristiques visuelles étape par étape avant d'ajuster les cadrages, la Figure~\ref{fig:yolo_net} présente l’architecture du modèle.
 
@@ -154,16 +150,13 @@ Pour comprendre comment le réseau extrait ces caractéristiques visuelles étap
     \label{fig:yolo_net}
 \end{figure}
 
-L'organisation du réseau de convolution responsable de la détection visuelle y est détaillée. L'image du document traverse d'abord une succession de couches de convolution qui repèrent les détails géométriques simples, pouvant être les lignes des tableaux, les angles ou encore les contours des cadres. Les couches suivantes combinent ces éléments pour reconnaître des blocs plus complexes, tels que des entêtes, des colonnes ou des cartouches. En parallèle, des opérations de sous-échantillonnage (\textit{max-pooling}) réduisent la taille spatiale pour préserver une vue globale sans alourdir les calculs. Enfin, les dernières couches du réseau convertissent ces caractéristiques visuelles en coordonnées spatiales(position, largeur et hauteur) et attribuent une catégorie à chaque zone identifiée.
+L'organisation du réseau de convolution responsable de la détection visuelle y est détaillée. L'image du document traverse d'abord une succession de couches de convolution qui repèrent les détails géométriques simples, pouvant être les lignes, les angles ou encore les contours de cadres. Les couches suivantes combinent ces éléments pour reconnaître des blocs plus complexes, tels que des entêtes, des colonnes ou des cartouches. En parallèle, des opérations de sous-échantillonnage réduisent la taille spatiale pour préserver une vue globale sans alourdir les calculs. Enfin, les dernières couches du réseau convertissent ces caractéristiques visuelles en coordonnées spatiales(position, largeur et hauteur) et attribuent une catégorie à chaque zone identifiée.
 
 Cette architecture permet à YOLO d'analyser rapidement la géométrie d'une page entière et d'isoler les zones d'intérêt.
 
-Contrairement aux approches par modèles de détection classiques reposant sur des boîtes d'ancres pré-définies (*anchor-based*), la version v8 de YOLO utilise une architecture sans ancres (*anchor-free*). Ce choix simplifie l'apprentissage sur des documents administratifs aux formats non standard, car le réseau prédit directement les coordonnées du centre et les dimensions de chaque zone au lieu d'ajuster des cadres pré-formés. Sur des archives foncières où l'échelle des cartouches et l'emplacement des formulaires varient selon l'époque et l'imprimeur, cette flexibilité permet de détecter les zones utiles avec une meilleure précision qu'un simple découpage à coordonnées fixes.
+Contrairement aux approches par modèles de détection classiques reposant sur des boîtes d'ancres pré-définies, la version v8 de YOLO utilise une architecture sans ancres. Ce choix simplifie l'apprentissage sur des documents administratifs aux formats non standard, car le réseau prédit directement les coordonnées du centre et les dimensions de chaque zone au lieu d'ajuster des cadres pré-formés. Sur des archives foncières où l'échelle des cartouches et l'emplacement des formulaires varient selon l'époque et l'imprimeur, cette flexibilité peut permettre de détecter les zones utiles avec une meilleure précision qu'un simple découpage à coordonnées fixes.
 
-Comme détaillé ultérieurement lors de l'explication de la chaîne de traitement (chapitre~\ref{sec:architecture}), cette étape de découpage spatial constitue le point d'entrée de toute l'analyse : elle préserve la mémoire de calcul en évitant de soumettre l'intégralité des images haute résolution aux modèles de lecture manuscrite.
-
-
-
+Comme détaillé ultérieurement lors de l'explication de la chaîne de traitement (chapitre~\ref{sec:architecture}), cette étape de découpage spatial constitue le point d'entrée de toute l'analyse : elle préserve la mémoire de calcul en évitant de soumettre l'intégralité des images aux modèles de reconnaissance de texte en selectionnant uniquement ce qui est nécessaire.
 
 Plutôt que de se reposer uniquement sur l'aspect visuel de la page comme YOLO, une autre approche consiste à utiliser des modèles multimodaux, capables de croiser le texte, la position des mots et l'image, comme par exemple LayoutLM \citep{xu_layoutlm_2020}.
 
@@ -202,10 +195,10 @@ La Figure~\ref{fig:layoutlm_confusion} présente la matrice de confusion de Layo
 
 L'observation de cette matrice met en évidence deux comportements très différents selon la nature des documents.
 
-Dans les évolutions ultérieures comme LayoutLMv3, les auteurs ont simplifié cette architecture en supprimant la dépendance envers un moteur OCR externe pour l'étape d'analyse visuelle. LayoutLMv3 découpe directement la page scannée en petits patchs d'images (de taille 16 par 16 pixels) traités par un transformateur visuel (Vision Transformer), tout en alignant conjointement les jetons de texte et les positions spatiales. Cependant, cette avancée exige un volume d'entraînement considérable sur plusieurs millions de documents annotés. Pour des cabinets de géomètres disposant de fonds d'archives spécifiques et hétérogènes, le coût de réentraînement complet de telles architectures reste hors de portée par rapport à des approches plus modulaires.
+Dans les évolutions ultérieures comme LayoutLMv3, les auteurs ont simplifié cette architecture en supprimant la dépendance envers un moteur OCR externe pour l'étape d'analyse visuelle. LayoutLMv3 découpe directement la page scannée en petits patchs d'images (de taille 16 par 16 pixels) traités par un transformateur visuel (Vision Transformer), tout en alignant conjointement les textes et les positions spatiales. Cependant, cette avancée exige un volume d'entraînement considérable sur plusieurs millions de documents annotés. Pour des cabinets de géomètres, le coût de réentraînement complet de telles architectures reste hors de portée.
 
 
-D'une part, sur des documents imprimés comme les e-mails (99,5~\%), les CV (98,8~\%) ou les dossiers (96,7~\%), le modèle atteint d'excellents résultats. Dans ces cas, les mots reconnus par l'OCR (comme des entêtes d'e-mail ou des sections de CV) fournissent des repères fiables.
+D'une part, sur des documents imprimés comme les e-mails (99,5~\%), les CV (98,8~\%) ou les dossiers (96,7~\%), le modèle atteint d'excellents résultats. Dans ces cas, les mots reconnus par l'OCR (comme des entêtes d'e-mail ou des sections de CV) fournissent des repères pouvant être exploité.
 
 D'autre part, les performances diminuent sur des documents comme les formulaires (86,9~\%), les rapports scientifiques (90,2~\%) ou les courriers manuscrits (91,7~\%). Par exemple, la matrice indique que 2,3~\% des formulaires sont confondus avec des factures et 1,8~\% avec des courriers. Même si ces pourcentages d'erreur semblent faibles au premier abord, ils représentent rapidement une source d'erreur, ce qui peut nécessiter des corrections. 
 
@@ -215,12 +208,6 @@ Cette baisse de précision s'explique par la dépendance du modèle au texte. Lo
 À l'inverse, un modèle de détection visuelle comme YOLO s'appuie uniquement sur la géométrie de la page (les lignes, les cadres et les colonnes) sans dépendre de la lecture du texte. Il n'est donc pas sensible à la présence d'écriture manuscrite ou de ratures pour repérer les blocs d'un document.
 
 
-
-
-
-
-
-
 L'étape suivante consiste à passer du texte brut lu sur la page à une information structurée et exploitable.
 
 \subsection{L'extraction d'entités et compréhension du texte}
@@ -228,7 +215,7 @@ L'étape suivante consiste à passer du texte brut lu sur la page à une informa
 Cette opération, appelée extraction d'entités nommées (NER pour \textit{Named Entity Recognition}), consiste à associer chaque mot ou groupe de mots à une catégorie précise.
 
 
-Les outils de NER traditionnels (comme SpaCy ou CamemBERT) fonctionnent avec une liste fermée de catégories définies au moment de leur entraînement. Pour ajouter de nouvelles catégories spécifiques à un domaine, il faut annoter à la main des fichiers exemples puis réentraîner le modèle, ce qui demande du temps.
+Les outils de NER traditionnels (comme SpaCy ou CamemBERT) fonctionnent avec une liste fermée de catégories définies au moment de leur entraînement, qui peuvent être donc renseigné par l'utilisateur. Pour ajouter de nouvelles catégories spécifiques à un domaine, il faut annoter à la main des fichiers exemples puis réentraîner le modèle, ce qui demande du temps.
 
 Pour contourner cette contrainte, le modèle GLiNER proposé par \citet{zaratiana_gliner_2024} introduit une approche capable de reconnaître de nouvelles catégories sur n'importe quel texte sans réentraînement préalable.
 
@@ -271,14 +258,14 @@ Pour mettre en œuvre l'extraction d'entités avec GLiNER, deux facteurs doivent
 La Figure~\ref{fig:gliner_prompt} illustre la structure de la consigne transmise au modèle. Ce format permet de spécifier directement les noms des catégories recherchées sous forme de simples mots-clés, sans modifier le code du programme. Le schéma montre le rôle du message qui fixe la tâche globale, puis la liste des entités cibles. Le texte transcrit est inséré dans le champ d'entrée de la figure précédente pour être analysé.
 
 
-La Figure~\ref{fig:gliner_backbone} provient des travaux de \citet{zaratiana_gliner_2024}. Les auteurs y évaluent l'impact du modèle de langage sous-jacent sur des jeux de données de référence en extraction d'entités sans réentraînement. La précision y est mesurée par le score F1, une métrique exprimée sur 100 qui combine à la fois la justesse des éléments extraits (la précision) et l'absence d'omissions. Ce graphique permet d'identifier l'architecture la plus efficace pour l'extraction d'informations. On observe que le réseau DeBERTa obtient le meilleur score F1 (55,5), surpassant des architectures comme AlBERT (52,4), RoBERTa (49,5) et BERT (49,4). 
+La Figure~\ref{fig:gliner_backbone} provient des travaux de \citet{zaratiana_gliner_2024}. Les auteurs y évaluent l'impact du modèle de langage sous-jacent sur des jeux de données de référence en extraction d'entités sans réentraînement. La précision y est mesurée par le score F1, une métrique exprimée sur 100 qui combine à la fois la justesse des éléments extraits (la précision) et l'absence d'omissions. Ce graphique permet d'identifier l'architecture la plus efficace pour l'extraction d'informations. On observe que le réseau DeBERTa obtient le meilleur score F1 (55,5), surpassant des architectures comme AlBERT (52,4), RoBERTa (49,5) et BERT (49,4). Il convient également de noter que ce graphique comparatif provient de données synthétiques, les performances de ces modèles sur des données réelles peuvent varier.
 
-Cependant, cette extraction repose sur la lisibilité du texte. En cas de document très abîmé ou d'écriture illisible, d'autres solutions doivent être envisagées.
+Cette extraction repose alors sur la lisibilité du texte. En cas de document très abîmé ou d'écriture illisible, d'autres solutions doivent être envisagées.
 
 \subsection{Les modèles Vision-Langage (VLM)} \label{sec:vlm_execution}
 
 
-Lorsque certains documents sont très abîmés ou contiennent des mentions mal écrites, les moteurs de lecture par OCR et les modèles d'extraction par mots-clés peuvent atteindre leurs limites. Pour résoudre ces cas, une nouvelle classe d'outils issus de l'intelligence artificielle s'est développée : les modèles Vision-Langage (VLM pour \textit{Vision-Language Models}).
+Pour aller plus loin que la chaîne classique (OCR puis extraction de texte), les modèles Vision-Langage (VLM \textit{Vision-Language Models}) proposent d'analyser l'image et de comprendre son contenu dans une seule opération.
 
 \begin{figure}[H]
     \centering
@@ -287,7 +274,7 @@ Lorsque certains documents sont très abîmés ou contiennent des mentions mal �
     \label{fig:vlm_architecture}
 \end{figure}
 
-La Figure~\ref{fig:vlm_architecture} présente l'architecture globale du modèle LLaVA issu des travaux de \citet{liu_llava_2024}. Le fonctionnement du réseau repose sur le couplage d'un encodeur visuel et d'un grand modèle de langage. En bas à gauche du schéma, la photo d'un extrait de document est transmise à l'encodeur visuel (Vision Encoder, fond bleu). Ce composant extrait les caractéristiques visuelles de l'image. Une couche de projection intermédiaire (Projection, fond orange) transforme ensuite ces données visuelles en une suite de représentations numériques compatibles avec le langage. En parallèle, à droite du schéma, la question posée (Language Instruction) est découpée en mots et transformée en texte. Les données visuelles et textuelles sont transmises simultanément au modèle de langage central (Language Model, fond vert), qui génère la réponse finale sous forme de texte.
+La Figure~\ref{fig:vlm_architecture} présente l'architecture  du modèle LLaVA issu des travaux de \citet{liu_llava_2024}. Le fonctionnement du réseau repose sur le couplage d'un encodeur visuel et d'un grand modèle de langage. En bas à gauche du schéma, la photo d'un extrait de document est transmise à l'encodeur visuel (Vision Encoder, fond bleu). Ce composant extrait les caractéristiques visuelles de l'image. Une couche de projection intermédiaire (Projection, fond orange) transforme ensuite ces données visuelles en une suite de représentations numériques compatibles avec le langage. En parallèle, à droite du schéma, la question posée (Language Instruction) est découpée en mots et transformée en texte. Les données visuelles et textuelles sont transmises simultanément au modèle de langage central (Language Model, fond vert), qui génère la réponse finale sous forme de texte.
 
 Ces modèles existent sous deux formes d'exécution distinctes. D'une part, ceux accessibles en ligne (comme GPT-4 Vision ou Claude) proposent de bonnes capacités mais nécessitent le transfert des images vers des serveurs distants. D'autre part, des modèles ouverts et plus légers (comme LLaVA \citep{liu_llava_2024} ou Phi-3 Vision \citep{abdin_phi3_2024}) peuvent être exécutés directement en local sur la machine de l'utilisateur.
 
@@ -304,13 +291,13 @@ Dans ce projet, le choix s'est porté sur le modèle ouvert MiniCPM-V exécuté 
 
 
 
-% A RELIRE
+
 \subsection{La détection et l'extraction de tableaux dans les documents}
 \label{subsec:table_detection}
 
-Beaucoup de documents administratifs organisent leur contenu en colonnes et en lignes. Repérer la structure d'un tableau dans une image et en extraire le contenu est un problème distinct de la simple lecture de texte. Ce problème a été étudié depuis les travaux de \citet{duda_hough_1972} sur la détection de lignes géométriques.
+Beaucoup de documents  organisent leur contenu en colonnes et en lignes. Repérer la structure d'un tableau dans une image et en extraire le contenu est un problème distinct de la simple lecture de texte. Ce problème a été étudié depuis les travaux de \citet{duda_hough_1972} sur la détection de lignes géométriques.
 
-Les premières approches reposent sur la transformée de Hough~\citep{duda_hough_1972}, qui repère les lignes horizontales et verticales dans l'image pour en déduire la grille du tableau. Cette technique fonctionne sur les tableaux imprimés dont les traits sont continus. En revanche, sur les documents anciens, les lignes de colonnes sont souvent discontinues ou absentes, remplacées par un simple alignement visuel des mots sans séparateur. \citet{canny_edge_1986} ont étendu cette approche par une détection préalable des contours, mais la limite sur les documents dégradés reste la même.
+Les premières approches reposent sur la transformée de Hough, qui repère les lignes horizontales et verticales dans l'image pour en déduire la grille du tableau. Cette technique fonctionne sur les tableaux imprimés dont les traits sont continus. En revanche, sur les documents anciens, les lignes de colonnes sont souvent discontinues ou absentes, remplacées par un simple alignement visuel des mots sans séparateur. \citet{canny_edge_1986} ont étendu cette approche par une détection préalable des contours, mais la limite sur les documents dégradés reste la même.
 
 Des modèles entraînés à reconnaître la structure des tableaux ont ensuite été proposés. Le modèle \textit{Table Transformer} (TATR) de \citet{smock_table_2022} repose sur une architecture DETR (\textit{Detection Transformer}). Il analyse directement l'image et prédit la position de chaque ligne et colonne sous forme de boîtes englobantes, sans règles géométriques fixées à l'avance. Entraîné sur les jeux de données PubTables-1M et FinTabNet, il atteint un score F1 supérieur à 0,97 sur des tableaux imprimés normalisés. \citet{chi_complicated_2019} s'intéressent aux tableaux avec des cellules fusionnées et montrent que les architectures par décodage de graphe surpassent les approches par détection d'objets sur ces configurations.
 
@@ -321,16 +308,15 @@ Des modèles entraînés à reconnaître la structure des tableaux ont ensuite �
     \label{fig:table_detection_overview}
 \end{figure}
 
-Sur des documents anciens numérisés à basse résolution, ces modèles se heurtent aux mêmes problèmes que les méthodes classiques. Les cellules ne sont parfois séparées que par un espace, et les plis du papier peuvent être lus à tort comme des séparateurs. \citet{zhong_image-based_2019} montrent que la position spatiale des blocs de texte, combinée à une analyse des proximités horizontales et verticales, est une alternative robuste quand les séparateurs visuels sont absents.
+Sur des documents numérisés à basse résolution, ces modèles se heurtent aux mêmes problèmes que les méthodes vues précédement. Les cellules ne sont parfois séparées que par un espace, et les plis du papier peuvent être lus à tort comme des séparateurs. \citet{zhong_image-based_2019} montrent que la position spatiale des blocs de texte, combinée à une analyse des proximités horizontales et verticales, est une alternative robuste quand les séparateurs visuels sont absents.
 
-Dans les registres d'archives historiques où la séparation des colonnes repose sur un alignement visuel, l'analyse de la densité horizontale des projections de texte permet de détecter les espacements (zones blanches verticales). L'algorithme calcule l'histogramme des projections verticales des boîtes de texte sur la largeur de la page et identifie les creux de densité correspondant aux séparations naturelles entre les colonnes de données.
+Dans les registres d'archives où la séparation des colonnes repose sur un alignement visuel, l'analyse de la densité horizontale des projections de texte permet de détecter les espacements (zones blanches verticales). L'algorithme calcule l'histogramme des projections verticales des boîtes de texte sur la largeur de la page et identifie les creux de densité correspondant aux séparations naturelles entre les colonnes de données.
 
-Pour compenser les décalages de ligne sur les registres, les coordonnées verticales des centroïdes des blocs de texte sont regroupées par un algorithme de clustering unidimensionnel (DBSCAN). Ce regroupement permet de rattacher chaque mot à sa ligne d'origine même si le rédacteur a écrit de manière oblique ou non rectiligne.
+Pour compenser les décalages de lignes, les coordonnées verticales des centroïdes des blocs de texte sont regroupées par un algorithme de clustering unidimensionnel (DBSCAN). Ce regroupement permet de rattacher chaque mot à sa ligne d'origine même si le rédacteur a écrit de manière oblique ou non rectiligne.
 
-Cette analyse de la mise en page des tableaux est importante pour exploiter les répertoires d'anciens géomètres, comme présenté au chapitre~\ref{sec:architecture}. Elle permet l'alignement des données avant d'alimenter les modules suivants du projet.
+Cette analyse de la mise en page des tableaux est importante pour exploiter les répertoires d'anciens géomètres. Elle permet l'alignement des données avant d'alimenter les modules suivants du projet.
 
 
-Dans ce projet, les documents traités se répartissent en deux cas. Les formulaires DMPC imprimés ont des cases délimitées par des traits continus : la détection par boîtes englobantes via YOLOv8 suffit (chapitre~\ref{sec:architecture}). Les registres manuscrits, eux, organisent les données en colonnes sans trait visible. Dans ce second cas, ni la transformée de Hough ni le Table Transformer ne s'appliquent directement. La solution retenue combine la détection des blocs de texte par EasyOCR et leur regroupement par proximité verticale, comme détaillé pour la numérisation des registres au chapitre~\ref{sec:fiabilisation}.
 
 
 \subsection{Métriques d'évaluation de la reconnaissance de texte}
@@ -353,22 +339,20 @@ Le taux d'erreur sur les mots (\textit{Word Error Rate} ou WER) s'appuie sur le 
 \end{equation}
 
 où $S_w$, $D_w$ et $I_w$ représentent respectivement les substitutions, suppressions et insertions de mots entiers, et $N_w$ le nombre total de mots. Le WER est plus sévère que le CER, car une seule lettre de différence rend le mot entier faux.
-% >>>>>>>>>>>>>>>>>>>
 
-\textbf{Précision, Rappel et Score F1.} Pour l'extraction d'entités (comme la détection des noms de communes ou des numéros de parcelles par GLiNER), les métriques habituelles sont la précision ($P$), le rappel ($R$) et le score F1 ($F_1$) :
+ Pour l'extraction d'entités (comme la détection des noms de communes ou des numéros de parcelles par GLiNER), les métriques habituelles sont la précision ($P$), le rappel ($R$) et le score F1 ($F_1$) :
 
 \begin{equation}
   P = \frac{TP}{TP + FP}, \quad R = \frac{TP}{TP + FN}, \quad F_1 = 2 \times \frac{P \times R}{P + R}
 \end{equation}
 
 où $TP$ désigne les vrais positifs (entités correctement extraites), $FP$ les faux positifs (entités attribuées à tort) et $FN$ les faux négatifs (entités manquées). Le score F1 combine précision et rappel en une valeur unique comprise entre 0 et 1 (ou 0\,\% et 100\,\%).
-% >>>>>>>>>>>>>>>>>>>
 
+Théoriquement, le CER et le WER découlent directement des travaux sur la distance de Levenshtein \citep{levenshtein_binary_1966}, qui compte le nombre minimal de modifications pour passer d'un texte à un autre. De leur côté, la précision, le rappel et le score F1 sont issus du domaine de la recherche d'information et sont universellement employés pour mesurer la qualité des systèmes de classification et d'extraction de données.
+
+Une fois l'ensemble des technologies et de leurs métriques présentées, il convient de les synthétiser afin de comparer leurs caractéristiques et d'orienter les choix d'architecture pour le projet.
 
 \subsection{Synthèse des approches de l'état de l'art}
-
-
-
 
 Chaque technologie étudiée dans ce chapitre répond à une tâche précise de l'analyse de document, qu'il s'agisse d'isoler des zones, de lire du texte ou d'en comprendre le sens. Le Tableau~\ref{tab:comparaison_modeles} regroupe ces différentes méthodes afin de comparer leur fonctionnement, leurs avantages et leurs limites, avec pour objectif de selectionner le plus propice au cas d'étude.
 
@@ -399,7 +383,7 @@ Chaque technologie étudiée dans ce chapitre répond à une tâche précise de 
     \bottomrule
   \end{tabular}%
   }
-  \caption{Synthèse comparative des technologies d'analyse de documents.}
+  \caption{Synthèse comparative des technologies d'analyse de document, performances déduites des expériences réalisées et de la littérature scientifique.}
   \label{tab:comparaison_modeles}
 \end{table}
 
