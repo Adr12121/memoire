@@ -14,19 +14,18 @@ L'OCR produit parfois des chaînes de caractères incorrectes car la source mêm
 
 L'application est développée en Python avec le framework Streamlit, qui permet de créer des applications web sans écrire de code HTML. Elle s'exécute localement sur la machine du cabinet, accessible depuis n'importe quel navigateur web du réseau local sur le port 8501. Les données restent ainsi confinées au réseau du cabinet, sans transiter par des serveurs externes.
 
-Pour bien comprendre la conception de l'application, il faut prendre en compte le fonctionnement de Streamlit. À chaque fois que l'utilisateur interagit avec l'application (en cliquant sur un bouton ou en modifiant une case), le script Python est intégralement réexécuté du début à la fin. Ce procédé réinitialise la page et effacerait les corrections saisies avant qu'elles ne soient sauvegardées. Pour éviter ce problème, l'application conserve les modifications en cours dans une mémoire temporaire gérée par la session applicative. Les données modifiées y sont stockées et restent affichées à l'écran tout au long de la relecture du document. La sauvegarde définitive n'intervient que lorsque l'opérateur clique sur le bouton de validation.
+Pour bien comprendre la conception de l'application, il faut prendre en compte le fonctionnement de Streamlit. À chaque fois que l'utilisateur interagit avec l'application (en cliquant sur un bouton ou en modifiant une case), le script Python est intégralement réexécuté du début à la fin. Ce procédé réinitialise la page et effacerait les corrections saisies avant qu'elles ne soient sauvegardées. Pour éviter ce problème, l'application conserve les modifications en cours dans une mémoire temporaire gérée par la session. Les données modifiées y sont stockées et restent affichées à l'écran tout au long de la relecture du document. La sauvegarde définitive n'intervient que lorsque l'opérateur clique sur le bouton de validation.
 
-% A RELIRE
-La gestion de cette mémoire de session s'organise autour de plusieurs variables conservées d'une réexécution à l'autre :
+La gestion de cette mémoire de session s'organise autour de plusieurs variables conservées d'une exécution à l'autre :
 \begin{itemize}
   \item \textbf{L'index du document} : conserve la position du document actuellement affiché dans le lot de travail sélectionné.
-  \item \textbf{Les valeurs du formulaire} : mémorisent l'ensemble des données des champs d'indexation (commune, section, date, géomètre, parcelles) et mettent à jour les champs en temps réel dès qu'une modification est saisie.
+  \item \textbf{Les valeurs du document} : mémorisent l'ensemble des données des champs d'indexation (commune, section, date, géomètre, parcelles) et mettent à jour les champs en temps réel dès qu'une modification est saisie.
   \item \textbf{Les indicateurs de confiance} : conservent les scores d'exactitude et les alertes associées à chaque champ pour adapter la couleur des badges visuels.
   \item \textbf{L'historique local des corrections} : enregistre les paires de valeurs corrigées pour proposer des suggestions automatiques si la même erreur survient sur d'autres pièces du même lot.
 \end{itemize}
 
 Grâce à cette architecture, l'opérateur peut naviguer dans le document, ajuster le zoom de l'image scannée et modifier plusieurs champs sans subir de réinitialisation impromptue des saisies.
-% >>>>>>>>>>>>>>>>>>>
+
 
 
 
@@ -59,17 +58,17 @@ Comme l'illustre l'extrait de la Figure~\ref{fig:zoom_commune}, le champ \texttt
   \label{fig:zoom_commune}
 \end{figure}
 
-Pour la colonne de droite,un outil de navigation permet de zoomer sur le document et de se déplacer dans l'image pour examiner les champs. Un bouton \enquote{Réinitialiser le Zoom} placé au-dessus de l'image permet de réinitialiser l'affichage à tout moment.
+Dans la colonne de droite, un outil de navigation permet de zoomer sur le document et de se déplacer dans l'image pour examiner les champs. Un bouton \enquote{Réinitialiser le Zoom} placé au-dessus de l'image permet de réinitialiser l'affichage à tout moment.
 
 
-Quand l'opérateur modifie une valeur dans le formulaire, l'application applique une normalisation automatique : mise en majuscules de la section, formatage de la date en \texttt{JJ/MM/AAAA}, nettoyage des séparateurs de parcelles et résolution du code INSEE via la base de données des communes.
+Quand l'opérateur modifie une valeur dans le document, l'application applique une normalisation automatique : mise en majuscules de la section, formatage de la date en \texttt{JJ/MM/AAAA}, nettoyage des séparateurs de parcelles et résolution du code INSEE via la base de données des communes.
 
 L'application mémorise également les corrections apportées par l'opérateur. Quand il corrige un champ (commune, géomètre, section, nature de l'acte...), la correspondance entre la valeur extraite et la valeur corrigée est sauvegardée. Sur les documents suivants du même fonds, si l'application retrouve la même valeur erronée, elle la remplace automatiquement, et affiche un badge \enquote{Auto-corrigé} à côté du champ pour le signaler. Concrètement, une erreur répétée, comme un nom de commune systématiquement mal lu, n'a besoin d'être corrigée qu'une seule fois pour tout une série de scans.
 
 
 \subsection{Recherche dans les répertoires et géolocalisation}
 
-Une fois les champs du formulaire validés, l'interface bascule sur un second écran organisé en trois étapes séquentielles.
+Une fois les champs validés, l'interface bascule sur un second écran organisé en trois étapes.
 
 Pour retrouver le numéro de dossier original dans les répertoires du cabinet, l'opérateur utilise d'abord le formulaire de recherche (Figure~\ref{fig:etape1_recherche}). Ce formulaire comporte quatre champs : commune, section cadastrale, numéro de parcelle et année. Les valeurs pré-remplies proviennent de l'étape de détection automatique (chapitre~\ref{sec:architecture}), mais l'opérateur peut les ajuster en cas d'erreur. Un clic sur le bouton \enquote{Rechercher dans le répertoire} interroge le fichier du géomètre concerné, en s'appuyant sur les identifiants cadastraux ou sur les noms de propriétaires. 
 
@@ -80,12 +79,7 @@ Pour retrouver le numéro de dossier original dans les répertoires du cabinet, 
   \label{fig:etape1_recherche}
 \end{figure}
 
-Lorsque la recherche donne une correspondance unique, celle-ci est directement affichée et validée dans un encadré vert. En revanche, si plusieurs dossiers correspondent aux critères saisis, l'application présente un tableau de choix (Figure~\ref{fig:etape1_candidats}) permettant à l'opérateur de sélectionner la référence exacte avant de poursuivre.
-
-L'étape suivante s'appuie sur une carte interactive intégrée via la bibliothèque Folium. Lors du chargement de la commune validée, l'application interroge le service WFS de la DGFiP ou de l'IGN pour récupérer l'emprise vectorielle de la parcelle cadastrale ou du centroïde communal. La carte centre automatiquement l'affichage sur la zone d'intervention et superpose deux couches d'information : le réseau des parcelles cadastrales actuelles et la couche des pastilles d'opérations déjà versées sur le portail GéofoncierEXPERT.
-
-L'opérateur peut déplacer le marqueur d'un simple clic sur le fond de carte pour affiner la localisation de la pastille en cas d'imprécision sur le centroïde calculé. Si la parcelle d'origine a fait l'objet d'une division récente, le module de filiation parcellaire (décrit au chapitre~\ref{sec:analyse_metier}) affiche l'historique des parcelles filles en surbrillance, ce qui permet à l'opérateur de valider le positionnement géographique même si le découpage cadastral contemporain ne correspond plus exactement à l'extrait du plan ancien.
-
+Lorsque la recherche donne une correspondance unique, celle-ci est directement affichée et validée dans un encadré vert. En revanche, si plusieurs dossiers correspondent aux critères saisis, l'application présente un tableau de choix permettant à l'opérateur de sélectionner la référence exacte avant de poursuivre.
 
 \begin{figure}[H]
   \centering
@@ -94,7 +88,13 @@ L'opérateur peut déplacer le marqueur d'un simple clic sur le fond de carte po
   \label{fig:etape1_candidats}
 \end{figure}
 
+Comme illustré Figure~\ref{fig:etape1_candidats}, l'opérateur doit trancher manuellement en s'appuyant sur les informations disponibles dans le tableau. L'année de l'acte et les noms des propriétaires sont généralement les éléments les plus fiables pour identifier le bon dossier, notamment lorsque plusieurs opérations portent sur la même parcelle.
+
 Une fois la référence du dossier confirmée, l'interface passe automatiquement à la phase de localisation cartographique.
+
+L'étape suivante s'appuie sur une carte interactive intégrée via la bibliothèque Folium. Lors du chargement de la commune validée, l'application interroge le service WFS de la DGFiP ou de l'IGN pour récupérer l'emprise vectorielle de la parcelle cadastrale ou du centroïde communal. La carte centre automatiquement l'affichage sur la zone d'intervention et superpose deux couches d'information : le réseau des parcelles cadastrales actuelles et la couche des pastilles d'opérations déjà versées sur le portail GéofoncierEXPERT.
+
+L'opérateur peut déplacer le marqueur d'un simple clic sur le fond de carte pour affiner la localisation de la pastille en cas d'imprécision sur le centroïde calculé. Si la parcelle d'origine a fait l'objet d'une division récente, le module de filiation parcellaire (décrit au chapitre~\ref{sec:analyse_metier}) affiche l'historique des parcelles filles en surbrillance, ce qui permet à l'opérateur de valider le positionnement géographique même si le découpage cadastral actuel ne correspond plus exactement à l'extrait du plan ancien.
 
 Cette deuxième étape ouvre la carte interactive (Figure~\ref{fig:etape2_carte}) superposant le fond cadastral IGN et les pastilles Géofoncier déjà existantes. Un bandeau d'avertissement invite l'opérateur à s'assurer qu'aucun doublon n'a été déposé auparavant. Si la parcelle d'origine a fait l'objet de divisions depuis la création du plan, l'application identifie automatiquement la filiation foncière : un message vert indique les numéros actuels issus de la division (par exemple, la parcelle A-840 devenue A-1618, 1649, 1650 et 1967) et affiche leurs contours en violet sur la carte. L'opérateur peut aussi cliquer sur le bouton \enquote{Comparer avec le plan d'époque} pour ajuster visuellement le calage. Une fois l’emplacement validé ou ajusté sur la carte, la localisation est verrouillée pour l'export.
 
@@ -110,8 +110,14 @@ Après cette validation, l'application oriente l'utilisateur vers la phase final
 
 \subsection{Exportation et versement sur Géofoncier}
 
-Étape 3 -- Versement sur Géofoncier.
- La dernière étape regroupe l'ensemble des informations collectées pour l'envoi. Ce récapitulatif est divisé en deux sections : la première rassemble les données du cabinet (cabinet créateur, détenteur, géomètre et référence interne du dossier), tandis que la seconde récapitule les éléments cadastraux (code INSEE, commune, section, parcelles retenues et nature de l'acte). Le type d'opération est rempli automatiquement. L'opérateur précise la date, choisit le statut dans la liste déroulante et vérifie les éventuels messages d'avertissement. Enfin, l'activation du bouton \enquote{Créer le dossier sur Géofoncier} déclenche l'envoi vers l'API REST pour inscrire le dossier sur la plateforme.
+La dernière étape regroupe l'ensemble des informations collectées pour l'envoi vers Géofoncier. Le récapitulatif est divisé en deux sections : la première rassemble les données du cabinet (cabinet créateur, détenteur, géomètre et référence interne du dossier), tandis que la seconde récapitule les éléments cadastraux (code INSEE, commune, section, parcelles retenues et nature de l'acte). Le type d'opération est rempli automatiquement. L'opérateur précise la date, choisit le statut dans la liste déroulante et vérifie les éventuels messages d'avertissement. Enfin, l'activation du bouton \enquote{Créer le dossier sur Géofoncier} déclenche l'envoi vers l'API REST pour inscrire le dossier sur la plateforme.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.90\textwidth]{img/Etape3_Versement_geofoncier.jpg}
+  \caption{Étape 3 -- Formulaire de versement sur Géofoncier avec récapitulatif des données du cabinet et des éléments cadastraux.}
+  \label{fig:etape3_versement}
+\end{figure}
 
 
 

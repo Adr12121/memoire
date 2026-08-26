@@ -276,18 +276,18 @@ Pour aller plus loin que la chaîne classique (OCR puis extraction de texte), le
 
 La Figure~\ref{fig:vlm_architecture} présente l'architecture  du modèle LLaVA issu des travaux de \citet{liu_llava_2024}. Le fonctionnement du réseau repose sur le couplage d'un encodeur visuel et d'un grand modèle de langage. En bas à gauche du schéma, la photo d'un extrait de document est transmise à l'encodeur visuel (Vision Encoder, fond bleu). Ce composant extrait les caractéristiques visuelles de l'image. Une couche de projection intermédiaire (Projection, fond orange) transforme ensuite ces données visuelles en une suite de représentations numériques compatibles avec le langage. En parallèle, à droite du schéma, la question posée (Language Instruction) est découpée en mots et transformée en texte. Les données visuelles et textuelles sont transmises simultanément au modèle de langage central (Language Model, fond vert), qui génère la réponse finale sous forme de texte.
 
-Ces modèles existent sous deux formes d'exécution distinctes. D'une part, ceux accessibles en ligne (comme GPT-4 Vision ou Claude) proposent de bonnes capacités mais nécessitent le transfert des images vers des serveurs distants. D'autre part, des modèles ouverts et plus légers (comme LLaVA \citep{liu_llava_2024} ou Phi-3 Vision \citep{abdin_phi3_2024}) peuvent être exécutés directement en local sur la machine de l'utilisateur.
+Ces modèles existent sous deux formes d'exécution distinctes. D'une part, ceux accessibles en ligne (comme GPT-4 Vision ou Claude) proposent de bonnes capacités mais nécessitent le transfert des images vers des serveurs distants. D'autre part, des modèles ouverts et plus légers (comme LLaVA cité précédemment \citep{liu_llava_2024}) peuvent être exécutés directement en local sur la machine de l'utilisateur.
 
 D'autres architectures VLM reconnues se distinguent par leur traitement des documents :
 \begin{itemize}
-  \item \textbf{Donut} \citep{kim_donut_2022} : modèle conçu spécifiquement pour la lecture de documents sans moteur OCR préalable. Ce dernier décode directement l'image pour produire une structure de texte (JSON). Il est plus rapide qu'un VLM classique, mais reste limité aux structures de formulaires connues.
-  \item \textbf{Qwen-VL} \citep{bai_qwenvl_2023} : modèle  capable de traiter les images en résolution sans redimensionnement. Cela lui permet de lire de très petits caractères ou des textes denses sur de grands plans sans perte de définition.
-  \item \textbf{Phi-3 Vision} \citep{abdin_phi3_2024} : modèle compact optimisé pour l'exécution locale sur un ordinateur standard en découpant les images HD en sous-blocs. Toutefois, comme son entraînement repose quasi exclusivement sur des jeux de données anglophones, ses performances chutent sur du texte en français, surtout pour un vocabulaire technique.
+  \item \textbf{Donut} \citep{kim_donut_2022} : modèle conçu spécifiquement pour la lecture de documents sans moteur OCR préalable. Ce dernier décode directement l'image pour produire une structure de texte (JSON). Il est plus rapide qu'un VLM classique, mais reste limité aux structures de documents connus.
+  \item \textbf{Qwen-VL} \citep{bai_qwenvl_2023} : modèle capable de traiter les images en haute résolution sans redimensionnement. Cela lui permet de lire de très petits caractères ou des textes denses sur de grands plans sans perte de définition.
+  \item \textbf{Phi-3 Vision} \citep{abdin_phi3_2024} : modèle optimisé pour l'exécution locale sur un ordinateur standard en découpant les images HD en sous-blocs. Toutefois, comme son entraînement repose quasi exclusivement sur des jeux de données anglophones, ses performances chutent sur du texte en français, surtout pour un vocabulaire technique.
 \end{itemize}
 
 Bien que performants pour analyser des visuels de documents, les modèles Vision-Langage présentent deux contraintes. Le temps de calcul par image est plus long que celui d'un modèle d'extraction spécialisé comme YOLO ou GLiNER. De plus, sur des documents dégradés, ces modèles peuvent générer des réponses plausibles mais erronées, un phénomène appelé hallucination.
 
-Dans ce projet, le choix s'est porté sur le modèle ouvert MiniCPM-V exécuté localement sous Ollama. Cette architecture combine un encodeur visuel SigLIP avec un modèle de langage compact. L'image de la zone d'intérêt est découpée en trames visuelles transformées en jetons textuels, permettant au réseau de répondre à des consignes ciblées en français. Pour réduire le temps de réponse et l'occupation mémoire, les poids du modèle ont été quantifiés en 4 bits, rendant l'inférence possible sur les processeurs graphiques standards du cabinet sans compromettre la compréhension des écritures manuscrites.
+Dans ce projet, le choix s'est porté sur le modèle ouvert MiniCPM-V exécuté localement sous Ollama. Cette architecture combine un encodeur visuel SigLIP avec un modèle de langage compact. L'image de la zone d'intérêt est découpée en trames visuelles transformées en jetons textuels, permettant au réseau de répondre à des consignes ciblées en français. Pour réduire le temps de réponse et l'occupation mémoire, les poids du modèle ont été quantifiés en 4 bits, rendant l'utilisation possible sur les postes de travail standards du cabinet sans compromettre la compréhension des écritures.
 
 
 
@@ -295,7 +295,7 @@ Dans ce projet, le choix s'est porté sur le modèle ouvert MiniCPM-V exécuté 
 \subsection{La détection et l'extraction de tableaux dans les documents}
 \label{subsec:table_detection}
 
-Beaucoup de documents  organisent leur contenu en colonnes et en lignes. Repérer la structure d'un tableau dans une image et en extraire le contenu est un problème distinct de la simple lecture de texte. Ce problème a été étudié depuis les travaux de \citet{duda_hough_1972} sur la détection de lignes géométriques.
+Beaucoup de documents anciens organisent leur contenu en colonnes et en lignes. Repérer la structure d'un tableau dans une image et en extraire le contenu est un problème distinct de la simple lecture de texte. Ce problème a été étudié depuis les travaux de \citet{duda_hough_1972} sur la détection de lignes géométriques.
 
 Les premières approches reposent sur la transformée de Hough, qui repère les lignes horizontales et verticales dans l'image pour en déduire la grille du tableau. Cette technique fonctionne sur les tableaux imprimés dont les traits sont continus. En revanche, sur les documents anciens, les lignes de colonnes sont souvent discontinues ou absentes, remplacées par un simple alignement visuel des mots sans séparateur. \citet{canny_edge_1986} ont étendu cette approche par une détection préalable des contours, mais la limite sur les documents dégradés reste la même.
 
@@ -312,9 +312,9 @@ Sur des documents numérisés à basse résolution, ces modèles se heurtent aux
 
 Dans les registres d'archives où la séparation des colonnes repose sur un alignement visuel, l'analyse de la densité horizontale des projections de texte permet de détecter les espacements (zones blanches verticales). L'algorithme calcule l'histogramme des projections verticales des boîtes de texte sur la largeur de la page et identifie les creux de densité correspondant aux séparations naturelles entre les colonnes de données.
 
-Pour compenser les décalages de lignes, les coordonnées verticales des centroïdes des blocs de texte sont regroupées par un algorithme de clustering unidimensionnel (DBSCAN). Ce regroupement permet de rattacher chaque mot à sa ligne d'origine même si le rédacteur a écrit de manière oblique ou non rectiligne.
+Pour compenser les décalages de lignes, les coordonnées verticales des centroïdes des blocs de texte sont regroupées par un algorithme de clustering unidimensionnel (DBSCAN). Ce regroupement permet de rattacher chaque mot à sa ligne d'origine même si le rédacteur a écrit sur plusieurs lignes ou de manière non rectiligne par exemple.
 
-Cette analyse de la mise en page des tableaux est importante pour exploiter les répertoires d'anciens géomètres. Elle permet l'alignement des données avant d'alimenter les modules suivants du projet.
+Cette analyse de la mise en page des tableaux est importante pour exploiter les répertoires d'anciens géomètres. Elle permet l'alignement des données avant d'alimenter les modules de detections du projet, pour ne manquer aucun caractère.
 
 
 
@@ -381,7 +381,7 @@ Chaque technologie étudiée dans ce chapitre répond à une tâche précise de 
     
     LLaVA / Ollama & Modèle Vision-Langage local & > 8 Go GPU & Raisonnement visuel direct en local. & Calcul lent et risque d'hallucination. \\
     \bottomrule
-  \end{tabular}%
+  \end{tabular}
   }
   \caption{Synthèse comparative des technologies d'analyse de document, performances déduites des expériences réalisées et de la littérature scientifique.}
   \label{tab:comparaison_modeles}
@@ -389,9 +389,9 @@ Chaque technologie étudiée dans ce chapitre répond à une tâche précise de 
 
 Pour comparer ces outils, il faut prendre en compte la machine de test. L'ensemble des essais s'appuie sur une configuration standard équipée d'un processeur Intel Core i7, de 32 Go de RAM et d'une carte graphique NVIDIA de 8 Go (VRAM), ce matériel constitue le cas d'étude, la puissance variant que très légèrement entres les postes du cabinet. 
 
-Cette configuration matérielle influence directement le choix des modèles du Tableau~\ref{tab:comparaison_modeles}. Les outils légers comme YOLOv8 et GLiNER occupent moins de 2 Go de mémoire graphique et répondent presque instantanément. PyLaia utilise environ 4 Go pour lire une ligne en moins d'une seconde. À l'inverse, les modèles plus lourds comme LayoutLMv3 et LLaVA demandent beaucoup plus de ressources. Avec Ollama, LLaVA prend environ 4,8 secondes par extrait. De plus, son risque principal reste l'hallucination : sur un texte très abîmé, le modèle a parfois tendance à inventer une réponse crédible au lieu de signaler qu'il n'arrive pas à lire.
+Cette configuration influence directement le choix des modèles du Tableau~\ref{tab:comparaison_modeles}. Les outils légers comme YOLOv8 et GLiNER occupent moins de 2 Go de mémoire graphique et répondent presque instantanément. PyLaia utilise environ 4 Go pour lire une ligne en moins d'une seconde. À l'inverse, les modèles plus lourds comme LayoutLMv3 et LLaVA demandent beaucoup plus de ressources. Avec Ollama, LLaVA prend environ 4,8 secondes par extrait. De plus, son risque principal reste l'hallucination : sur un texte dégradé, le modèle a parfois tendance à inventer une réponse crédible au lieu de signaler qu'il n'arrive pas à lire. Cette hallucination est aussi présente chez Qwen, mais elle est moins frequente.
 
-Pour compléter ces observations, la Figure~\ref{fig:benchmark_comparatif} compare la précision de chaque méthode (en bleu) et son temps de traitement moyen par zone (en orange). Ces valeurs sont issues des tests présentés dans les articles scientifiques sur des formulaires administratifs, des registres manuscrits et des documents de référence.
+Pour compléter ces observations, la Figure~\ref{fig:benchmark_comparatif} compare la précision de chaque méthode (en bleu) et son temps de traitement moyen par zone (en orange). Ces valeurs sont issues des tests présentés dans les articles scientifiques sur des documents administratifs, des registres manuscrits et des documents synthétiques.
 
 \begin{figure}[H]
     \centering
@@ -400,11 +400,11 @@ Pour compléter ces observations, la Figure~\ref{fig:benchmark_comparatif} compa
     \label{fig:benchmark_comparatif}
 \end{figure}
 
-YOLOv8 se montre très rapide (0,15 seconde par zone) et efficace pour repérer les emplacements (98,0\%). Il permet d'isoler rapidement les tampons, les signatures ou les tableaux sans lire le texte. À l'opposé, un modèle comme LLaVA demande environ 4,80 secondes par zone en local. Comme expliqué dans la Section~\ref{sec:vlm_execution}, l'utilisation de services en ligne pose la question de la confidentialité des données d'archives. Même si LLaVA obtient 89,0\% de réussite grâce au raisonnement visuel direct, ce temps de calcul élevé constitue sa limite principale sur des volumes importants de documents.
+YOLOv8 se montre très rapide (0,15 seconde par zone) et efficace pour repérer les emplacements (98,0\%). Il peut être utilisé pour isoler rapidement les zones d'intérêt (tampons, signatures, tableaux) sans lire le texte. À l'opposé, un modèle comme LLaVA demande environ 4,80 secondes par zone en local. Comme expliqué dans la Section~\ref{sec:vlm_execution}, l'utilisation de services en ligne pose la question de la confidentialité des données d'archives. Même si LLaVA obtient 89,0\% de réussite grâce au raisonnement visuel direct, ce temps de calcul élevé constitue sa limite principale sur des volumes importants de documents.
 
 L'analyse des articles de la littérature confirme ces résultats. Les moteurs de lecture classiques comme Tesseract \citep{smith_tesseract_2007} fonctionnent bien sur des imprimés propres, mais leur taux d'erreur dépasse 30\% dès que le texte est manuscrit. À l'inverse, les modèles de reconnaissance manuscrite (HTR) comme TrOCR \citep{li_trocr_2021} et PyLaia \citep{tarride_improving_2024} lisent très bien l'écriture manuelle (moins de 6\% d'erreur, d'après la synthèse de \citet{alkendi_advancements_2024}), mais ils exigent que le texte leur soit transmis ligne par ligne.
 
-Pour découper ces lignes sans problématiques de mise en page, la détection avec YOLOv8 \citep{redmon_yolo_2016, jiang_review_2022} permet d'isoler proprement chaque zone de texte avant la lecture.
+Pour découper ces lignes sans problématiques de mise en page, la détection avec YOLOv8 \citep{redmon_yolo_2016, jiang_review_2022} permet d'isoler chaque zone de texte avant la lecture.
 
 
 Du côté de la compréhension du texte, les modèles comme LayoutLM \citep{xu_layoutlm_2020} essaient d'analyser à la fois la forme et les mots. Cependant, les travaux comparatifs de \citet{bajrami_comprehensive_2023} montrent que LayoutLM reste très sensible aux fautes de lecture de l'OCR : dès que le texte extrait contient des erreurs, la compréhension globale baisse nettement (autour de 88,0\% au mieux). C'est ce qui a poussé les chercheurs à développer des modules de correction comme LayoutLM-Critic \citep{xu_layoutlm-critic_2022}.
@@ -419,19 +419,21 @@ Cette analyse montre qu'aucune technologie existante ne peut traiter seule l'ens
 Afin de répondre aux contraintes du projet et de trouver une solution pour minimiser les limites de chaque modèle, une méthode combinant quatre outils a été retenue :
 
 \begin{itemize}
-  \item Ultralytics YOLOv8 pour la segmentation spatiale : ce modèle découpe visuellement les zones d'intérêt sur les formulaires imprimés sans dépendre du texte.
-  \item EasyOCR et PyLaia pour l'extraction textuelle : EasyOCR lit les parties imprimées tandis que PyLaia traite l'écriture manuscrite des registres.
+  \item Ultralytics YOLOv8 pour la segmentation spatiale : ce modèle découpe visuellement les zones d'intérêt sur les documents de l'étude sans dépendre du texte.
+  \item EasyOCR et PyLaia pour l'extraction textuelle : EasyOCR lit les parties imprimées tandis que PyLaia traite l'écriture manuscrite des documents.
   \item GLiNER pour le repérage des entités : il identifie les champs clés (commune, date, section, parcelles) dans le texte extrait sans réentraînement préalable.
-  \item Ollama avec MiniCPM-V en secours local : ce modèle VLM s'exécute uniquement sur les zones incertaines pour lever les ambiguïtés de lecture.
+  \item LLaVA et MiniCPM-V via Ollama en secours local : ces deux modèles VLM s'exécutent uniquement sur les zones incertaines, chacun sélectionné selon le type de document traité.
 \end{itemize}
 
-Cette architecture hybride garantit le respect du secret professionnel en fonctionnant intégralement en local (chapitre~\ref{sec:analyse_metier}). Elle prépare les données pour la phase de fiabilisation et de validation par l'opérateur (chapitre~\ref{sec:fiabilisation}), avant l'exportation vers le portail Géofoncier (chapitre~\ref{sec:integration}).
+Plusieurs alternatives ont été envisagées et écartées pour des raisons précises, après pour la plupart des tests effectués en interne. Tesseract, moteur OCR classique, produit un taux d'erreur supérieur à 30\,\% dès que le texte est manuscrit, ce qui le rend inutilisable sur les registres anciens. LayoutLM, qui exploite à la fois le texte et la mise en page, voit ses performances chuter (autour de 88\,\% au mieux d'après \citealt{bajrami_comprehensive_2023}) dès que l'OCR sous-jacent commet des erreurs, ce qui arrive fréquemment sur les parties manuscrites. Donut décode directement l'image sans OCR mais ne peut produire que les structures de documents sur lesquels il a été entraîné : il aurait fallu constituer un jeu d'annotation complet de chaque type de formulaire du cabinet, ce qui dépasse les ressources disponibles. Qwen-VL a été écarté en raison d'un temps de calcul trop élevé sur la configuration du cabinet. Phi-3 Vision est quasi exclusivement entraîné sur des données anglophones, ce qui pénalise ses performances sur du texte en français, surtout pour un vocabulaire technique ou cadastral. LLaVA et MiniCPM-V, tous deux exécutés localement via Ollama, ont été retenus comme modèles de secours : LLaVA pour les formulaires imprimés standards et les documents génériques, MiniCPM-V pour les documents dont la mise en page est plus complexe, voire même aléatoire (ex: DMPC, PV d'abornement, croquis). Cette répartition a été établie lors des tests, LLaVA présentant davantage d'hallucinations sur certains types de registres manuscrits, en particulier les DMPC.
+
+Cette architecture garantit le respect du secret professionnel en fonctionnant intégralement en local (chapitre~\ref{sec:analyse_metier}). Elle prépare les données pour la phase de fiabilisation et de validation par l'opérateur (chapitre~\ref{sec:fiabilisation}), avant l'exportation vers le portail Géofoncier (chapitre~\ref{sec:integration}).
 
 
-Pour le repérage des zones, le modèle YOLOv8 a été choisi. Son rôle est d'isoler les cases des communes, les dates, les tableaux de parcelles ainsi que les tampons permettant d'identifier le géomètre-expert ayant réalisé la mission. Ce choix s'explique par sa rapidité (0,15 seconde par zone), sa faible consommation de mémoire graphique (moins de 2 Go) et son insensibilité au texte. Il permet de découper proprement les images sans dépendre d'un gabarit fixe, et de préparer ainsi les extraits d'images nécessaires au fonctionnement du modèle PyLaia.
+Pour le repérage des zones, le modèle YOLOv8 a été choisi. Son rôle est d'isoler les cases des communes, les dates, les tableaux de parcelles ainsi que les tampons permettant d'identifier le géomètre-expert ayant réalisé la mission. Ce choix s'explique par sa rapidité (0,15 seconde par zone), sa faible consommation de mémoire graphique (moins de 2 Go) et son insensibilité au texte. Il permet de découper proprement les images sans dépendre d'un gabarit fixe, et de préparer ainsi les extraits d'images nécessaires au fonctionnement du modèle TrOCR.
 
 
-Pour la transcription du texte manuscrit, le modèle HTR PyLaia a été sélectionné. Alors que l'OCR classique comme Tesseract échoue sur l'écriture manuelle, PyLaia lit les registres manuscrits avec précision dès que les lignes lui sont transmises sous forme de découpes isolées par YOLO.
+Pour la transcription du texte manuscrit, le modèle TrOCR a été sélectionné, dans sa variante francophone \texttt{agomberto/trocr-large-handwritten-fr}. Alors que l'OCR classique comme Tesseract échoue sur l'écriture manuelle, TrOCR lit les registres manuscrits avec précision dès que les lignes lui sont transmises sous forme de découpes isolées par YOLO.
 
 Pour l'extraction des données clés (noms de communes, dates, numéros de parcelles), l'outil GLiNER a été retenu. Contrairement aux modèles comme LayoutLM qui deviennent inefficaces lorsque le texte contient des fautes, GLiNER identifie les entités sans entraînement spécifique et réduit le risque de faux positif, comme présenté dans ce chapitre.
 
