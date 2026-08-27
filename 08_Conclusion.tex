@@ -3,23 +3,21 @@
 \section{Conclusion}
 \label{sec:conclusion_generale}
 
-Ce projet avait un objectif  : lire automatiquement des archives foncières très diverses, extraire les informations utiles et les verser sur Géofoncier, le tout sans aucun transfert de données vers l'extérieur du cabinet.
+Ce projet avait un objectif principal : lire automatiquement des archives foncières très diverses, extraire les informations utiles et les verser sur Géofoncier, le tout sans aucun transfert de données vers l'extérieur du cabinet.
 
 
 \subsection{Ce que le projet a produit}
 
-L'outil développé couvre la totalité de la chaîne : classification du document entrant, redressement de l'image, détection des zones d'intérêt par YOLOv8, lecture par EasyOCR ou MiniCPM-V selon le type d'écriture, validation des champs par l'opérateur, et versement sur Géofoncier via l'API REST. Sur un lot de test de 33 documents, 82\,\% ont été pré-remplis sans aucune correction. Le temps de validation par dossier tombe à moins de trois minutes, contre 10 à 30 minutes pour une recherche dans les archives physiques.
+Avant ce PFE, retrouver un dossier ancien demandait de consulter physiquement les registres, de chercher dans des boîtes ou d'appeler un autre site du cabinet. Verser un document sur Géofoncier était une démarche ponctuelle, manuelle, réalisée seulement quand le temps le permettait. L'outil produit ici change ces deux réalités : la recherche d'antériorités peut désormais s'effectuer en quelques secondes depuis un navigateur, et le versement sur Géofoncier s'intègre directement dans le flux de validation, sans étape supplémentaire pour l'opérateur.
 
-Toutes les données restent sur les machines du cabinet. Aucun document ne passe par un serveur distant. Ce choix, imposé par le secret professionnel, a contraint le choix des modèles mais a été tenu du début à la fin du projet.
-
-L'outil couvre aujourd'hui les deux principaux fonds du siège d'Aubenas, soit environ deux tiers des 23\,600 dossiers recensés. Le tiers restant, comprenant les registres des agences secondaires et les fonds d'anciens géomètres, sera traité progressivement par les opérateurs du cabinet.
+Ce résultat a été obtenu sans recours à un service cloud et sans budget matériel spécifique : les modèles tournent sur les postes existants du cabinet, les données ne quittent jamais le réseau local. La contrainte de confidentialité imposée par le secret professionnel a orienté chaque choix technique, et elle a été tenue.
 
 
 \subsection{Ce qui reste à faire}
 
-Le point faible le plus net est le répertoire du Géomètre B. Ce livret entièrement manuscrit, sans colonnes ni séparateurs, produit des résultats insuffisants avec le VLM généraliste utilisé. Un modèle HTR entraîné spécifiquement sur ces écritures, à partir des corrections accumulées, serait la piste la plus directe pour progresser.
+Ce projet a surtout démontré que l'approche fonctionne. Sur les types de documents les plus courants du cabinet, la chaîne produit des fiches exploitables, le versement sur Géofoncier est opérationnel, et les opérateurs ont pris l'outil en main rapidement lors des sessions de test. C'est le résultat principal du PFE.
 
-Plus généralement, l'outil a besoin d'un second cycle de développement pour être pleinement exploitable en production. La navigation entre documents dans l'interface Streamlit est encore peu pratique sur les grands lots. Le journal d'erreurs du versement n'est pas accessible depuis l'interface. La boucle d'apprentissage actif, qui permettrait d'enrichir automatiquement le jeu d'entraînement à partir des corrections des opérateurs, n'est pas encore fermée. Ce sont des améliorations faisables et identifiées, mais qui n'ont pas pu être menées dans le temps imparti du PFE.
+La suite dépend de la mise en pratique. Le volume réel des archives est bien plus grand que le jeu de test : traiter les 23\,600 dossiers du siège d'Aubenas demandera plusieurs mois de travail régulier par les opérateurs. C'est cet usage continu, plus que tout ajustement technique, qui déterminera la valeur finale de l'outil pour le cabinet. Les pistes d'amélioration identifiées au chapitre précédent, comme le modèle HTR pour le Géomètre B, la boucle d'apprentissage actif, la migration de l'interface, restent des idées ouvertes, réalisable indépendamment selon les priorités du cabinet.
 
 
 \subsection{Bilan personnel}
