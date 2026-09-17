@@ -1,0 +1,3299 @@
+"""
+Générateur de la présentation officielle de soutenance PFE : Adrien TRAVAILLÉ
+Format 180s pur : Fond #F8FAFC, logos INSA / GEO-SIAPP, frise permanente à 2 niveaux avec noms complets,
+grand conteneur blanc arrondi #FFFFFF avec bordure #CBD5E1 et angles modernes (ajustement 0.025).
+Vidéo intégrée en conditions réelles : Demo_soutenance_final.mp4 (INTOUCHÉE).
+Textes condensés en mots-clés percutants, sans paragraphes narratifs excessifs.
+Figures rigoureusement conformes au plan du mémoire sans anticipation de cas réels.
+"""
+
+import os
+import sys
+from pptx import Presentation
+from pptx.util import Inches, Pt
+from pptx.enum.text import PP_ALIGN
+from pptx.dml.color import RGBColor
+from pptx.enum.shapes import MSO_SHAPE
+from PIL import Image
+
+# ==================== CONSTANTES GRAPHIQUES ====================
+SLIDE_W = 13.333
+SLIDE_H = 7.50
+TOTAL_SLIDES = 37
+
+C_NAVY       = RGBColor(16, 44, 87)       # #102C57 - Bleu Nuit Institutionnel
+C_ACCENT     = RGBColor(2, 132, 199)      # #0284C7 - Bleu Accent Soutenance
+C_DARK       = RGBColor(15, 23, 42)       # #0F172A - Texte Principal
+C_MUTED      = RGBColor(100, 116, 139)    # #64748B - Texte Secondaire
+C_BG_SLIDE   = RGBColor(248, 250, 252)    # #F8FAFC - Fond général diapositive
+C_CARD_BG    = RGBColor(255, 255, 255)    # #FFFFFF - Grand conteneur blanc
+C_BORDER_TAB = RGBColor(203, 213, 225)    # #CBD5E1 - Bordure onglet inactif
+C_BG_TAB     = RGBColor(241, 245, 249)    # #F1F5F9 - Fond onglet inactif
+C_LINE       = RGBColor(226, 232, 240)    # #E2E8F0 - Ligne séparatrice
+C_CALLOUT_BG = RGBColor(240, 249, 255)    # #F0F9FF - Fond encadré bleu clair
+C_WHITE      = RGBColor(255, 255, 255)
+C_SUCCESS    = RGBColor(22, 163, 74)      # #16A34A - Succès
+C_WARN       = RGBColor(217, 119, 6)      # #D97706 - Attention
+C_RED        = RGBColor(220, 38, 38)      # #DC2626 - Rejet
+
+# Noms complets non tronqués dans la frise d'en-tête
+CHAPTERS_DATA = [
+    {
+        "short": "1. Introduction",
+        "full": "Introduction et contexte du projet",
+        "badge": "1",
+        "subtitle": "Structure d'accueil GEO-SIAPP, cadre réglementaire et problématique foncière",
+        "subs": ["1.1 Structure GEO-SIAPP", "1.2 Cadre réglementaire", "1.3 Contexte & antériorité", "1.4 Problématique foncière"]
+    },
+    {
+        "short": "2. Données & métier",
+        "full": "Analyse métier et enjeux documentaires",
+        "badge": "2",
+        "subtitle": "Distinction cadastre et actes, spécifications API Géofoncier et filiation parcellaire",
+        "subs": ["2.1 Cadre juridique", "2.2 Spécifications API", "2.3 Typologie des archives", "2.4 Filiation parcellaire"]
+    },
+    {
+        "short": "3. État de l'art",
+        "full": "État de l'art des technologies d'analyse",
+        "badge": "3",
+        "subtitle": "Reconnaissance OCR et HTR, extraction d'entités, modèles Vision-Langage et synthèse",
+        "subs": ["3.1 OCR imprimé", "3.2 HTR manuscrit", "3.3 Extraction NER", "3.4 Arbitrage VLM", "3.5 Synthèse comparative"]
+    },
+    {
+        "short": "4. Architecture",
+        "full": "Architecture logicielle et chaîne de traitement",
+        "badge": "4",
+        "subtitle": "Chaîne modulaire, segmentation spatiale YOLOv8, extraction textuelle et arbitrage local",
+        "subs": ["4.1 Architecture logicielle", "4.2 Segmentation YOLO", "4.3 Extraction GLiNER", "4.4 Arbitrage VLM"]
+    },
+    {
+        "short": "5. Fiabilisation",
+        "full": "Fiabilisation des données et interface opérateur",
+        "badge": "5",
+        "subtitle": "Validation contradictoire humaine Streamlit, règles métier et contrôle spatial",
+        "subs": ["5.1 Interface Streamlit", "5.2 Règles métier", "5.3 Contrôle spatial"]
+    },
+    {
+        "short": "6. Géofoncier",
+        "full": "Intégration Géofoncier et expérimentation",
+        "badge": "6",
+        "subtitle": "Démonstration en conditions réelles, protocole d'injection et expérimentation Prades",
+        "subs": ["6.1 Démonstration vidéo", "6.2 Protocole API", "6.3 Validation Prades"]
+    },
+    {
+        "short": "7. Limites",
+        "full": "Analyse des limites et perspectives d'évolution",
+        "badge": "7",
+        "subtitle": "Diagnostic des modes de défaillance, altérations physiques et feuille de route technique",
+        "subs": ["7.1 Limites techniques", "7.2 Perspectives d'évolution"]
+    },
+    {
+        "short": "8. Conclusion",
+        "full": "Conclusion générale et bilan du projet",
+        "badge": "8",
+        "subtitle": "Bilan opérationnel pour GEO-SIAPP, traitement local et compétences d'ingénieur INSA",
+        "subs": ["8.1 Bilan du projet", "8.2 Remerciements & échanges"]
+    }
+]
+
+prs = Presentation()
+prs.slide_width = Inches(SLIDE_W)
+prs.slide_height = Inches(SLIDE_H)
+blank_layout = prs.slide_layouts[6]
+
+# ==================== FONCTIONS DE MISE EN PAGE ====================
+
+def set_slide_bg(slide):
+    f = slide.background.fill
+    f.solid()
+    f.fore_color.rgb = C_BG_SLIDE
+
+def add_header_180s(slide, active_chap_idx, active_sub_idx):
+    """
+    En-tête avec :
+    - Logo INSA à gauche
+    - Logo GEO-SIAPP à droite
+    - Ligne 1 : Les 8 pilules des chapitres (noms complets)
+    - Ligne 2 : Le ruban des sous-parties du chapitre actif
+    - Ligne séparatrice inférieure
+    """
+    if os.path.exists("Logo_INSAStrasbourg.jpg"):
+        slide.shapes.add_picture("Logo_INSAStrasbourg.jpg", Inches(0.50), Inches(0.12), height=Inches(0.48))
+    if os.path.exists("Geosiapp.jpg"):
+        slide.shapes.add_picture("Geosiapp.jpg", Inches(11.95), Inches(0.12), height=Inches(0.48))
+
+    cx_start = 2.40
+    cx_end = 11.80
+    avail_w = cx_end - cx_start
+
+    # Niveau 1 : Les 8 grands chapitres avec noms complets
+    tab_w = (avail_w - 7 * 0.08) / 8.0
+    for i, chap in enumerate(CHAPTERS_DATA):
+        tx = cx_start + i * (tab_w + 0.08)
+        is_act = (i == active_chap_idx)
+        pill = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(tx), Inches(0.08), Inches(tab_w), Inches(0.32))
+        pill.adjustments[0] = 0.20
+        pill.fill.solid()
+        pill.fill.fore_color.rgb = C_NAVY if is_act else C_BG_TAB
+        pill.line.color.rgb = C_NAVY if is_act else C_BORDER_TAB
+        pill.line.width = Pt(0.5)
+        
+        tf = pill.text_frame
+        tf.word_wrap = False
+        tf.margin_left = tf.margin_top = tf.margin_right = tf.margin_bottom = 0
+        p = tf.paragraphs[0]
+        p.text = ("● " if is_act else "") + chap["short"]
+        p.alignment = PP_ALIGN.CENTER
+        r = p.runs[0]
+        r.font.name = "Arial"
+        r.font.size = Pt(7.0)
+        r.font.bold = is_act
+        r.font.color.rgb = C_WHITE if is_act else C_MUTED
+
+    # Niveau 2 : Ruban des sous-parties pour le chapitre actif
+    if active_chap_idx >= 0 and active_chap_idx < len(CHAPTERS_DATA):
+        subs = CHAPTERS_DATA[active_chap_idx]["subs"]
+        n_subs = len(subs)
+        sub_tab_w = (avail_w - (n_subs - 1) * 0.08) / n_subs
+        for j, s_label in enumerate(subs):
+            sx = cx_start + j * (sub_tab_w + 0.08)
+            is_sub_act = (j == active_sub_idx)
+            spill = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(sx), Inches(0.45), Inches(sub_tab_w), Inches(0.24))
+            spill.adjustments[0] = 0.20
+            spill.fill.solid()
+            spill.fill.fore_color.rgb = C_ACCENT if is_sub_act else C_WHITE
+            spill.line.color.rgb = C_ACCENT if is_sub_act else C_LINE
+            spill.line.width = Pt(0.5)
+            
+            stf = spill.text_frame
+            stf.word_wrap = False
+            stf.margin_left = stf.margin_top = stf.margin_right = stf.margin_bottom = 0
+            sp_p = stf.paragraphs[0]
+            sp_p.text = s_label
+            sp_p.alignment = PP_ALIGN.CENTER
+            sr = sp_p.runs[0]
+            sr.font.name = "Arial"
+            sr.font.size = Pt(7.5)
+            sr.font.bold = is_sub_act
+            sr.font.color.rgb = C_WHITE if is_sub_act else C_DARK
+
+    # Ligne séparatrice
+    sep = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.50), Inches(0.76), Inches(12.33), Inches(0.015))
+    sep.fill.solid()
+    sep.fill.fore_color.rgb = C_LINE
+    sep.line.fill.background()
+
+def create_container_card(slide):
+    """Grand conteneur blanc arrondi officiel (y=1.35 à 7.15) avec angles subtils (0.025) sans débordement."""
+    card = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.70), Inches(1.35), Inches(11.93), Inches(5.80))
+    card.adjustments[0] = 0.025  # Arrondi fin et moderne : aucun débordement possible
+    card.fill.solid()
+    card.fill.fore_color.rgb = C_CARD_BG
+    card.line.color.rgb = C_BORDER_TAB
+    card.line.width = Pt(0.75)
+    return card
+
+def add_slide_title(slide, title_text):
+    """Titre de la diapositive placé immédiatement sous l'en-tête (y=0.84)."""
+    tb = slide.shapes.add_textbox(Inches(0.70), Inches(0.84), Inches(11.93), Inches(0.44))
+    tf = tb.text_frame
+    tf.word_wrap = True
+    tf.margin_left = tf.margin_top = tf.margin_right = tf.margin_bottom = 0
+    p = tf.paragraphs[0]
+    p.text = title_text
+    r = p.runs[0]
+    r.font.name = "Arial"
+    r.font.size = Pt(17.5)
+    r.font.bold = True
+    r.font.color.rgb = C_NAVY
+
+def add_footer_180s(slide, num):
+    """Numéro de diapositive discret en bas à droite."""
+    bx = slide.shapes.add_textbox(Inches(11.50), Inches(7.20), Inches(1.13), Inches(0.24))
+    tf = bx.text_frame
+    tf.margin_left = tf.margin_top = tf.margin_right = tf.margin_bottom = 0
+    p = tf.paragraphs[0]
+    p.text = f"{num} / {TOTAL_SLIDES}"
+    p.alignment = PP_ALIGN.RIGHT
+    r = p.runs[0]
+    r.font.name = "Arial"
+    r.font.size = Pt(8.5)
+    r.font.color.rgb = C_MUTED
+
+def add_fitted_picture(slide, img_path, box_x, box_y, box_w, box_h, caption=None):
+    """Insère et centre une image sans aucune déformation d'aspect."""
+    if not img_path or not os.path.exists(img_path):
+        return None
+    try:
+        cap_h = 0.28 if caption else 0.0
+        avail_h = box_h - cap_h
+        with Image.open(img_path) as im:
+            iw, ih = im.size
+        img_ratio = iw / ih
+        box_ratio = box_w / avail_h
+        if img_ratio > box_ratio:
+            fw = box_w
+            fh = box_w / img_ratio
+        else:
+            fh = avail_h
+            fw = avail_h * img_ratio
+        cx = box_x + (box_w - fw) / 2.0
+        cy = box_y + (avail_h - fh) / 2.0
+        slide.shapes.add_picture(img_path, Inches(cx), Inches(cy), Inches(fw), Inches(fh))
+        if caption:
+            bx = slide.shapes.add_textbox(Inches(box_x), Inches(cy + fh + 0.04), Inches(box_w), Inches(cap_h))
+            tf = bx.text_frame
+            tf.word_wrap = True
+            tf.margin_left = tf.margin_top = tf.margin_right = tf.margin_bottom = 0
+            p = tf.paragraphs[0]
+            p.text = caption
+            p.alignment = PP_ALIGN.CENTER
+            r = p.runs[0]
+            r.font.name = "Arial"
+            r.font.size = Pt(8.5)
+            r.font.italic = True
+            r.font.color.rgb = C_MUTED
+    except Exception as e:
+        print(f"Erreur add_fitted_picture ({img_path}) : {e}")
+
+def create_transition_slide(chap_idx, slide_num, title, subtitle):
+    """
+    Diapositive de transition SUPER SOBRE (passée en 0.5 seconde) :
+    Juste le nom du chapitre en grand et une petite ligne avec de quoi on va parler.
+    """
+    slide = prs.slides.add_slide(blank_layout)
+    set_slide_bg(slide)
+    add_header_180s(slide, chap_idx, -1)
+    card = create_container_card(slide)
+    add_footer_180s(slide, slide_num)
+    
+    # Badge Chapitre centré
+    badge_w = 2.20
+    badge_h = 0.38
+    badge_x = 0.70 + (11.93 - badge_w) / 2.0
+    badge_y = 3.00
+    
+    b_badge = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(badge_x), Inches(badge_y), Inches(badge_w), Inches(badge_h))
+    b_badge.adjustments[0] = 0.15
+    b_badge.fill.solid()
+    b_badge.fill.fore_color.rgb = C_NAVY
+    b_badge.line.fill.background()
+    tf_b = b_badge.text_frame
+    tf_b.margin_left = tf_b.margin_top = tf_b.margin_right = tf_b.margin_bottom = 0
+    pb = tf_b.paragraphs[0]
+    pb.text = f"Chapitre {chap_idx + 1}"
+    pb.alignment = PP_ALIGN.CENTER
+    rb = pb.runs[0]
+    rb.font.name = "Arial"
+    rb.font.size = Pt(11.5)
+    rb.font.bold = True
+    rb.font.color.rgb = C_WHITE
+    
+    # Titre du chapitre centré
+    bx_t = slide.shapes.add_textbox(Inches(1.20), Inches(3.60), Inches(10.93), Inches(0.90))
+    tf_t = bx_t.text_frame
+    tf_t.word_wrap = True
+    tf_t.margin_left = tf_t.margin_top = tf_t.margin_right = tf_t.margin_bottom = 0
+    pt = tf_t.paragraphs[0]
+    pt.alignment = PP_ALIGN.CENTER
+    pt.text = title
+    rt = pt.runs[0]
+    rt.font.name = "Arial"
+    rt.font.size = Pt(26.0)
+    rt.font.bold = True
+    rt.font.color.rgb = C_NAVY
+    
+    # Une petite ligne sobre avec de quoi on va parler
+    bx_st = slide.shapes.add_textbox(Inches(1.20), Inches(4.65), Inches(10.93), Inches(0.50))
+    tf_st = bx_st.text_frame
+    tf_st.word_wrap = True
+    tf_st.margin_left = tf_st.margin_top = tf_st.margin_right = tf_st.margin_bottom = 0
+    pst = tf_st.paragraphs[0]
+    pst.alignment = PP_ALIGN.CENTER
+    pst.text = subtitle
+    rst = pst.runs[0]
+    rst.font.name = "Arial"
+    rst.font.size = Pt(13.0)
+    rst.font.color.rgb = C_ACCENT
+    
+    return slide
+
+def init_standard_slide(chap_idx, sub_idx, slide_num, slide_title):
+    """Initialise une diapositive standard complète au format 180s."""
+    slide = prs.slides.add_slide(blank_layout)
+    set_slide_bg(slide)
+    add_header_180s(slide, chap_idx, sub_idx)
+    add_slide_title(slide, slide_title)
+    card = create_container_card(slide)
+    add_footer_180s(slide, slide_num)
+    return slide, card
+
+def add_two_column_content(slide, items, img_path, img_caption, callout_title=None, callout_text=None, kpis=None):
+    """Remplissage standard 2 colonnes parfaitement ajusté à l'intérieur du conteneur sans débordement."""
+    left_x = 1.05
+    left_w = 5.50
+    right_x = 6.78
+    right_w = 5.50
+    start_y = 1.60
+    
+    total_items = len(items)
+    gap_y = 0.10
+    bot_reserve = 0.85 if (callout_title or kpis) else 0.0
+    # Hauteur disponible jusqu'à y=6.65 (marge de sécurité de 0.50" au-dessus du bord 7.15)
+    avail_h = 5.05 - bot_reserve
+    item_h = (avail_h - (total_items - 1) * gap_y) / total_items
+    
+    for i, item in enumerate(items):
+        iy = start_y + i * (item_h + gap_y)
+        b_shp = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(left_x), Inches(iy), Inches(left_w), Inches(item_h))
+        b_shp.adjustments[0] = 0.03
+        b_shp.fill.solid()
+        b_shp.fill.fore_color.rgb = C_BG_SLIDE
+        b_shp.line.color.rgb = C_LINE
+        b_shp.line.width = Pt(0.75)
+        
+        bx = slide.shapes.add_textbox(Inches(left_x + 0.16), Inches(iy + 0.06), Inches(left_w - 0.32), Inches(item_h - 0.12))
+        tf = bx.text_frame
+        tf.word_wrap = True
+        tf.margin_left = tf.margin_top = tf.margin_right = tf.margin_bottom = 0
+        
+        p = tf.paragraphs[0]
+        if isinstance(item, tuple):
+            head, body = item
+            r1 = p.add_run()
+            r1.text = "• " + head + " :\n"
+            r1.font.name = "Arial"
+            r1.font.size = Pt(10.5)
+            r1.font.bold = True
+            r1.font.color.rgb = C_NAVY
+            
+            p2 = tf.add_paragraph()
+            p2.space_before = Pt(2)
+            r2 = p2.add_run()
+            r2.text = body
+            r2.font.name = "Arial"
+            r2.font.size = Pt(9.0)
+            r2.font.color.rgb = C_DARK
+        else:
+            r = p.add_run()
+            r.text = item
+            r.font.name = "Arial"
+            r.font.size = Pt(9.5)
+            r.font.color.rgb = C_DARK
+
+    if callout_title and callout_text:
+        cy = 5.80
+        c_box = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(left_x), Inches(cy), Inches(left_w), Inches(bot_reserve))
+        c_box.adjustments[0] = 0.03
+        c_box.fill.solid()
+        c_box.fill.fore_color.rgb = C_CALLOUT_BG
+        c_box.line.color.rgb = C_ACCENT
+        c_box.line.width = Pt(1.0)
+        
+        bx_c = slide.shapes.add_textbox(Inches(left_x + 0.16), Inches(cy + 0.08), Inches(left_w - 0.32), Inches(bot_reserve - 0.16))
+        tf_c = bx_c.text_frame
+        tf_c.word_wrap = True
+        tf_c.margin_left = tf_c.margin_top = tf_c.margin_right = tf_c.margin_bottom = 0
+        p_c1 = tf_c.paragraphs[0]
+        p_c1.text = callout_title
+        r_c1 = p_c1.runs[0]
+        r_c1.font.name = "Arial"
+        r_c1.font.size = Pt(9.0)
+        r_c1.font.bold = True
+        r_c1.font.color.rgb = C_ACCENT
+        
+        p_c2 = tf_c.add_paragraph()
+        p_c2.space_before = Pt(2)
+        r_c2 = p_c2.add_run()
+        r_c2.text = callout_text
+        r_c2.font.name = "Arial"
+        r_c2.font.size = Pt(8.5)
+        r_c2.font.color.rgb = C_DARK
+    elif kpis:
+        cy = 5.80
+        n_kpi = len(kpis)
+        kw = (left_w - (n_kpi - 1) * 0.10) / n_kpi
+        for ki, (kv, kl) in enumerate(kpis):
+            kx = left_x + ki * (kw + 0.10)
+            k_box = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(kx), Inches(cy), Inches(kw), Inches(bot_reserve))
+            k_box.adjustments[0] = 0.04
+            k_box.fill.solid()
+            k_box.fill.fore_color.rgb = C_NAVY
+            k_box.line.fill.background()
+            
+            bx_k = slide.shapes.add_textbox(Inches(kx + 0.04), Inches(cy + 0.10), Inches(kw - 0.08), Inches(bot_reserve - 0.20))
+            tf_k = bx_k.text_frame
+            tf_k.margin_left = tf_k.margin_top = tf_k.margin_right = tf_k.margin_bottom = 0
+            pk1 = tf_k.paragraphs[0]
+            pk1.text = kv
+            pk1.alignment = PP_ALIGN.CENTER
+            rk1 = pk1.runs[0]
+            rk1.font.name = "Arial"
+            rk1.font.size = Pt(15.0)
+            rk1.font.bold = True
+            rk1.font.color.rgb = C_ACCENT
+            
+            pk2 = tf_k.add_paragraph()
+            pk2.space_before = Pt(2)
+            pk2.text = kl
+            pk2.alignment = PP_ALIGN.CENTER
+            rk2 = pk2.runs[0]
+            rk2.font.name = "Arial"
+            rk2.font.size = Pt(7.5)
+            rk2.font.color.rgb = C_WHITE
+
+    # Colonne droite : cadre image
+    right_h = 5.05
+    frame_r = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(right_x), Inches(start_y), Inches(right_w), Inches(right_h))
+    frame_r.adjustments[0] = 0.03
+    frame_r.fill.solid()
+    frame_r.fill.fore_color.rgb = C_BG_SLIDE
+    frame_r.line.color.rgb = C_LINE
+    frame_r.line.width = Pt(0.75)
+    
+    add_fitted_picture(slide, img_path, right_x + 0.15, start_y + 0.15, right_w - 0.30, right_h - 0.30, caption=img_caption)
+
+
+# ==================== SLIDE 1 : TITRE ====================
+print("Génération Slide 1 (Titre)...")
+s1 = prs.slides.add_slide(blank_layout)
+set_slide_bg(s1)
+
+if os.path.exists("Logo_INSAStrasbourg.jpg"):
+    s1.shapes.add_picture("Logo_INSAStrasbourg.jpg", Inches(0.80), Inches(0.48), width=Inches(2.70))
+if os.path.exists("Geosiapp.jpg"):
+    add_fitted_picture(s1, "Geosiapp.jpg", 10.60, 0.42, 1.93, 1.10)
+
+card1 = s1.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.80), Inches(1.70), Inches(11.73), Inches(5.35))
+card1.adjustments[0] = 0.025
+card1.fill.solid()
+card1.fill.fore_color.rgb = C_WHITE
+card1.line.color.rgb = C_BORDER_TAB
+card1.line.width = Pt(1.0)
+
+bx_t1 = s1.shapes.add_textbox(Inches(1.20), Inches(2.20), Inches(10.93), Inches(1.50))
+tf_t1 = bx_t1.text_frame
+tf_t1.word_wrap = True
+tf_t1.margin_left = tf_t1.margin_top = tf_t1.margin_right = tf_t1.margin_bottom = 0
+pt1 = tf_t1.paragraphs[0]
+pt1.alignment = PP_ALIGN.CENTER
+pt1.text = "DÉVELOPPEMENT D'UN OUTIL PERMETTANT LE TRAITEMENT ET L'INSERTION DES ARCHIVES NUMÉRIQUES SUR GÉOFONCIER"
+rt1 = pt1.runs[0]
+rt1.font.name = "Arial"
+rt1.font.size = Pt(22.0)
+rt1.font.bold = True
+rt1.font.color.rgb = C_NAVY
+
+bx_sub1 = s1.shapes.add_textbox(Inches(1.20), Inches(3.90), Inches(10.93), Inches(0.40))
+tf_sub1 = bx_sub1.text_frame
+tf_sub1.word_wrap = True
+ps1 = tf_sub1.paragraphs[0]
+ps1.alignment = PP_ALIGN.CENTER
+ps1.text = "SOUTENANCE DE PROJET DE FIN D'ÉTUDES : INSA STRASBOURG"
+rs1 = ps1.runs[0]
+rs1.font.name = "Arial"
+rs1.font.size = Pt(13.0)
+rs1.font.bold = True
+rs1.font.color.rgb = C_ACCENT
+
+bx_det1 = s1.shapes.add_textbox(Inches(1.20), Inches(4.50), Inches(10.93), Inches(2.20))
+tf_det1 = bx_det1.text_frame
+tf_det1.word_wrap = True
+
+pd1 = tf_det1.paragraphs[0]
+pd1.alignment = PP_ALIGN.CENTER
+rd1_1 = pd1.add_run()
+rd1_1.text = "Étudiant : "
+rd1_1.font.name = "Arial"
+rd1_1.font.size = Pt(14.0)
+rd1_1.font.bold = True
+rd1_1.font.color.rgb = C_DARK
+rd1_2 = pd1.add_run()
+rd1_2.text = "TRAVAILLÉ Adrien (Spécialité Topographie, Promotion 2026)"
+rd1_2.font.name = "Arial"
+rd1_2.font.size = Pt(14.0)
+rd1_2.font.color.rgb = C_DARK
+
+pd2 = tf_det1.add_paragraph()
+pd2.space_before = Pt(8)
+pd2.alignment = PP_ALIGN.CENTER
+rd2_1 = pd2.add_run()
+rd2_1.text = "Tuteur Entreprise : "
+rd2_1.font.name = "Arial"
+rd2_1.font.size = Pt(12.5)
+rd2_1.font.bold = True
+rd2_1.font.color.rgb = C_NAVY
+rd2_2 = pd2.add_run()
+rd2_2.text = "M. Gaëtan HAGUE, Géomètre-Expert associé, Cabinet GEO-SIAPP"
+rd2_2.font.name = "Arial"
+rd2_2.font.size = Pt(12.5)
+rd2_2.font.color.rgb = C_DARK
+
+pd3 = tf_det1.add_paragraph()
+pd3.space_before = Pt(4)
+pd3.alignment = PP_ALIGN.CENTER
+rd3_1 = pd3.add_run()
+rd3_1.text = "Directeur de PFE : "
+rd3_1.font.name = "Arial"
+rd3_1.font.size = Pt(12.5)
+rd3_1.font.bold = True
+rd3_1.font.color.rgb = C_NAVY
+rd3_2 = pd3.add_run()
+rd3_2.text = "M. Mathieu KOEHL, Enseignant-chercheur, INSA Strasbourg / ICube"
+rd3_2.font.name = "Arial"
+rd3_2.font.size = Pt(12.5)
+rd3_2.font.color.rgb = C_DARK
+
+pd4 = tf_det1.add_paragraph()
+pd4.space_before = Pt(10)
+pd4.alignment = PP_ALIGN.CENTER
+rd4 = pd4.add_run()
+rd4.text = "Soutenance du 24 septembre 2026"
+rd4.font.name = "Arial"
+rd4.font.size = Pt(11.0)
+rd4.font.italic = True
+rd4.font.color.rgb = C_ACCENT
+
+
+# ==================== SLIDE 2 : SOMMAIRE ÉPURÉ ====================
+print("Génération Slide 2 (Présentation sobre des 8 titres sans descriptif)...")
+s2, c2 = init_standard_slide(-1, -1, 2, "Plan de la présentation : Sommaire")
+
+# 2 colonnes équilibrées de 4 fiches élégantes présentant UNIQUEMENT les titres
+cw2 = 5.50
+ch2 = 1.08
+cg2_y = 0.20
+left_x = 1.05
+right_x = 6.78
+start_y = 1.62
+
+for idx, chap in enumerate(CHAPTERS_DATA):
+    col = idx // 4
+    row = idx % 4
+    cx = left_x if col == 0 else right_x
+    cy = start_y + row * (ch2 + cg2_y)
+    
+    b_card = s2.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(cx), Inches(cy), Inches(cw2), Inches(ch2))
+    b_card.adjustments[0] = 0.03
+    b_card.fill.solid()
+    b_card.fill.fore_color.rgb = C_BG_SLIDE
+    b_card.line.color.rgb = C_LINE
+    b_card.line.width = Pt(0.75)
+    
+    # Pilule Chapitre X
+    pill_w = 1.35
+    pill_h = 0.38
+    pill_y = cy + (ch2 - pill_h) / 2.0
+    pill_shp = s2.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(cx + 0.22), Inches(pill_y), Inches(pill_w), Inches(pill_h))
+    pill_shp.adjustments[0] = 0.20
+    pill_shp.fill.solid()
+    pill_shp.fill.fore_color.rgb = C_NAVY
+    pill_shp.line.fill.background()
+    tf_p = pill_shp.text_frame
+    tf_p.margin_left = tf_p.margin_top = tf_p.margin_right = tf_p.margin_bottom = 0
+    p_p = tf_p.paragraphs[0]
+    p_p.alignment = PP_ALIGN.CENTER
+    p_p.text = f"Chapitre {idx + 1}"
+    r_p = p_p.runs[0]
+    r_p.font.name = "Arial"
+    r_p.font.size = Pt(9.0)
+    r_p.font.bold = True
+    r_p.font.color.rgb = C_WHITE
+    
+    # Titre officiel du chapitre centré verticalement, sans aucun texte descriptif
+    tit_x = cx + 1.75
+    tit_w = cw2 - 1.95
+    tit_h = 0.58
+    tit_y = cy + (ch2 - tit_h) / 2.0
+    bx_tit = s2.shapes.add_textbox(Inches(tit_x), Inches(tit_y), Inches(tit_w), Inches(tit_h))
+    tf_tit = bx_tit.text_frame
+    tf_tit.word_wrap = True
+    tf_tit.margin_left = tf_tit.margin_top = tf_tit.margin_right = tf_tit.margin_bottom = 0
+    p_tit = tf_tit.paragraphs[0]
+    p_tit.text = chap["full"]
+    r_tit = p_tit.runs[0]
+    r_tit.font.name = "Arial"
+    r_tit.font.size = Pt(13.0)
+    r_tit.font.bold = True
+    r_tit.font.color.rgb = C_NAVY
+
+# ==================== CHAPITRE 1 : INTRODUCTION & CONTEXTE ====================
+print("Génération Chapitre 1 (Slides 3-7)...")
+
+# Slide 3 : Transition Chapitre 1
+create_transition_slide(
+    chap_idx=0,
+    slide_num=3,
+    title="Chapitre 1 : Introduction et contexte du projet",
+    subtitle="Structure d'accueil GEO-SIAPP, cadre réglementaire et problématique foncière"
+)
+
+# Slide 4 (1.1) : Présentation GEO-SIAPP
+s4, c4 = init_standard_slide(0, 0, 4, "1.1 Présentation de la structure d'accueil : Le Cabinet GEO-SIAPP")
+
+left_x4 = 1.05
+left_w4 = 5.50
+
+bx_info4 = s4.shapes.add_textbox(Inches(left_x4), Inches(1.60), Inches(left_w4), Inches(3.95))
+tf_info4 = bx_info4.text_frame
+tf_info4.word_wrap = True
+tf_info4.margin_left = tf_info4.margin_top = tf_info4.margin_right = tf_info4.margin_bottom = 0
+
+items_s4 = [
+    ("Implantation territoriale solide",
+     "Fondé en 1992 à Aubenas (siège), le cabinet s'articule autour de 4 agences : Aubenas, Pierrelatte, Vallon-Pont-d'Arc et Guilherand-Granges."),
+    ("Pluridisciplinarité métier",
+     "Missions foncières (bornage, divisions), urbanisme réglementaire, ingénierie VRD et topographie 3D (scanner laser, photogrammétrie drone)."),
+    ("Patrimoine d'archives d'envergure",
+     "Conservation intégrale de 50 ans d'archives physiques (1959–2007) issues du cabinet et des études de géomètres prédécesseurs rachetées.")
+]
+
+for ii, (head_i, body_i) in enumerate(items_s4):
+    p_h = tf_info4.paragraphs[0] if ii == 0 else tf_info4.add_paragraph()
+    if ii > 0:
+        p_h.space_before = Pt(12)
+    r1 = p_h.add_run()
+    r1.text = "• " + head_i + " :\n"
+    r1.font.name = "Arial"
+    r1.font.size = Pt(11.5)
+    r1.font.bold = True
+    r1.font.color.rgb = C_NAVY
+    
+    p_b = tf_info4.add_paragraph()
+    p_b.space_before = Pt(2)
+    r2 = p_b.add_run()
+    r2.text = body_i
+    r2.font.name = "Arial"
+    r2.font.size = Pt(9.5)
+    r2.font.color.rgb = C_DARK
+
+# Colonne droite : Photo des bureaux
+add_fitted_picture(s4, "img/bureau_cropped.jpg", 6.78, 1.60, 5.50, 3.95, caption="Implantation territoriale du cabinet GEO-SIAPP (Aubenas, Pierrelatte, Vallon, Guilherand)")
+
+# Ligne du bas : 4 indicateurs clés
+b_kpi_bar = s4.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(5.80), Inches(11.23), Inches(0.85))
+b_kpi_bar.adjustments[0] = 0.03
+b_kpi_bar.fill.solid()
+b_kpi_bar.fill.fore_color.rgb = C_BG_SLIDE
+b_kpi_bar.line.color.rgb = C_LINE
+b_kpi_bar.line.width = Pt(0.75)
+
+kpis_s4 = [
+    ("4", "Agences en Ardèche et Drôme"),
+    ("23 600", "Dossiers d'archives physiques"),
+    ("1959–2007", "Période des fonds non indexés"),
+    ("6 Mois", "Stage PFE ingénieur INSA")
+]
+kw4 = 11.23 / 4.0
+for ki, (kv, kl) in enumerate(kpis_s4):
+    kx = 1.05 + ki * kw4
+    bx_k = s4.shapes.add_textbox(Inches(kx), Inches(5.85), Inches(kw4), Inches(0.75))
+    tf_k = bx_k.text_frame
+    tf_k.margin_left = tf_k.margin_top = tf_k.margin_right = tf_k.margin_bottom = 0
+    
+    pk1 = tf_k.paragraphs[0]
+    pk1.text = kv
+    pk1.alignment = PP_ALIGN.CENTER
+    rk1 = pk1.runs[0]
+    rk1.font.name = "Arial"
+    rk1.font.size = Pt(17.0)
+    rk1.font.bold = True
+    rk1.font.color.rgb = C_NAVY
+    
+    pk2 = tf_k.add_paragraph()
+    pk2.space_before = Pt(2)
+    pk2.text = kl
+    pk2.alignment = PP_ALIGN.CENTER
+    rk2 = pk2.runs[0]
+    rk2.font.name = "Arial"
+    rk2.font.size = Pt(8.0)
+    rk2.font.color.rgb = C_MUTED
+
+
+# Slide 5 (1.2) : Cadre réglementaire
+s5, c5 = init_standard_slide(0, 1, 5, "1.2 Le cadre réglementaire et professionnel du bornage")
+
+b_jur = s5.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(1.60), Inches(5.50), Inches(4.05))
+b_jur.adjustments[0] = 0.03
+b_jur.fill.solid()
+b_jur.fill.fore_color.rgb = C_BG_SLIDE
+b_jur.line.color.rgb = C_LINE
+b_jur.line.width = Pt(0.75)
+
+bx_jur = s5.shapes.add_textbox(Inches(1.25), Inches(1.75), Inches(5.10), Inches(3.75))
+tf_jur = bx_jur.text_frame
+tf_jur.word_wrap = True
+tf_jur.margin_left = tf_jur.margin_top = tf_jur.margin_right = tf_jur.margin_bottom = 0
+
+pj_h = tf_jur.paragraphs[0]
+pj_h.text = "CADRE LÉGAL DU GÉOMÈTRE-EXPERT\n"
+rj_h = pj_h.runs[0]
+rj_h.font.name = "Arial"
+rj_h.font.size = Pt(11.5)
+rj_h.font.bold = True
+rj_h.font.color.rgb = C_NAVY
+
+items_jur = [
+    ("Monopole légal (Loi du 7 mai 1946)", "Seul professionnel habilité à fixer les limites réelles de la propriété foncière. Acte opposable aux tiers."),
+    ("Article 646 du Code civil", "Droit imprescriptible au bornage contradictoire entre parcelles contiguës (« Bornage sur bornage ne vaut »)."),
+    ("Conservation trentenaire (Décret 96-478)", "L'article 55 impose la conservation des archives foncières au moins 30 ans, y compris après cessation."),
+    ("Opposabilité juridique absolue", "Le procès-verbal de bornage contradictoire signé lie définitivement les propriétaires actuels et futurs.")
+]
+for pi, (hd, bd) in enumerate(items_jur):
+    p_hd = tf_jur.add_paragraph()
+    p_hd.space_before = Pt(6)
+    r1 = p_hd.add_run()
+    r1.text = "• " + hd + " :\n"
+    r1.font.name = "Arial"
+    r1.font.size = Pt(9.5)
+    r1.font.bold = True
+    r1.font.color.rgb = C_NAVY
+    
+    p_bd = tf_jur.add_paragraph()
+    p_bd.space_before = Pt(1)
+    r2 = p_bd.add_run()
+    r2.text = bd
+    r2.font.name = "Arial"
+    r2.font.size = Pt(8.5)
+    r2.font.color.rgb = C_DARK
+
+b_geo = s5.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(6.78), Inches(1.60), Inches(5.50), Inches(4.05))
+b_geo.adjustments[0] = 0.03
+b_geo.fill.solid()
+b_geo.fill.fore_color.rgb = C_BG_SLIDE
+b_geo.line.color.rgb = C_LINE
+b_geo.line.width = Pt(0.75)
+
+bx_geo = s5.shapes.add_textbox(Inches(6.98), Inches(1.75), Inches(5.10), Inches(3.75))
+tf_geo = bx_geo.text_frame
+tf_geo.word_wrap = True
+tf_geo.margin_left = tf_geo.margin_top = tf_geo.margin_right = tf_geo.margin_bottom = 0
+
+pg_h = tf_geo.paragraphs[0]
+pg_h.text = "ÉCOSYSTÈME NATIONAL GÉOFONCIER\n"
+rg_h = pg_h.runs[0]
+rg_h.font.name = "Arial"
+rg_h.font.size = Pt(11.5)
+rg_h.font.bold = True
+rg_h.font.color.rgb = C_ACCENT
+
+items_geo = [
+    ("Portail Géofoncier (créé en 2010)", "Plateforme centrale de l'OGE référençant les interventions sous forme de pastilles géolocalisées."),
+    ("Programme GEODÉMAT (DGFiP)", "Initiative fiscale numérisant uniquement le cadastre public et les DMPC enregistrés depuis 1956."),
+    ("Responsabilité exclusive du cabinet", "Les archives foncières privées (PV contradictoires, plans) ne sont pas traitées par l'État."),
+    ("Enjeu d'intégration GEO-SIAPP", "Rendre accessibles 50 ans d'archives d'Aubenas à toute la profession via les API nationales.")
+]
+for pi, (hd, bd) in enumerate(items_geo):
+    p_hd = tf_geo.add_paragraph()
+    p_hd.space_before = Pt(6)
+    r1 = p_hd.add_run()
+    r1.text = "• " + hd + " :\n"
+    r1.font.name = "Arial"
+    r1.font.size = Pt(9.5)
+    r1.font.bold = True
+    r1.font.color.rgb = C_ACCENT
+    
+    p_bd = tf_geo.add_paragraph()
+    p_bd.space_before = Pt(1)
+    r2 = p_bd.add_run()
+    r2.text = bd
+    r2.font.name = "Arial"
+    r2.font.size = Pt(8.5)
+    r2.font.color.rgb = C_DARK
+
+b_syn5 = s5.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(5.85), Inches(11.23), Inches(0.80))
+b_syn5.adjustments[0] = 0.03
+b_syn5.fill.solid()
+b_syn5.fill.fore_color.rgb = C_CALLOUT_BG
+b_syn5.line.color.rgb = C_ACCENT
+b_syn5.line.width = Pt(1.0)
+
+bx_s5 = s5.shapes.add_textbox(Inches(1.20), Inches(5.90), Inches(10.93), Inches(0.70))
+tf_s5 = bx_s5.text_frame
+tf_s5.word_wrap = True
+tf_s5.margin_left = tf_s5.margin_top = tf_s5.margin_right = tf_s5.margin_bottom = 0
+ps5_1 = tf_s5.paragraphs[0]
+ps5_1.text = "DISTINCTION JURIDIQUE FONDAMENTALE :"
+rs5_1 = ps5_1.runs[0]
+rs5_1.font.name = "Arial"
+rs5_1.font.size = Pt(9.5)
+rs5_1.font.bold = True
+rs5_1.font.color.rgb = C_ACCENT
+
+ps5_2 = tf_s5.add_paragraph()
+ps5_2.space_before = Pt(2)
+rs5_2 = ps5_2.add_run()
+rs5_2.text = "Le programme GEODÉMAT traite uniquement le cadastre fiscal public. L'indexation et la valorisation des archives foncières privées relèvent exclusivement de l'initiative des cabinets de géomètres-experts."
+rs5_2.font.name = "Arial"
+rs5_2.font.size = Pt(8.5)
+rs5_2.font.color.rgb = C_DARK
+
+
+# Slide 6 (1.3) : Contexte du projet : La recherche d'antériorité obligatoire
+# REFONTE COMPLÈTE : MOTS-CLÉS STRUCTURÉS, ESPACE VERTICAL UTILISÉ À 100%, AUCUN DEBORDEMENT
+print("Génération Slide 6 (Refonte mots-clés et occupation de l'espace)...")
+s6, c6 = init_standard_slide(0, 2, 6, "1.3 Contexte du projet : La recherche d'antériorité obligatoire")
+
+cols_s6 = [
+    ("Cadre juridique strict",
+     "« Bornage sur bornage ne vaut »",
+     C_NAVY,
+     [
+         ("Article 646 Code civil", "Obligation légale de rechercher systématiquement les actes antérieurs."),
+         ("Continuité des limites", "Rétablissement obligatoire de la ligne séparative d'origine."),
+         ("Opposabilité légale", "Tout nouvel acte dressé sans antériorité est juridiquement caduc."),
+         ("Sécurisation du client", "Garantie absolue contre les contestations et litiges de voisinage.")
+     ]),
+    ("Réalité opérationnelle",
+     "Recherche physique manuelle",
+     C_WARN,
+     [
+         ("Cartons d'Aubenas", "Fouille manuelle dans des centaines de boîtes d'archives physiques."),
+         ("Temps perdu", "15 à 30 minutes requises par dossier, sans certitude de résultat immédiat."),
+         ("Fragilité matérielle", "Documents de 1959 à 2007 usés par les manipulations répétées."),
+         ("Frein de production", "Retard direct sur le démarrage des nouveaux chantiers de terrain.")
+     ]),
+    ("Enjeu pour le cabinet SIAPP",
+     "23 600 dossiers dormants",
+     C_ACCENT,
+     [
+         ("Volume massif", "23 600 dossiers papier non indexés au siège d'Aubenas."),
+         ("Mémoire technique", "Transmission du savoir issu de 5 cabinets de géomètres prédécesseurs."),
+         ("Échanges confraternels", "Demandes régulières de confrères nécessitant des recherches rapides."),
+         ("Objectif du PFE", "Extraction automatique et publication de pastilles sur Géofoncier.")
+     ])
+]
+
+cw6 = 3.55
+cg6 = 0.29
+for ci, (c_tag, c_title, c_color, c_bullets) in enumerate(cols_s6):
+    cx = 1.05 + ci * (cw6 + cg6)
+    b_col = s6.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(cx), Inches(1.60), Inches(cw6), Inches(4.10))
+    b_col.adjustments[0] = 0.03
+    b_col.fill.solid()
+    b_col.fill.fore_color.rgb = C_BG_SLIDE
+    b_col.line.color.rgb = C_LINE
+    b_col.line.width = Pt(0.75)
+    
+    bx_col = s6.shapes.add_textbox(Inches(cx + 0.16), Inches(1.72), Inches(cw6 - 0.32), Inches(3.85))
+    tf_col = bx_col.text_frame
+    tf_col.word_wrap = True
+    tf_col.margin_left = tf_col.margin_top = tf_col.margin_right = tf_col.margin_bottom = 0
+    
+    p1 = tf_col.paragraphs[0]
+    p1.text = c_tag.upper()
+    r1 = p1.runs[0]
+    r1.font.name = "Arial"
+    r1.font.size = Pt(9.5)
+    r1.font.bold = True
+    r1.font.color.rgb = c_color
+    
+    p2 = tf_col.add_paragraph()
+    p2.space_before = Pt(3)
+    p2.text = c_title
+    r2 = p2.runs[0]
+    r2.font.name = "Arial"
+    r2.font.size = Pt(11.5)
+    r2.font.bold = True
+    r2.font.color.rgb = C_NAVY
+    
+    for b_lbl, b_txt in c_bullets:
+        p_b = tf_col.add_paragraph()
+        p_b.space_before = Pt(6)
+        r_bl = p_b.add_run()
+        r_bl.text = "• " + b_lbl + " : "
+        r_bl.font.name = "Arial"
+        r_bl.font.size = Pt(8.5)
+        r_bl.font.bold = True
+        r_bl.font.color.rgb = C_DARK
+        
+        r_bt = p_b.add_run()
+        r_bt.text = b_txt
+        r_bt.font.name = "Arial"
+        r_bt.font.size = Pt(8.0)
+        r_bt.font.color.rgb = C_MUTED
+
+b_kpi6 = s6.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(5.85), Inches(11.23), Inches(0.80))
+b_kpi6.adjustments[0] = 0.03
+b_kpi6.fill.solid()
+b_kpi6.fill.fore_color.rgb = C_CALLOUT_BG
+b_kpi6.line.color.rgb = C_ACCENT
+b_kpi6.line.width = Pt(1.0)
+
+kpis_s6 = [
+    ("23 600", "Dossiers d'archives physiques"),
+    ("15 à 30 min", "Par recherche manuelle"),
+    ("1959–2007", "Fonds non numérisé"),
+    ("100%", "Opposabilité des actes")
+]
+kw6 = 11.23 / 4.0
+for ki, (kv, kl) in enumerate(kpis_s6):
+    kx = 1.05 + ki * kw6
+    bx_k = s6.shapes.add_textbox(Inches(kx), Inches(5.88), Inches(kw6), Inches(0.74))
+    tf_k = bx_k.text_frame
+    tf_k.margin_left = tf_k.margin_top = tf_k.margin_right = tf_k.margin_bottom = 0
+    
+    pk1 = tf_k.paragraphs[0]
+    pk1.text = kv
+    pk1.alignment = PP_ALIGN.CENTER
+    rk1 = pk1.runs[0]
+    rk1.font.name = "Arial"
+    rk1.font.size = Pt(15.5)
+    rk1.font.bold = True
+    rk1.font.color.rgb = C_NAVY
+    
+    pk2 = tf_k.add_paragraph()
+    pk2.space_before = Pt(2)
+    pk2.text = kl
+    pk2.alignment = PP_ALIGN.CENTER
+    rk2 = pk2.runs[0]
+    rk2.font.name = "Arial"
+    rk2.font.size = Pt(8.0)
+    rk2.font.color.rgb = C_DARK
+
+
+# Slide 7 (1.4) : Problématique et contraintes techniques (Phrase exacte du mémoire)
+print("Génération Slide 7 (Problématique pure et contraintes sans annonce prématurée)...")
+s7, c7 = init_standard_slide(0, 3, 7, "1.4 Problématique et contraintes techniques du projet")
+
+# Colonne gauche : 3 contraintes majeures
+left_x7 = 1.05
+left_w7 = 5.50
+start_y7 = 1.60
+
+constraints_s7 = [
+    ("Hétérogénéité des archives physiques (1959–2007)",
+     "Près de 50 ans d'histoire couvrant des supports très variés : plans sur calque, registres manuscrits, formulaires dactylographiés, encres pâlies et pliures d'usure."),
+    ("Limites des moteurs de lecture conventionnels",
+     "Échec des logiciels de reconnaissance de texte sur l'écriture cursive des géomètres, les abréviations locales et les documents penchés (taux d'erreur inexploitable)."),
+    ("Confidentialité des données et exécution locale",
+     "Les actes fonciers comportent des données personnelles assujetties au secret professionnel : obligation stricte d'exécuter l'outil localement sur station CPU, sans cloud.")
+]
+
+gap7 = 0.12
+card_h7 = (4.00 - 2 * gap7) / 3.0
+for ci, (c_hd, c_bd) in enumerate(constraints_s7):
+    cy = start_y7 + ci * (card_h7 + gap7)
+    b_c = s7.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(left_x7), Inches(cy), Inches(left_w7), Inches(card_h7))
+    b_c.adjustments[0] = 0.03
+    b_c.fill.solid()
+    b_c.fill.fore_color.rgb = C_BG_SLIDE
+    b_c.line.color.rgb = C_LINE
+    b_c.line.width = Pt(0.75)
+    
+    bx_c = s7.shapes.add_textbox(Inches(left_x7 + 0.16), Inches(cy + 0.08), Inches(left_w7 - 0.32), Inches(card_h7 - 0.16))
+    tf_c = bx_c.text_frame
+    tf_c.word_wrap = True
+    tf_c.margin_left = tf_c.margin_top = tf_c.margin_right = tf_c.margin_bottom = 0
+    
+    p1 = tf_c.paragraphs[0]
+    p1.text = "• " + c_hd + " :"
+    r1 = p1.runs[0]
+    r1.font.name = "Arial"
+    r1.font.size = Pt(10.0)
+    r1.font.bold = True
+    r1.font.color.rgb = C_NAVY
+    
+    p2 = tf_c.add_paragraph()
+    p2.space_before = Pt(2)
+    p2.text = c_bd
+    r2 = p2.runs[0]
+    r2.font.name = "Arial"
+    r2.font.size = Pt(8.5)
+    r2.font.color.rgb = C_DARK
+
+# Colonne droite : Registre manuscrit authentique illustrant la difficulté réelle
+frame_r7 = s7.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(6.78), Inches(start_y7), Inches(5.50), Inches(4.00))
+frame_r7.adjustments[0] = 0.03
+frame_r7.fill.solid()
+frame_r7.fill.fore_color.rgb = C_BG_SLIDE
+frame_r7.line.color.rgb = C_LINE
+frame_r7.line.width = Pt(0.75)
+add_fitted_picture(s7, "img/registre_manuscrit.jpg", 6.93, start_y7 + 0.10, 5.20, 3.80, caption="Fonds d'archives physiques du cabinet : écriture manuscrite et abréviations (Mémoire, Figure 1.5)")
+
+# Grand bandeau inférieur mettant en valeur la phrase exacte du mémoire
+b_prob7 = s7.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(5.80), Inches(11.23), Inches(0.85))
+b_prob7.adjustments[0] = 0.03
+b_prob7.fill.solid()
+b_prob7.fill.fore_color.rgb = C_CALLOUT_BG
+b_prob7.line.color.rgb = C_ACCENT
+b_prob7.line.width = Pt(1.0)
+
+bx_prob = s7.shapes.add_textbox(Inches(1.20), Inches(5.86), Inches(10.93), Inches(0.72))
+tf_prob = bx_prob.text_frame
+tf_prob.word_wrap = True
+tf_prob.margin_left = tf_prob.margin_top = tf_prob.margin_right = tf_prob.margin_bottom = 0
+
+pp1 = tf_prob.paragraphs[0]
+pp1.text = "PROBLÉMATIQUE CENTRALE DU MÉMOIRE :"
+rp1 = pp1.runs[0]
+rp1.font.name = "Arial"
+rp1.font.size = Pt(9.5)
+rp1.font.bold = True
+rp1.font.color.rgb = C_ACCENT
+
+pp2 = tf_prob.add_paragraph()
+pp2.space_before = Pt(3)
+pp2.text = "« Dans quelle mesure est-il possible de concevoir un outil logiciel capable d'extraire avec fiabilité les données d'archives foncières très variées, tout en fonctionnant localement sur un ordinateur de bureau ? »"
+rp2 = pp2.runs[0]
+rp2.font.name = "Arial"
+rp2.font.size = Pt(10.5)
+rp2.font.bold = True
+rp2.font.color.rgb = C_NAVY
+
+
+# ==================== CHAPITRE 2 : ANALYSE MÉTIER & DONNÉES ====================
+print("Génération Chapitre 2 (Slides 8-12)...")
+
+# Slide 8 : Transition Chapitre 2
+create_transition_slide(
+    chap_idx=1,
+    slide_num=8,
+    title="Chapitre 2 : Analyse métier et enjeux documentaires",
+    subtitle="Distinction cadastre et actes, spécifications API Géofoncier et filiation parcellaire"
+)
+
+# Slide 9 (2.1) : Cadastre fiscal et propriété foncière
+s9, c9 = init_standard_slide(1, 0, 9, "2.1 Cadastre fiscal et propriété foncière : distinction juridique")
+
+b_cad1 = s9.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(1.60), Inches(5.50), Inches(4.15))
+b_cad1.adjustments[0] = 0.03
+b_cad1.fill.solid()
+b_cad1.fill.fore_color.rgb = C_BG_SLIDE
+b_cad1.line.color.rgb = C_LINE
+b_cad1.line.width = Pt(0.75)
+
+bx_cad1 = s9.shapes.add_textbox(Inches(1.25), Inches(1.75), Inches(5.10), Inches(3.85))
+tf_cad1 = bx_cad1.text_frame
+tf_cad1.word_wrap = True
+p_c1_h = tf_cad1.paragraphs[0]
+p_c1_h.text = "LE PLAN CADASTRAL (PCI DGFIP)\n"
+r_c1_h = p_c1_h.runs[0]
+r_c1_h.font.name = "Arial"
+r_c1_h.font.size = Pt(11.5)
+r_c1_h.font.bold = True
+r_c1_h.font.color.rgb = C_NAVY
+
+items_cadastre = [
+    ("Origine fiscale de 1807", "Instrument fiscal napoléonien pour la juste répartition de la contribution foncière."),
+    ("Valeur juridique purement indicative", "La jurisprudence constante rappelle que le cadastre ne constitue ni un titre ni un bornage."),
+    ("Précision variable sur le terrain", "En zone rurale issue de plans anciens vectorisés, les écarts dépassent souvent plusieurs mètres."),
+    ("Incomplétude des archives", "Absence totale des procès-verbaux contradictoires de bornage et des repères physiques de terrain.")
+]
+for pi, (hd, bd) in enumerate(items_cadastre):
+    p_hd = tf_cad1.add_paragraph()
+    p_hd.space_before = Pt(6)
+    r1 = p_hd.add_run()
+    r1.text = "• " + hd + " :\n"
+    r1.font.name = "Arial"
+    r1.font.size = Pt(9.5)
+    r1.font.bold = True
+    r1.font.color.rgb = C_NAVY
+    
+    p_bd = tf_cad1.add_paragraph()
+    p_bd.space_before = Pt(1)
+    r2 = p_bd.add_run()
+    r2.text = bd
+    r2.font.name = "Arial"
+    r2.font.size = Pt(8.5)
+    r2.font.color.rgb = C_DARK
+
+b_cad2 = s9.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(6.78), Inches(1.60), Inches(5.50), Inches(4.15))
+b_cad2.adjustments[0] = 0.03
+b_cad2.fill.solid()
+b_cad2.fill.fore_color.rgb = C_BG_SLIDE
+b_cad2.line.color.rgb = C_LINE
+b_cad2.line.width = Pt(0.75)
+
+bx_cad2 = s9.shapes.add_textbox(Inches(6.98), Inches(1.75), Inches(5.10), Inches(3.85))
+tf_cad2 = bx_cad2.text_frame
+tf_cad2.word_wrap = True
+p_c2_h = tf_cad2.paragraphs[0]
+p_c2_h.text = "L'ACTE DE BORNAGE & ARCHIVES SIAPP\n"
+r_c2_h = p_c2_h.runs[0]
+r_c2_h.font.name = "Arial"
+r_c2_h.font.size = Pt(11.5)
+r_c2_h.font.bold = True
+r_c2_h.font.color.rgb = C_ACCENT
+
+items_bornage = [
+    ("Monopole légal (Loi du 7 mai 1946)", "Seul le géomètre-expert délimite contradictoirement les limites entre parcelles contiguës."),
+    ("Opposabilité absolue aux tiers", "Le procès-verbal de bornage contradictoire signé lie définitivement propriétaires et successeurs."),
+    ("Priorité absolue devant les tribunaux", "Lors d'un litige, les juges s'appuient en priorité sur les procès-verbaux de bornage archivés."),
+    ("Rôle clé du cabinet GEO-SIAPP", "Conservation et réactivation de 23 600 antériorités pour sécuriser les futurs chantiers.")
+]
+for pi, (hd, bd) in enumerate(items_bornage):
+    p_hd = tf_cad2.add_paragraph()
+    p_hd.space_before = Pt(6)
+    r1 = p_hd.add_run()
+    r1.text = "• " + hd + " :\n"
+    r1.font.name = "Arial"
+    r1.font.size = Pt(9.5)
+    r1.font.bold = True
+    r1.font.color.rgb = C_ACCENT
+    
+    p_bd = tf_cad2.add_paragraph()
+    p_bd.space_before = Pt(1)
+    r2 = p_bd.add_run()
+    r2.text = bd
+    r2.font.name = "Arial"
+    r2.font.size = Pt(8.5)
+    r2.font.color.rgb = C_DARK
+
+b_syn9 = s9.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(5.90), Inches(11.23), Inches(0.75))
+b_syn9.adjustments[0] = 0.03
+b_syn9.fill.solid()
+b_syn9.fill.fore_color.rgb = C_CALLOUT_BG
+b_syn9.line.color.rgb = C_ACCENT
+b_syn9.line.width = Pt(1.0)
+
+bx_s9 = s9.shapes.add_textbox(Inches(1.20), Inches(5.98), Inches(10.93), Inches(0.58))
+tf_s9 = bx_s9.text_frame
+p_s9 = tf_s9.paragraphs[0]
+p_s9.alignment = PP_ALIGN.CENTER
+p_s9.text = "CONCLUSION JURIDIQUE : Les archives privées conservées en cabinet sont la seule mémoire authentique de la propriété foncière."
+r_s9 = p_s9.runs[0]
+r_s9.font.name = "Arial"
+r_s9.font.size = Pt(9.5)
+r_s9.font.bold = True
+r_s9.font.color.rgb = C_NAVY
+
+
+# Slide 10 (2.2) : Versement Géofoncier : Spécifications de l'API REST
+s10, c10 = init_standard_slide(1, 1, 10, "2.2 Le versement sur Géofoncier : Spécifications de l'API REST")
+
+left_x10 = 1.05
+left_w10 = 5.50
+
+b_api = s10.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(left_x10), Inches(1.60), Inches(left_w10), Inches(1.70))
+b_api.adjustments[0] = 0.03
+b_api.fill.solid()
+b_api.fill.fore_color.rgb = C_BG_SLIDE
+b_api.line.color.rgb = C_LINE
+b_api.line.width = Pt(0.75)
+
+bx_api = s10.shapes.add_textbox(Inches(left_x10 + 0.16), Inches(1.68), Inches(left_w10 - 0.32), Inches(1.54))
+tf_api = bx_api.text_frame
+tf_api.word_wrap = True
+tf_api.margin_left = tf_api.margin_top = tf_api.margin_right = tf_api.margin_bottom = 0
+
+p_apih = tf_api.paragraphs[0]
+p_apih.text = "SPÉCIFICATIONS SWAGGER ET API REST GÉOFONCIER\n"
+r_apih = p_apih.runs[0]
+r_apih.font.name = "Arial"
+r_apih.font.size = Pt(11.0)
+r_apih.font.bold = True
+r_apih.font.color.rgb = C_NAVY
+
+bullets_api = [
+    ("Authentification sécurisée", "Token JWT Bearer renouvelable toutes les 24h via les identifiants certifiés du géomètre."),
+    ("Endpoints dédiés", "Route /rfuoge pour les métadonnées de l'acte et /dossiersoge pour la gestion documentaire."),
+    ("Validation serveur", "Code retour HTTP 201 Created confirmant la publication de la pastille sur le portail national.")
+]
+for bh, bd in bullets_api:
+    p_b = tf_api.add_paragraph()
+    p_b.space_before = Pt(3)
+    r1 = p_b.add_run()
+    r1.text = "• " + bh + " : "
+    r1.font.name = "Arial"
+    r1.font.size = Pt(8.5)
+    r1.font.bold = True
+    r1.font.color.rgb = C_ACCENT
+    r2 = p_b.add_run()
+    r2.text = bd
+    r2.font.name = "Arial"
+    r2.font.size = Pt(8.0)
+    r2.font.color.rgb = C_DARK
+
+b_json = s10.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(left_x10), Inches(3.42), Inches(left_w10), Inches(2.28))
+b_json.adjustments[0] = 0.03
+b_json.fill.solid()
+b_json.fill.fore_color.rgb = C_BG_SLIDE
+b_json.line.color.rgb = C_LINE
+b_json.line.width = Pt(0.75)
+
+bx_json = s10.shapes.add_textbox(Inches(left_x10 + 0.16), Inches(3.50), Inches(left_w10 - 0.32), Inches(2.12))
+tf_json = bx_json.text_frame
+tf_json.word_wrap = True
+tf_json.margin_left = tf_json.margin_top = tf_json.margin_right = tf_json.margin_bottom = 0
+
+pj_h = tf_json.paragraphs[0]
+pj_h.text = "STRUCTURE DU PAYLOAD JSON OBLIGATOIRE (/rfuoge) :\n"
+rj_h = pj_h.runs[0]
+rj_h.font.name = "Arial"
+rj_h.font.size = Pt(10.5)
+rj_h.font.bold = True
+rj_h.font.color.rgb = C_NAVY
+
+fields_json = [
+    ("code_insee", "\"07019\"", "Code officiel COG de la commune"),
+    ("date_operation", "\"1984-05-12\"", "Date de l'acte (ISO 8601 AAAA-MM-JJ)"),
+    ("type_acte", "\"Bo\"", "Nature d'opération (Bo = Bornage, DA = Division)"),
+    ("reference_dossier", "\"GEO-1984-089\"", "Identifiant unique interne au cabinet"),
+    ("geometry", "Point [801452.35, 6391204.18]", "Centroïde en Lambert-93 (EPSG:2154)")
+]
+for f_name, f_val, f_desc in fields_json:
+    p_f = tf_json.add_paragraph()
+    p_f.space_before = Pt(2)
+    r1 = p_f.add_run()
+    r1.text = f"• {f_name} : "
+    r1.font.name = "Arial"
+    r1.font.size = Pt(8.5)
+    r1.font.bold = True
+    r1.font.color.rgb = C_DARK
+    r2 = p_f.add_run()
+    r2.text = f"{f_val} "
+    r2.font.name = "Arial"
+    r2.font.size = Pt(8.5)
+    r2.font.bold = True
+    r2.font.color.rgb = C_ACCENT
+    r3 = p_f.add_run()
+    r3.text = f"({f_desc})"
+    r3.font.name = "Arial"
+    r3.font.size = Pt(7.5)
+    r3.font.color.rgb = C_MUTED
+
+b_syn10 = s10.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(left_x10), Inches(5.82), Inches(left_w10), Inches(0.83))
+b_syn10.adjustments[0] = 0.03
+b_syn10.fill.solid()
+b_syn10.fill.fore_color.rgb = C_CALLOUT_BG
+b_syn10.line.color.rgb = C_ACCENT
+b_syn10.line.width = Pt(1.0)
+
+bx_s10 = s10.shapes.add_textbox(Inches(left_x10 + 0.16), Inches(5.88), Inches(left_w10 - 0.32), Inches(0.70))
+tf_s10 = bx_s10.text_frame
+tf_s10.word_wrap = True
+tf_s10.margin_left = tf_s10.margin_top = tf_s10.margin_right = tf_s10.margin_bottom = 0
+ps1 = tf_s10.paragraphs[0]
+ps1.text = "OBJECTIF DU PROJET :"
+rs1 = ps1.runs[0]
+rs1.font.name = "Arial"
+rs1.font.size = Pt(9.0)
+rs1.font.bold = True
+rs1.font.color.rgb = C_ACCENT
+ps2 = tf_s10.add_paragraph()
+ps2.space_before = Pt(2)
+rs2 = ps2.add_run()
+rs2.text = "Extraire automatiquement ces 5 champs cibles pour alimenter directement l'API Géofoncier sans ressaisie manuelle."
+rs2.font.name = "Arial"
+rs2.font.size = Pt(8.0)
+rs2.font.color.rgb = C_DARK
+
+frame_r10 = s10.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(6.78), Inches(1.60), Inches(5.50), Inches(5.05))
+frame_r10.adjustments[0] = 0.03
+frame_r10.fill.solid()
+frame_r10.fill.fore_color.rgb = C_BG_SLIDE
+frame_r10.line.color.rgb = C_LINE
+frame_r10.line.width = Pt(0.75)
+add_fitted_picture(s10, "img/arborescence_versement_geofoncier.png", 6.93, 1.75, 5.20, 4.75, caption="Structure JSON obligatoire à renseigner pour le versement au RFU (Mémoire, Chapitre 2)")
+
+
+# Slide 11 (2.3) : Typologie des archives
+s11, c11 = init_standard_slide(1, 2, 11, "2.3 Typologie des archives foncières et caractéristiques des fonds SIAPP")
+add_two_column_content(
+    s11,
+    items=[
+        ("Formulaires Cerfa DMPC et DA",
+         "Documents normés accompagnant les divisions foncières (décrets de 1955). Cartouche géométrique facilitant le repérage."),
+        ("Procès-Verbaux de bornage",
+         "Actes sous seing privé rédigés en texte libre manuscrit. Forte variabilité de mise en page, signatures et croquis annexés."),
+        ("Registres d'affaires centralisateurs",
+         "Cahiers récapitulant les dossiers (date, numéro, commune, client). Présence de guillemets de répétition et abréviations.")
+    ],
+    img_path="img/repartition_archives.png",
+    img_caption="Répartition estimée des 23 600 dossiers du fonds SIAPP (5 fonds de géomètres prédécesseurs)",
+    callout_title="PÉRIMÈTRE D'EXTRACTION DU PROJET",
+    callout_text="23 600 dossiers ciblés au siège d'Aubenas. Les pièces de travail internes (carnets de terrain bruts, brouillons) restent exclues."
+)
+
+
+# Slide 12 (2.4) : La filiation parcellaire et traçabilité cadastrale
+# REFONTE COMPLÈTE : 3 ÉTAPES CLAIRES PAR MOTS-CLÉS, GRAND DIAGRAMME ET BANDEAU BAS PROPRE
+print("Génération Slide 12 (Refonte filiation parcellaire et utilisation de l'espace)...")
+s12, c12 = init_standard_slide(1, 3, 12, "2.4 La filiation parcellaire et traçabilité cadastrale")
+
+steps_12 = [
+    ("1. RECHERCHE CONTEMPORAINE",
+     [
+         ("Point de départ", "Numéro de parcelle actuel (ex. A 115 ou A 116)."),
+         ("Contexte", "Nouvelle intervention demandée par un propriétaire."),
+         ("Problème", "Cette parcelle n'existait pas lors du bornage historique.")
+     ],
+     C_NAVY),
+    ("2. BLOCAGE HISTORIQUE",
+     [
+         ("Archive d'époque", "Rédigée sous la parcelle mère d'origine (ex. A 14)."),
+         ("Radiation cadastrale", "A 14 supprimée de la matrice lors de la division."),
+         ("Conséquence", "Sans historique, le dossier reste totalement invisible.")
+     ],
+     C_WARN),
+    ("3. RÉSOLUTION ALGORITHMIQUE",
+     [
+         ("Filiation DGFiP", "Remontée de l'arbre généalogique cadastral."),
+         ("Liaison logicielle", "Rattachement automatique A 115 / A 116 → A 14."),
+         ("Résultat", "Localisation exacte de l'archive ancienne sur la carte.")
+     ],
+     C_SUCCESS)
+]
+
+cw12 = 3.55
+cg12 = 0.29
+for si, (st_h, st_bullets, st_col) in enumerate(steps_12):
+    cx = 1.05 + si * (cw12 + cg12)
+    b_st = s12.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(cx), Inches(1.60), Inches(cw12), Inches(1.55))
+    b_st.adjustments[0] = 0.04
+    b_st.fill.solid()
+    b_st.fill.fore_color.rgb = C_BG_SLIDE
+    b_st.line.color.rgb = st_col
+    b_st.line.width = Pt(1.0)
+    
+    bx_st = s12.shapes.add_textbox(Inches(cx + 0.14), Inches(1.68), Inches(cw12 - 0.28), Inches(1.38))
+    tf_st = bx_st.text_frame
+    tf_st.word_wrap = True
+    tf_st.margin_left = tf_st.margin_top = tf_st.margin_right = tf_st.margin_bottom = 0
+    
+    p1 = tf_st.paragraphs[0]
+    p1.text = st_h
+    r1 = p1.runs[0]
+    r1.font.name = "Arial"
+    r1.font.size = Pt(10.0)
+    r1.font.bold = True
+    r1.font.color.rgb = st_col
+    
+    for b_k, b_v in st_bullets:
+        p_sub = tf_st.add_paragraph()
+        p_sub.space_before = Pt(3)
+        r_k = p_sub.add_run()
+        r_k.text = "• " + b_k + " : "
+        r_k.font.name = "Arial"
+        r_k.font.size = Pt(8.0)
+        r_k.font.bold = True
+        r_k.font.color.rgb = C_DARK
+        r_v = p_sub.add_run()
+        r_v.text = b_v
+        r_v.font.name = "Arial"
+        r_v.font.size = Pt(8.0)
+        r_v.font.color.rgb = C_MUTED
+
+# Diagramme centré grand format
+frame_d12 = s12.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(3.28), Inches(11.23), Inches(2.42))
+frame_d12.adjustments[0] = 0.03
+frame_d12.fill.solid()
+frame_d12.fill.fore_color.rgb = C_BG_SLIDE
+frame_d12.line.color.rgb = C_LINE
+frame_d12.line.width = Pt(0.75)
+
+add_fitted_picture(s12, "img/filiation_parcellaire.png", 1.25, 3.36, 10.83, 2.26, caption="Principe de filiation cadastrale lors d'un DMPC : remplacement de la parcelle mère A 14 par les parcelles filles A 115 et A 116")
+
+# Bandeau bas de conclusion
+b_syn12 = s12.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(5.85), Inches(11.23), Inches(0.80))
+b_syn12.adjustments[0] = 0.03
+b_syn12.fill.solid()
+b_syn12.fill.fore_color.rgb = C_CALLOUT_BG
+b_syn12.line.color.rgb = C_ACCENT
+b_syn12.line.width = Pt(1.0)
+
+bx_syn12 = s12.shapes.add_textbox(Inches(1.20), Inches(5.90), Inches(10.93), Inches(0.70))
+tf_syn12 = bx_syn12.text_frame
+tf_syn12.word_wrap = True
+tf_syn12.margin_left = tf_syn12.margin_top = tf_syn12.margin_right = tf_syn12.margin_bottom = 0
+psyn1 = tf_syn12.paragraphs[0]
+psyn1.text = "INDISPENSABLE POUR GÉOFONCIER :"
+rsyn1 = psyn1.runs[0]
+rsyn1.font.name = "Arial"
+rsyn1.font.size = Pt(9.5)
+rsyn1.font.bold = True
+rsyn1.font.color.rgb = C_ACCENT
+
+psyn2 = tf_syn12.add_paragraph()
+psyn2.space_before = Pt(2)
+rsyn2 = psyn2.add_run()
+rsyn2.text = "Sans moteur de filiation parcellaire, les archives historiques de 1959–2007 resteraient définitivement invisibles lors d'une recherche sur le cadastre rénové actuel."
+rsyn2.font.name = "Arial"
+rsyn2.font.size = Pt(8.5)
+rsyn2.font.color.rgb = C_DARK
+
+
+# ==================== CHAPITRE 3 : ÉTAT DE L'ART ====================
+print("Génération Chapitre 3 (Slides 13-18)...")
+
+# Slide 13 : Transition Chapitre 3
+create_transition_slide(
+    chap_idx=2,
+    slide_num=13,
+    title="Chapitre 3 : État de l'art des technologies d'analyse documentaire",
+    subtitle="Reconnaissance OCR et HTR, extraction d'entités, modèles Vision-Langage et synthèse"
+)
+
+# Slide 14 (3.1) : OCR imprimé (Disposition inversée : Image à gauche, fiches techniques à droite)
+print("Génération Slide 14 (OCR imprimé - Image à gauche)...")
+s14, c14 = init_standard_slide(2, 0, 14, "3.1 Reconnaissance de texte imprimé : Les moteurs OCR classiques")
+
+# Image à gauche
+frame_l14 = s14.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(1.60), Inches(5.30), Inches(5.05))
+frame_l14.adjustments[0] = 0.03
+frame_l14.fill.solid()
+frame_l14.fill.fore_color.rgb = C_BG_SLIDE
+frame_l14.line.color.rgb = C_LINE
+frame_l14.line.width = Pt(0.75)
+add_fitted_picture(s14, "img/baek_ocr_pipeline_crop.png", 1.20, 1.75, 5.00, 4.75, caption="Chaîne standard de l'OCR imprimé : détection puis transcription (Baek et al., 2019)")
+
+# Fiches techniques à droite
+rx14 = 6.58
+rw14 = 5.70
+items_ocr = [
+    ("Principe d'analyse par caractères isolés",
+     "Segmentation géométrique des blocs de texte, puis classification typographique caractère par caractère."),
+    ("Tesseract v5 (Smith, 2007) : Léger sur CPU",
+     "Moteur open-source très économe en mémoire vive. Performant sur imprimés propres, mais inadapté au manuscrit."),
+    ("EasyOCR (JaidedAI) : Détection CRAFT + CRNN",
+     "Réseau neuronal combinant détection spatiale et extracteur récurrent, rapide pour les cartouches normés.")
+]
+start_y14 = 1.60
+gap14 = 0.12
+card_h14 = 1.15
+for oi, (ohd, obd) in enumerate(items_ocr):
+    oy = start_y14 + oi * (card_h14 + gap14)
+    b_o = s14.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(rx14), Inches(oy), Inches(rw14), Inches(card_h14))
+    b_o.adjustments[0] = 0.03
+    b_o.fill.solid()
+    b_o.fill.fore_color.rgb = C_BG_SLIDE
+    b_o.line.color.rgb = C_LINE
+    b_o.line.width = Pt(0.75)
+    
+    bx_o = s14.shapes.add_textbox(Inches(rx14 + 0.16), Inches(oy + 0.08), Inches(rw14 - 0.32), Inches(card_h14 - 0.16))
+    tf_o = bx_o.text_frame
+    tf_o.word_wrap = True
+    tf_o.margin_left = tf_o.margin_top = tf_o.margin_right = tf_o.margin_bottom = 0
+    
+    po1 = tf_o.paragraphs[0]
+    po1.text = "• " + ohd + " :"
+    ro1 = po1.runs[0]
+    ro1.font.name = "Arial"
+    ro1.font.size = Pt(10.0)
+    ro1.font.bold = True
+    ro1.font.color.rgb = C_NAVY
+    
+    po2 = tf_o.add_paragraph()
+    po2.space_before = Pt(2)
+    po2.text = obd
+    ro2 = po2.runs[0]
+    ro2.font.name = "Arial"
+    ro2.font.size = Pt(8.5)
+    ro2.font.color.rgb = C_DARK
+
+# Callout bas droite
+b_eval14 = s14.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(rx14), Inches(5.45), Inches(rw14), Inches(1.20))
+b_eval14.adjustments[0] = 0.03
+b_eval14.fill.solid()
+b_eval14.fill.fore_color.rgb = C_CALLOUT_BG
+b_eval14.line.color.rgb = C_ACCENT
+b_eval14.line.width = Pt(1.0)
+
+bx_ev14 = s14.shapes.add_textbox(Inches(rx14 + 0.16), Inches(5.53), Inches(rw14 - 0.32), Inches(1.04))
+tf_ev14 = bx_ev14.text_frame
+tf_ev14.word_wrap = True
+tf_ev14.margin_left = tf_ev14.margin_top = tf_ev14.margin_right = tf_ev14.margin_bottom = 0
+
+pe1 = tf_ev14.paragraphs[0]
+pe1.text = "ÉVALUATION OPÉRATIONNELLE DU TEXTE IMPRIMÉ :"
+re1 = pe1.runs[0]
+re1.font.name = "Arial"
+re1.font.size = Pt(9.0)
+re1.font.bold = True
+re1.font.color.rgb = C_ACCENT
+
+pe2 = tf_ev14.add_paragraph()
+pe2.space_before = Pt(2)
+pe2.text = "Très efficace sur les formulaires Cerfa récents. En revanche, le taux d'erreur dépasse 30% dès que le texte est manuscrit ou altéré."
+re2 = pe2.runs[0]
+re2.font.name = "Arial"
+re2.font.size = Pt(8.5)
+re2.font.color.rgb = C_DARK
+
+# Slide 15 (3.2) : HTR manuscrit (Fiches à gauche, image taxonomie à droite)
+print("Génération Slide 15 (HTR manuscrit)...")
+s15, c15 = init_standard_slide(2, 1, 15, "3.2 Reconnaissance d'écriture manuscrite : L'approche HTR")
+add_two_column_content(
+    s15,
+    items=[
+        ("Taxonomie des systèmes (Alkendi, 2024)",
+         "L'écriture cursive manuscrite impose une analyse séquentielle continue plutôt qu'une séparation par caractères."),
+        ("TrOCR (Microsoft Research, 2021)",
+         "Vision Transformer combinant un encodeur d'image (DeiT) et un décodeur linguistique autorégressif (RoBERTa)."),
+        ("PyLaia & corpus spécialisés HTR-United",
+         "Réseau hybride CNN-BLSTM pré-entraîné sur des registres d'archives historiques françaises pour lire les graphies anciennes.")
+    ],
+    img_path="img/fig_alkendi_p3_1.jpeg",
+    img_caption="Classification des systèmes : distinction imprimé (OCR) et manuscrit (HTR) (Alkendi et al., 2024)",
+    callout_title="ÉVALUATION DU TEXTE MANUSCRIT",
+    callout_text="TrOCR atteint un taux d'erreur de caractères (CER) inférieur à 6% sur le manuscrit, à condition d'isoler les lignes au préalable."
+)
+
+# Slide 16 (3.3) : NER (Disposition comparative 2 grandes colonnes : GLiNER vs LayoutLMv3)
+print("Génération Slide 16 (NER - Comparatif GLiNER vs LayoutLM)...")
+s16, c16 = init_standard_slide(2, 2, 16, "3.3 Extraction d'entités nommées (NER) : GLiNER vs LayoutLM")
+
+cw16 = 5.50
+# Colonne 1 : GLiNER
+b_gl = s16.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(1.60), Inches(cw16), Inches(4.05))
+b_gl.adjustments[0] = 0.03
+b_gl.fill.solid()
+b_gl.fill.fore_color.rgb = C_BG_SLIDE
+b_gl.line.color.rgb = C_SUCCESS
+b_gl.line.width = Pt(1.2)
+
+bx_gl = s16.shapes.add_textbox(Inches(1.20), Inches(1.72), Inches(cw16 - 0.30), Inches(3.80))
+tf_gl = bx_gl.text_frame
+tf_gl.word_wrap = True
+tf_gl.margin_left = tf_gl.margin_top = tf_gl.margin_right = tf_gl.margin_bottom = 0
+
+pgl_h = tf_gl.paragraphs[0]
+pgl_h.text = "GLiNER : Approche bi-encodeur zero-shot (retenu)"
+rgl_h = pgl_h.runs[0]
+rgl_h.font.name = "Arial"
+rgl_h.font.size = Pt(10.5)
+rgl_h.font.bold = True
+rgl_h.font.color.rgb = C_SUCCESS
+
+gl_items = [
+    ("Architecture compacte", "Modèle bi-encodeur DeBERTa (340M paramètres) exécutable rapidement sur CPU."),
+    ("Extraction sans réentraînement", "Extraction zero-shot d'entités arbitraires (commune, date, numéro, parcelles)."),
+    ("Tolérance au bruit OCR", "Compréhension contextuelle robuste permettant de surmonter les coquilles de lecture."),
+    ("Précision mesurée", "F1 = 0.88 sur le corpus de test du cabinet, avec score de confiance par entité.")
+]
+for gh, gb in gl_items:
+    p_g = tf_gl.add_paragraph()
+    p_g.space_before = Pt(5)
+    r1 = p_g.add_run()
+    r1.text = "✓ " + gh + " : "
+    r1.font.name = "Arial"
+    r1.font.size = Pt(9.0)
+    r1.font.bold = True
+    r1.font.color.rgb = C_NAVY
+    r2 = p_g.add_run()
+    r2.text = gb
+    r2.font.name = "Arial"
+    r2.font.size = Pt(8.5)
+    r2.font.color.rgb = C_DARK
+
+# Colonne 2 : LayoutLMv3
+b_lm = s16.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(6.78), Inches(1.60), Inches(cw16), Inches(4.05))
+b_lm.adjustments[0] = 0.03
+b_lm.fill.solid()
+b_lm.fill.fore_color.rgb = C_BG_SLIDE
+b_lm.line.color.rgb = C_BORDER_TAB
+b_lm.line.width = Pt(0.75)
+
+bx_lm = s16.shapes.add_textbox(Inches(6.93), Inches(1.72), Inches(cw16 - 0.30), Inches(3.80))
+tf_lm = bx_lm.text_frame
+tf_lm.word_wrap = True
+tf_lm.margin_left = tf_lm.margin_top = tf_lm.margin_right = tf_lm.margin_bottom = 0
+
+plm_h = tf_lm.paragraphs[0]
+plm_h.text = "LayoutLMv3 : Approche multimodale 2D (écarté)"
+rlm_h = plm_h.runs[0]
+rlm_h.font.name = "Arial"
+rlm_h.font.size = Pt(10.5)
+rlm_h.font.bold = True
+rlm_h.font.color.rgb = C_MUTED
+
+lm_items = [
+    ("Modèle multimodal lourd", "Combine signal visuel, coordonnées spatiales 2D et contenu textuel (~8 Go VRAM)."),
+    ("Optimisé formulaires rigides", "Très adapté aux imprimés stricts, mais inopérant sur les registres en colonnes libres."),
+    ("Sensibilité extrême aux fautes", "Chute brutale des performances dès que l'OCR initial contient des erreurs de lecture."),
+    ("Dépendance matérielle", "Nécessite des ressources GPU indisponibles sur les postes standards du cabinet.")
+]
+for lh, lb in lm_items:
+    p_l = tf_lm.add_paragraph()
+    p_l.space_before = Pt(5)
+    r1 = p_l.add_run()
+    r1.text = "✗ " + lh + " : "
+    r1.font.name = "Arial"
+    r1.font.size = Pt(9.0)
+    r1.font.bold = True
+    r1.font.color.rgb = C_MUTED
+    r2 = p_l.add_run()
+    r2.text = lb
+    r2.font.name = "Arial"
+    r2.font.size = Pt(8.5)
+    r2.font.color.rgb = C_DARK
+
+# Grand bandeau bas
+b_syn16 = s16.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(5.80), Inches(11.23), Inches(0.85))
+b_syn16.adjustments[0] = 0.03
+b_syn16.fill.solid()
+b_syn16.fill.fore_color.rgb = C_CALLOUT_BG
+b_syn16.line.color.rgb = C_ACCENT
+b_syn16.line.width = Pt(1.0)
+
+bx_s16 = s16.shapes.add_textbox(Inches(1.20), Inches(5.88), Inches(10.93), Inches(0.70))
+tf_s16 = bx_s16.text_frame
+tf_s16.word_wrap = True
+tf_s16.margin_left = tf_s16.margin_top = tf_s16.margin_right = tf_s16.margin_bottom = 0
+ps16_1 = tf_s16.paragraphs[0]
+ps16_1.text = "CONCLUSION COMPARATIVE DE L'EXTRACTION D'ENTITÉS :"
+rs16_1 = ps16_1.runs[0]
+rs16_1.font.name = "Arial"
+rs16_1.font.size = Pt(9.0)
+rs16_1.font.bold = True
+rs16_1.font.color.rgb = C_ACCENT
+
+ps16_2 = tf_s16.add_paragraph()
+ps16_2.space_before = Pt(2)
+ps16_2.text = "GLiNER est retenu pour son autonomie d'extraction sans réentraînement, sa faible empreinte mémoire sur CPU et sa robustesse éprouvée face aux imperfections de l'OCR."
+rs16_2 = ps16_2.runs[0]
+rs16_2.font.name = "Arial"
+rs16_2.font.size = Pt(8.5)
+rs16_2.font.color.rgb = C_NAVY
+
+# Slide 17 (3.4) : VLM (Cartes à gauche, schéma architecture à droite)
+print("Génération Slide 17 (VLM local)...")
+s17, c17 = init_standard_slide(2, 3, 17, "3.4 Modèles Vision-Langage (VLM) : Arbitrage multimodal local")
+add_two_column_content(
+    s17,
+    items=[
+        ("Modèles Vision-Langage (LLaVA / MiniCPM)",
+         "Couplage d'un encodeur visuel (CLIP ViT) et d'un LLM autorégressif. L'image est traitée directement comme une séquence de tokens."),
+        ("Raisonnement visuel et compréhension de scène",
+         "Interprétation conjointe du document : capacité à relier une mention manuscrite avec sa position spatiale sur la page."),
+        ("Compromis latence et exécution locale",
+         "Temps d'inférence de ~5s à 8s sur processeur CPU. Ce coût impose de réserver le VLM en tant qu'arbitre de second niveau.")
+    ],
+    img_path="img/llava_arch_render.png",
+    img_caption="Architecture des modèles Vision-Langage : projection des patchs visuels dans le LLM (Liu et al., 2023)",
+    callout_title="CONFIDENTIALITÉ ET TRAITEMENT LOCAL",
+    callout_text="Exécution 100% locale via le moteur Ollama : aucune donnée nominative d'archive n'est transmise vers des serveurs externes."
+)
+
+# Slide 18 (3.5) : Synthèse comparative (Tableau 3.1 exact du mémoire)
+print("Génération Slide 18 (Tableau 3.1 exact du mémoire)...")
+s18, c18 = init_standard_slide(2, 4, 18, "3.5 Synthèse comparative des technologies d'analyse de document")
+
+# Les 5 colonnes exactes du Tableau 3.1 du mémoire
+headers18 = ["Modèle", "Méthode utilisée", "Ressources", "Points forts", "Limites principales"]
+# Les 8 lignes exactes du mémoire (Tableau 3.1)
+rows18 = [
+    ["Tesseract v5", "Analyse par caractères", "CPU", "Rapide et économe en mémoire.", "Précision très faible sur le manuscrit."],
+    ["PyLaia / TrOCR", "Réseau convolutif et Transformer", "~4 Go GPU", "Forte précision sur le manuscrit.", "Nécessite d'isoler les lignes au préalable."],
+    ["YOLOv8", "Détection d'objets spatiale", "< 2 Go GPU", "Détection visuelle très rapide et robuste.", "Isole les zones sans lire le texte."],
+    ["LayoutLMv3", "Modèle multimodal vision-texte", "~8 Go GPU", "Analyse conjointe de la forme et des mots.", "Sensible aux erreurs de lecture initiale."],
+    ["GLiNER", "Comparaison de représentations", "~2 Go GPU", "Identification d'entités sans réentraînement.", "Dépend de la propreté du texte transmis."],
+    ["Donut", "Décodage visuel direct", "~4 Go GPU", "Extraction sans OCR externe.", "Limité aux types de fichiers connus."],
+    ["Qwen-VL", "VLM à résolution dynamique", "~8 Go GPU", "Lecture précise des détails et petits textes.", "Temps de calcul élevé sur grand format."],
+    ["LLaVA / Ollama", "Modèle Vision-Langage local", "> 8 Go GPU", "Raisonnement visuel direct en local.", "Calcul lent et risque d'hallucination."]
+]
+
+cw18 = [1.80, 2.50, 1.30, 2.80, 2.83]
+rh18 = 0.43
+tx18 = 1.05
+ty18 = 1.55
+
+hx = tx18
+for hi, htext in enumerate(headers18):
+    h_box = s18.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(hx), Inches(ty18), Inches(cw18[hi]), Inches(0.38))
+    h_box.adjustments[0] = 0.08
+    h_box.fill.solid()
+    h_box.fill.fore_color.rgb = C_NAVY
+    h_box.line.fill.background()
+    
+    bx = s18.shapes.add_textbox(Inches(hx + 0.04), Inches(ty18 + 0.04), Inches(cw18[hi] - 0.08), Inches(0.30))
+    tf = bx.text_frame
+    tf.word_wrap = True
+    p = tf.paragraphs[0]
+    p.text = htext
+    p.alignment = PP_ALIGN.CENTER
+    r = p.runs[0]
+    r.font.name = "Arial"
+    r.font.size = Pt(9.0)
+    r.font.bold = True
+    r.font.color.rgb = C_WHITE
+    hx += cw18[hi]
+
+for ri, row in enumerate(rows18):
+    ry = ty18 + 0.38 + ri * rh18
+    bg_r = C_CARD_BG if ri % 2 == 0 else C_BG_SLIDE
+    rx = tx18
+    for ci, cell in enumerate(row):
+        c_box = s18.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(rx), Inches(ry), Inches(cw18[ci]), Inches(rh18))
+        c_box.adjustments[0] = 0.08
+        c_box.fill.solid()
+        c_box.fill.fore_color.rgb = bg_r
+        c_box.line.color.rgb = C_LINE
+        c_box.line.width = Pt(0.75)
+        
+        bx = s18.shapes.add_textbox(Inches(rx + 0.06), Inches(ry + 0.04), Inches(cw18[ci] - 0.12), Inches(rh18 - 0.08))
+        tf = bx.text_frame
+        tf.word_wrap = True
+        p = tf.paragraphs[0]
+        p.text = cell
+        p.alignment = PP_ALIGN.CENTER if ci in (0, 2) else PP_ALIGN.LEFT
+        r = p.runs[0]
+        r.font.name = "Arial"
+        r.font.size = Pt(8.0)
+        
+        if ci == 0:
+            r.font.bold = True
+            r.font.color.rgb = C_NAVY
+        else:
+            r.font.color.rgb = C_DARK
+            
+        rx += cw18[ci]
+
+sy18 = 5.45
+s_box18 = s18.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(tx18), Inches(sy18), Inches(sum(cw18)), Inches(1.15))
+s_box18.adjustments[0] = 0.03
+s_box18.fill.solid()
+s_box18.fill.fore_color.rgb = C_CALLOUT_BG
+s_box18.line.color.rgb = C_ACCENT
+s_box18.line.width = Pt(1.0)
+
+bx_syn18 = s18.shapes.add_textbox(Inches(tx18 + 0.15), Inches(sy18 + 0.10), Inches(sum(cw18) - 0.30), Inches(0.95))
+tf_syn18 = bx_syn18.text_frame
+tf_syn18.word_wrap = True
+p_syn18 = tf_syn18.paragraphs[0]
+p_syn18.text = "CHOIX D'ARCHITECTURE RETENUS DANS LE MÉMOIRE :"
+p_syn18.alignment = PP_ALIGN.CENTER
+r_syn18 = p_syn18.runs[0]
+r_syn18.font.name = "Arial"
+r_syn18.font.size = Pt(9.5)
+r_syn18.font.bold = True
+r_syn18.font.color.rgb = C_ACCENT
+
+p_syn18_2 = tf_syn18.add_paragraph()
+p_syn18_2.space_before = Pt(3)
+p_syn18_2.text = "Couplage optimal : YOLOv8 (découpage spatial) + PyLaia / EasyOCR (transcription ciblée) + GLiNER (extraction d'entités) + LLaVA (arbitre local de second niveau sur seuil de confiance)."
+p_syn18_2.alignment = PP_ALIGN.CENTER
+r_syn18_2 = p_syn18_2.runs[0]
+r_syn18_2.font.name = "Arial"
+r_syn18_2.font.size = Pt(8.5)
+r_syn18_2.font.bold = True
+r_syn18_2.font.color.rgb = C_NAVY
+
+
+# ==================== CHAPITRE 4 : ARCHITECTURE & PIPELINE ====================
+print("Génération Chapitre 4 (Slides 19-23)...")
+
+# Slide 19 : Transition Chapitre 4
+create_transition_slide(
+    chap_idx=3,
+    slide_num=19,
+    title="Chapitre 4 : Architecture logicielle et chaîne de traitement",
+    subtitle="Chaîne modulaire, segmentation spatiale YOLOv8, extraction textuelle et arbitrage local"
+)
+
+# Slide 20 (4.1) : Architecture globale : Figure 4.1 du mémoire + Protection des données
+print("Génération Slide 20 (Figure 4.1 pipeline 6 étapes + protection des données)...")
+s20, c20 = init_standard_slide(3, 0, 20, "4.1 Architecture logicielle : Schéma de la chaîne de traitement")
+
+# Cadre supérieur image : Figure 4.1 authentique du mémoire
+frame_arch = s20.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(1.55), Inches(11.23), Inches(3.40))
+frame_arch.adjustments[0] = 0.03
+frame_arch.fill.solid()
+frame_arch.fill.fore_color.rgb = C_BG_SLIDE
+frame_arch.line.color.rgb = C_LINE
+frame_arch.line.width = Pt(0.75)
+
+add_fitted_picture(s20, "img/pipeline_6_etapes_clean.png", 1.20, 1.62, 10.93, 3.25, caption="Figure 4.1 : Enchaînement opérationnel de la chaîne de traitement en 6 étapes (Mémoire, Chapitre 4)")
+
+# Encadré protection des données (Secret professionnel / RGPD / Local)
+b_prot20 = s20.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(5.05), Inches(11.23), Inches(0.70))
+b_prot20.adjustments[0] = 0.03
+b_prot20.fill.solid()
+b_prot20.fill.fore_color.rgb = C_BG_SLIDE
+b_prot20.line.color.rgb = C_SUCCESS
+b_prot20.line.width = Pt(1.0)
+
+bx_prot = s20.shapes.add_textbox(Inches(1.20), Inches(5.10), Inches(10.93), Inches(0.60))
+tf_prot = bx_prot.text_frame
+tf_prot.word_wrap = True
+tf_prot.margin_left = tf_prot.margin_top = tf_prot.margin_right = tf_prot.margin_bottom = 0
+
+pp1 = tf_prot.paragraphs[0]
+pp1.text = "PROTECTION DES DONNÉES ET RESPECT DU SECRET PROFESSIONNEL :"
+rp1 = pp1.runs[0]
+rp1.font.name = "Arial"
+rp1.font.size = Pt(8.5)
+rp1.font.bold = True
+rp1.font.color.rgb = C_SUCCESS
+
+pp2 = tf_prot.add_paragraph()
+pp2.space_before = Pt(2)
+pp2.text = "Exécution 100% locale sur l'unité centrale (CPU) d'un ordinateur de bureau du cabinet. Aucune donnée d'archive ni nom de client n'est transmis vers un serveur externe, assurant la conformité RGPD."
+rp2 = pp2.runs[0]
+rp2.font.name = "Arial"
+rp2.font.size = Pt(8.0)
+rp2.font.color.rgb = C_DARK
+
+# Bandeau bas : Flux opérationnel maintenu
+b_flux20 = s20.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(5.85), Inches(11.23), Inches(0.80))
+b_flux20.adjustments[0] = 0.03
+b_flux20.fill.solid()
+b_flux20.fill.fore_color.rgb = C_CALLOUT_BG
+b_flux20.line.color.rgb = C_ACCENT
+b_flux20.line.width = Pt(1.0)
+
+bx_flt = s20.shapes.add_textbox(Inches(1.20), Inches(5.90), Inches(10.93), Inches(0.24))
+tf_flt = bx_flt.text_frame
+p_flt = tf_flt.paragraphs[0]
+p_flt.text = "FLUX OPÉRATIONNEL DE BOUT EN BOUT :"
+r_flt = p_flt.runs[0]
+r_flt.font.name = "Arial"
+r_flt.font.size = Pt(8.5)
+r_flt.font.bold = True
+r_flt.font.color.rgb = C_ACCENT
+
+bx_flb = s20.shapes.add_textbox(Inches(1.20), Inches(6.12), Inches(10.93), Inches(0.48))
+tf_flb = bx_flb.text_frame
+tf_flb.word_wrap = True
+p_flb = tf_flb.paragraphs[0]
+p_flb.text = "1. Images d'archives brutes  →  2. Découpage spatial (YOLOv8)  →  3. Transcription hybride (TrOCR / EasyOCR)  →  4. Extraction d'entités (GLiNER)  →  5. Contrôle contradictoire (Streamlit)  →  6. Injection API Géofoncier (RFU)."
+r_flb = p_flb.runs[0]
+r_flb.font.name = "Arial"
+r_flb.font.size = Pt(8.5)
+r_flb.font.bold = True
+r_flb.font.color.rgb = C_NAVY
+
+# Slide 21 (4.2) : Segmentation YOLOv8
+# FIGURE CONFORME : FIGURE 4.2 DU MÉMOIRE (img/r4p_fig2_tight.png), STRICTEMENT AUCUN CAS RÉEL DE PRADES EN AVANCE
+print("Génération Slide 21 (Figure 4.2 authentique du mémoire r4p_fig2_tight)...")
+s21, c21 = init_standard_slide(3, 1, 21, "4.2 Détection et segmentation spatiale par YOLOv8")
+add_two_column_content(
+    s21,
+    items=[
+        ("Segmentation spatiale ciblée",
+         "Localisation directe des zones d'intérêt : cartouche Cerfa, tableau des contenances, mentions du géomètre et parcelles."),
+        ("Suppression des encadrements doubles (NMS)",
+         "L'algorithme Non-Maximum Suppression filtre les boîtes superposées pour ne conserver que la détection optimale."),
+        ("Inférence locale ultra-rapide (< 0.2s)",
+         "Le modèle pré-entraîné YOLOv8 nano traite les documents en quelques fractions de seconde sur simple CPU de bureau.")
+    ],
+    img_path="img/r4p_fig2_tight.png",
+    img_caption="Détection des boîtes englobantes des cartouches et parcelles par YOLOv8 (Mémoire, Figure 4.2)",
+    callout_title="RÔLE FONDAMENTAL DU DÉCOUPAGE",
+    callout_text="La segmentation spatiale garantit que les moteurs de lecture ne reçoivent que des imagettes parfaitement cadrées sur les champs cibles."
+)
+
+# Slide 22 (4.3) : Extraction GLiNER
+s22, c22 = init_standard_slide(3, 2, 22, "4.3 Transcription textuelle et extraction d'entités par GLiNER")
+add_two_column_content(
+    s22,
+    items=[
+        ("Transmission ciblée des imagettes",
+         "Seules les régions utiles sont transmises aux moteurs de lecture, évitant les surcharges de contexte et les confusions visuelles."),
+        ("Extraction zero-shot des 5 métadonnées",
+         "GLiNER extrait dynamiquement : commune, date de l'acte, nature d'opération, référence interne et contenance avec indice de confiance."),
+        ("Tolérance remarquable au bruit de lecture",
+         "Grâce à ses représentations bidirectionnelles DeBERTa, GLiNER compense les fautes de frappe ou d'OCR sans réentraînement.")
+    ],
+    img_path="img/extraction_ocr_gliner.png",
+    img_caption="Extraction et balisage sémantique des entités cibles par GLiNER",
+    callout_title="PERFORMANCE D'EXTRACTION",
+    callout_text="Le découpage spatial préalable permet de faire passer le score F1 global de l'extraction d'entités de 0.72 à 0.88 sur le corpus d'archives."
+)
+
+# Slide 23 (4.4) : Justification de la chaîne hybride et arbitrage VLM local
+print("Génération Slide 23 (Exemple concret Lachapelle-sous-Aubenas et justification hybride)...")
+s23, c23 = init_standard_slide(3, 3, 23, "4.4 Arbitrage visuel local : Pourquoi une chaîne hybride plutôt qu'une IA globale ?")
+
+# Colonne gauche (5.48 in) : Cas réel et risque d'une IA globale
+left_x = 1.05
+col_w = 5.48
+
+# Carte 1 (Haut gauche) : Mention réelle manuscrite
+b_c1 = s23.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(left_x), Inches(1.55), Inches(col_w), Inches(1.85))
+b_c1.adjustments[0] = 0.03
+b_c1.fill.solid()
+b_c1.fill.fore_color.rgb = C_BG_SLIDE
+b_c1.line.color.rgb = C_LINE
+b_c1.line.width = Pt(0.75)
+
+# Accent gauche
+b_acc1 = s23.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(left_x), Inches(1.55), Inches(0.08), Inches(1.85))
+b_acc1.adjustments[0] = 0.20
+b_acc1.fill.solid()
+b_acc1.fill.fore_color.rgb = C_NAVY
+b_acc1.line.fill.background()
+
+bx_c1_hdr = s23.shapes.add_textbox(Inches(left_x + 0.18), Inches(1.62), Inches(col_w - 0.28), Inches(0.30))
+tf_c1_hdr = bx_c1_hdr.text_frame
+tf_c1_hdr.margin_left = tf_c1_hdr.margin_top = tf_c1_hdr.margin_right = tf_c1_hdr.margin_bottom = 0
+p1_h = tf_c1_hdr.paragraphs[0]
+p1_h.text = "CAS RÉEL D'ARCHIVE : L'ABRÉVIATION MANUSCRITE"
+r1_h = p1_h.runs[0]
+r1_h.font.name = "Arial"
+r1_h.font.size = Pt(10.0)
+r1_h.font.bold = True
+r1_h.font.color.rgb = C_NAVY
+
+# Insertion image crop
+if os.path.exists("img/crop_lachapelle_tight.png"):
+    s23.shapes.add_picture("img/crop_lachapelle_tight.png", Inches(left_x + 0.18), Inches(1.95), width=Inches(2.45), height=Inches(1.25))
+
+bx_c1_txt = s23.shapes.add_textbox(Inches(left_x + 2.75), Inches(1.95), Inches(col_w - 2.85), Inches(1.35))
+tf_c1_txt = bx_c1_txt.text_frame
+tf_c1_txt.word_wrap = True
+tf_c1_txt.margin_left = tf_c1_txt.margin_top = tf_c1_txt.margin_right = tf_c1_txt.margin_bottom = 0
+
+p_m1 = tf_c1_txt.paragraphs[0]
+p_m1.text = "Mention : « Lachapelle /s/ AUBENAS »"
+r_m1 = p_m1.runs[0]
+r_m1.font.name = "Arial"
+r_m1.font.size = Pt(9.0)
+r_m1.font.bold = True
+r_m1.font.color.rgb = C_NAVY
+
+p_m2 = tf_c1_txt.add_paragraph()
+p_m2.space_before = Pt(3)
+r_m2 = p_m2.add_run()
+r_m2.text = "• « /s/ » = abréviation locale classique pour « sous ».\n• Écriture cursive inclinée du géomètre.\n• Échec OCR conventionnel (lit « Aubenas » seul ou produit du bruit)."
+r_m2.font.name = "Arial"
+r_m2.font.size = Pt(8.0)
+r_m2.font.color.rgb = C_DARK
+
+# Carte 2 (Bas gauche) : Le piège d'une IA globale
+b_c2 = s23.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(left_x), Inches(3.50), Inches(col_w), Inches(2.25))
+b_c2.adjustments[0] = 0.03
+b_c2.fill.solid()
+b_c2.fill.fore_color.rgb = C_BG_SLIDE
+b_c2.line.color.rgb = C_WARN
+b_c2.line.width = Pt(1.0)
+
+b_acc2 = s23.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(left_x), Inches(3.50), Inches(0.08), Inches(2.25))
+b_acc2.adjustments[0] = 0.20
+b_acc2.fill.solid()
+b_acc2.fill.fore_color.rgb = C_WARN
+b_acc2.line.fill.background()
+
+bx_c2 = s23.shapes.add_textbox(Inches(left_x + 0.18), Inches(3.58), Inches(col_w - 0.28), Inches(2.10))
+tf_c2 = bx_c2.text_frame
+tf_c2.word_wrap = True
+tf_c2.margin_left = tf_c2.margin_top = tf_c2.margin_right = tf_c2.margin_bottom = 0
+
+p2_h = tf_c2.paragraphs[0]
+p2_h.text = "LE PIÈGE D'UNE IA GLOBALE (BASE DE DONNÉES NATIONALE)"
+r2_h = p2_h.runs[0]
+r2_h.font.name = "Arial"
+r2_h.font.size = Pt(10.0)
+r2_h.font.bold = True
+r2_h.font.color.rgb = C_WARN
+
+items_c2 = [
+    ("Confusion entre communes homonymes",
+     "Une IA généraliste entraînée sur toute la France hésite parmi de multiples communes aux toponymes très proches :\n"
+     "  → Lachapelle-Graillouse (07310)\n"
+     "  → Lachapelle-sous-Chanéac (07310)\n"
+     "  → La Chapelle-en-Vercors (26420)\n"
+     "  → Autres « La Chapelle » hors secteur (sur-Erdre, etc.)"),
+    ("Coût de calcul CPU prohibitif",
+     "5 à 8 secondes par document avec un VLM sur processeur standard (~30x plus lent que l'OCR), paralysant le traitement des 23 600 dossiers.")
+]
+for ih, ib in items_c2:
+    p_i = tf_c2.add_paragraph()
+    p_i.space_before = Pt(4)
+    r1 = p_i.add_run()
+    r1.text = "• " + ih + " :\n"
+    r1.font.name = "Arial"
+    r1.font.size = Pt(8.5)
+    r1.font.bold = True
+    r1.font.color.rgb = C_DARK
+    r2 = p_i.add_run()
+    r2.text = ib
+    r2.font.name = "Arial"
+    r2.font.size = Pt(8.0)
+    r2.font.color.rgb = C_MUTED
+
+# Colonne droite (5.48 in) : La solution retenue
+right_x = 6.80
+
+# Carte 3 (Haut droite) : Pourquoi coupler OCR/HTR et référentiel local
+b_c3 = s23.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(right_x), Inches(1.55), Inches(col_w), Inches(2.70))
+b_c3.adjustments[0] = 0.03
+b_c3.fill.solid()
+b_c3.fill.fore_color.rgb = C_BG_SLIDE
+b_c3.line.color.rgb = C_ACCENT
+b_c3.line.width = Pt(1.0)
+
+b_acc3 = s23.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(right_x), Inches(1.55), Inches(0.08), Inches(2.70))
+b_acc3.adjustments[0] = 0.20
+b_acc3.fill.solid()
+b_acc3.fill.fore_color.rgb = C_ACCENT
+b_acc3.line.fill.background()
+
+bx_c3 = s23.shapes.add_textbox(Inches(right_x + 0.18), Inches(1.62), Inches(col_w - 0.28), Inches(2.55))
+tf_c3 = bx_c3.text_frame
+tf_c3.word_wrap = True
+tf_c3.margin_left = tf_c3.margin_top = tf_c3.margin_right = tf_c3.margin_bottom = 0
+
+p3_h = tf_c3.paragraphs[0]
+p3_h.text = "LA SOLUTION RETENUE : CHAÎNE HYBRIDE SÉCURISÉE"
+r3_h = p3_h.runs[0]
+r3_h.font.name = "Arial"
+r3_h.font.size = Pt(10.0)
+r3_h.font.bold = True
+r3_h.font.color.rgb = C_ACCENT
+
+items_c3 = [
+    ("1. OCR / HTR déterministes et ultra-rapides (0.2 s)",
+     "Transcription fidèle des caractères sans invention de texte, préservant l'intégrité de l'archive."),
+    ("2. Verrouillage par le référentiel des 335 communes d'Ardèche",
+     "Rapprochement automatique par distance de Levenshtein strictement borné au secteur du cabinet. Élimination garantie de toute hallucination hors département."),
+    ("3. Arbitre VLM local (Ollama) réservé aux seuls cas ambigus",
+     "Convoqué uniquement si le score de confiance est inférieur à 0.65 (< 15% des cas), sa lecture restant vérifiée par la base cadastrale.")
+]
+for ih, ib in items_c3:
+    p_i = tf_c3.add_paragraph()
+    p_i.space_before = Pt(4)
+    r1 = p_i.add_run()
+    r1.text = "• " + ih + " :\n"
+    r1.font.name = "Arial"
+    r1.font.size = Pt(8.5)
+    r1.font.bold = True
+    r1.font.color.rgb = C_NAVY
+    r2 = p_i.add_run()
+    r2.text = ib
+    r2.font.name = "Arial"
+    r2.font.size = Pt(8.0)
+    r2.font.color.rgb = C_DARK
+
+# Carte 4 (Bas droite) : Résultat certifié
+b_c4 = s23.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(right_x), Inches(4.35), Inches(col_w), Inches(1.40))
+b_c4.adjustments[0] = 0.03
+b_c4.fill.solid()
+b_c4.fill.fore_color.rgb = RGBColor(240, 253, 244)  # #F0FDF4 Vert très clair
+b_c4.line.color.rgb = C_SUCCESS
+b_c4.line.width = Pt(1.2)
+
+bx_c4 = s23.shapes.add_textbox(Inches(right_x + 0.18), Inches(4.45), Inches(col_w - 0.28), Inches(1.20))
+tf_c4 = bx_c4.text_frame
+tf_c4.word_wrap = True
+tf_c4.margin_left = tf_c4.margin_top = tf_c4.margin_right = tf_c4.margin_bottom = 0
+
+p4_1 = tf_c4.paragraphs[0]
+p4_1.text = "RÉSULTAT APRÈS ARBITRAGE LOCAL ET VÉRIFICATION :"
+r4_1 = p4_1.runs[0]
+r4_1.font.name = "Arial"
+r4_1.font.size = Pt(8.5)
+r4_1.font.bold = True
+r4_1.font.color.rgb = RGBColor(22, 101, 52)  # Vert foncé
+
+p4_2 = tf_c4.add_paragraph()
+p4_2.space_before = Pt(2)
+r4_2 = p4_2.add_run()
+r4_2.text = "« La Chapelle-sous-Aubenas »"
+r4_2.font.name = "Arial"
+r4_2.font.size = Pt(13.0)
+r4_2.font.bold = True
+r4_2.font.color.rgb = RGBColor(21, 128, 61)
+
+p4_3 = tf_c4.add_paragraph()
+p4_3.space_before = Pt(2)
+r4_3 = p4_3.add_run()
+r4_3.text = "Code INSEE officiel : 07058  |  Zéro hallucination  |  100% local (Ollama)"
+r4_3.font.name = "Arial"
+r4_3.font.size = Pt(8.0)
+r4_3.font.bold = True
+r4_3.font.color.rgb = C_NAVY
+
+# Bandeau inférieur officiel
+b_syn23 = s23.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(5.90), Inches(11.23), Inches(0.80))
+b_syn23.adjustments[0] = 0.03
+b_syn23.fill.solid()
+b_syn23.fill.fore_color.rgb = C_CALLOUT_BG
+b_syn23.line.color.rgb = C_ACCENT
+b_syn23.line.width = Pt(1.0)
+
+bx_s23 = s23.shapes.add_textbox(Inches(1.20), Inches(5.95), Inches(10.93), Inches(0.70))
+tf_s23 = bx_s23.text_frame
+tf_s23.word_wrap = True
+tf_s23.margin_left = tf_s23.margin_top = tf_s23.margin_right = tf_s23.margin_bottom = 0
+
+ps23_1 = tf_s23.paragraphs[0]
+ps23_1.text = "PRINCIPE FONDAMENTAL DE LA DÉMARCHE INGÉNIEUR :"
+rs23_1 = ps23_1.runs[0]
+rs23_1.font.name = "Arial"
+rs23_1.font.size = Pt(9.5)
+rs23_1.font.bold = True
+rs23_1.font.color.rgb = C_ACCENT
+
+ps23_2 = tf_s23.add_paragraph()
+ps23_2.space_before = Pt(2)
+rs23_2 = ps23_2.add_run()
+rs23_2.text = "L'IA générative n'est pas un substitut universel. L'association de moteurs OCR/HTR rapides et d'un référentiel cadastral local garantit la sécurité juridique et la performance sur grand volume."
+rs23_2.font.name = "Arial"
+rs23_2.font.size = Pt(8.5)
+rs23_2.font.color.rgb = C_DARK
+
+# NOTES DU PRÉSENTATEUR (Mots-clés pour l'oral)
+s23_notes = s23.notes_slide.notes_text_frame
+s23_notes.text = (
+    "MOTS-CLÉS À DIRE À L'ORAL (Slide 23) :\n"
+    "• Anticiper la question du jury : Pourquoi ne pas tout envoyer à une IA générative (VLM) ?\n"
+    "• 1. Risque d'erreur toponymique : Une IA globale a une base nationale. Sur l'abréviation « Lachapelle /s/ AUBENAS », "
+    "elle peut hésiter avec Lachapelle-Graillouse (07), Lachapelle-sous-Chanéac (07) ou La Chapelle-en-Vercors (26), voire inventer une commune.\n"
+    "• 2. Vitesse et ressource : L'inférence VLM prend 5 à 8 secondes sur CPU, impensable sur 23 600 dossiers. OCR et TrOCR prennent 0.2 s.\n"
+    "• 3. Notre solution : Des moteurs OCR/HTR rapides qui lisent sans inventer + filtrage immédiat par distance de Levenshtein sur les 335 communes d'Ardèche.\n"
+    "• 4. Rôle de l'IA (VLM) : Elle intervient uniquement en arbitre de secours sur les cas ambigus (score < 0.65), et sa lecture reste verrouillée par la base locale. Résultat : zéro hallucination et conformité cadastrale absolue."
+)
+
+# ==================== CHAPITRE 5 : FIABILISATION & INTERFACE ====================
+print("Génération Chapitre 5 (Slides 24-27)...")
+
+# Slide 24 : Transition Chapitre 5
+create_transition_slide(
+    chap_idx=4,
+    slide_num=24,
+    title="Chapitre 5 : Fiabilisation des données et interface opérateur",
+    subtitle="Validation contradictoire humaine Streamlit, règles métier et contrôle spatial"
+)
+
+# Slide 25 (5.1) : Interface Streamlit
+s25, c25 = init_standard_slide(4, 0, 25, "5.1 Interface de relecture assistée Streamlit")
+add_two_column_content(
+    s25,
+    items=[
+        ("Contrôle contradictoire visuel",
+         "Double affichage synchronisé : document original scanné à droite et formulaire pré-rempli à gauche pour vérification immédiate."),
+        ("Indicateurs de confiance à trois niveaux",
+         "Vert (> 0.85) validé en 1 clic • Orange (0.65–0.85) à vérifier visuellement • Rouge (< 0.65) intervention manuelle requise."),
+        ("Gain de temps opérationnel spectaculaire",
+         "Le temps moyen de relecture et de validation par un technicien passe de 15–30 minutes à seulement 1 à 2 minutes par dossier.")
+    ],
+    img_path="img/interface_haut.jpg",
+    img_caption="Interface Streamlit : double vue scan / formulaire avec jauges de confiance (Joyeuse)",
+    callout_title="LE GÉOMÈTRE CONSERVE LE CONTRÔLE ABSOLU",
+    callout_text="L'outil ne remplace pas l'humain : il pré-remplit les champs et réserve la décision finale de validation au technicien du cabinet."
+)
+
+# Slide 26 (5.2) : Règles métier
+print("Génération Slide 26 (Moteur complet des 17 règles métier en grille 2x2 optimisée)...")
+s26, c26 = init_standard_slide(4, 1, 26, "5.2 Moteur de 17 règles de cohérence métier et répertoires")
+
+# 4 familles de règles issues du mémoire (section 5.3, 17 règles au total)
+rule_groups = [
+    {
+        "tag": "GROUPE 1 • 5 RÈGLES",
+        "title": "Contrôles cadastraux et toponymiques",
+        "color": C_NAVY,
+        "rules": [
+            ("Rapprochement toponymique INSEE", "Levenshtein sur 335 communes 07 / 363 Drôme."),
+            ("Validité de la section cadastrale", "Contrôle de l'existence de la section sur la commune."),
+            ("Nettoyage des numéros de parcelles", "Élimination des parasites de tampons ou tirets."),
+            ("Exclusion parcelle nulle & rattachement", "Rejet du numéro 0 et présence minimale d'1 parcelle.")
+        ]
+    },
+    {
+        "tag": "GROUPE 2 • 4 RÈGLES",
+        "title": "Contrôles temporels et dates",
+        "color": C_ACCENT,
+        "rules": [
+            ("Plage d'activité historique", "Cohérence avec le fonds documentaire (1950 à nos jours)."),
+            ("Période d'exercice du géomètre", "Concordance date d'acte et exercice du signataire."),
+            ("Validation calendaire réelle", "Format strict ISO 8601 et années bissextiles."),
+            ("Antériorité chronologique", "Date d'enregistrement postérieure à la date du plan.")
+        ]
+    },
+    {
+        "tag": "GROUPE 3 • 4 RÈGLES",
+        "title": "Contrôles des personnes et intervenants",
+        "color": RGBColor(180, 83, 9),  # #B45309 Ambre professionnel
+        "rules": [
+            ("Annuaire des géomètres du cabinet", "Vérification du signataire dans la liste officielle."),
+            ("Alerte identité parties", "Signalement si anciens propriétaires = acquéreurs."),
+            ("Filtrage mentions isolées", "Suppression des termes « consorts », « veuve », « Idem »."),
+            ("Donneur d'ordre & riverains", "Identification du client et chaînage des limitrophes.")
+        ]
+    },
+    {
+        "tag": "GROUPE 4 • 4 RÈGLES",
+        "title": "Contrôles de dossier et anti-doublon",
+        "color": C_SUCCESS,
+        "rules": [
+            ("Syntaxe de référence dossier", "Validation du masque propre à chaque fonds de géomètre."),
+            ("Unicité stricte au répertoire", "Contrôle d'absence de doublon dans le registre général."),
+            ("Détection conflits spatiaux", "Alerte si plusieurs actes sur même parcelle même année."),
+            ("Intégrité du document source", "Vérification de présence et lisibilité du fichier PDF.")
+        ]
+    }
+]
+
+# Grille 2x2 équilibrée exploitant 100% de la largeur et de la hauteur utile
+grid_w = 5.48
+grid_h = 2.05
+col_xs = [1.05, 6.80]
+row_ys = [1.55, 3.72]
+
+for gi, gdata in enumerate(rule_groups):
+    gx = col_xs[gi % 2]
+    gy = row_ys[gi // 2]
+    
+    b_g = s26.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(gx), Inches(gy), Inches(grid_w), Inches(grid_h))
+    b_g.adjustments[0] = 0.03
+    b_g.fill.solid()
+    b_g.fill.fore_color.rgb = C_BG_SLIDE
+    b_g.line.color.rgb = C_LINE
+    b_g.line.width = Pt(0.75)
+    
+    # Accent couleur sur bordure gauche
+    b_acc = s26.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(gx), Inches(gy), Inches(0.08), Inches(grid_h))
+    b_acc.adjustments[0] = 0.20
+    b_acc.fill.solid()
+    b_acc.fill.fore_color.rgb = gdata["color"]
+    b_acc.line.fill.background()
+    
+    bx_g = s26.shapes.add_textbox(Inches(gx + 0.18), Inches(gy + 0.08), Inches(grid_w - 0.28), Inches(grid_h - 0.16))
+    tf_g = bx_g.text_frame
+    tf_g.word_wrap = True
+    tf_g.margin_left = tf_g.margin_top = tf_g.margin_right = tf_g.margin_bottom = 0
+    
+    # En-tête : Tag + Titre
+    p_hdr = tf_g.paragraphs[0]
+    r_tag = p_hdr.add_run()
+    r_tag.text = gdata["tag"] + "  |  "
+    r_tag.font.name = "Arial"
+    r_tag.font.size = Pt(8.0)
+    r_tag.font.bold = True
+    r_tag.font.color.rgb = gdata["color"]
+    
+    r_tit = p_hdr.add_run()
+    r_tit.text = gdata["title"]
+    r_tit.font.name = "Arial"
+    r_tit.font.size = Pt(10.5)
+    r_tit.font.bold = True
+    r_tit.font.color.rgb = C_NAVY
+    
+    # 4 règles détaillées par groupe
+    for rh, rb in gdata["rules"]:
+        p_r = tf_g.add_paragraph()
+        p_r.space_before = Pt(2.5)
+        rr_h = p_r.add_run()
+        rr_h.text = "• " + rh + " : "
+        rr_h.font.name = "Arial"
+        rr_h.font.size = Pt(8.5)
+        rr_h.font.bold = True
+        rr_h.font.color.rgb = C_DARK
+        
+        rr_b = p_r.add_run()
+        rr_b.text = rb
+        rr_b.font.name = "Arial"
+        rr_b.font.size = Pt(8.0)
+        rr_b.font.color.rgb = C_MUTED
+
+# Bandeau de synthèse officiel en bas
+b_syn26 = s26.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(5.90), Inches(11.23), Inches(0.80))
+b_syn26.adjustments[0] = 0.03
+b_syn26.fill.solid()
+b_syn26.fill.fore_color.rgb = C_CALLOUT_BG
+b_syn26.line.color.rgb = C_ACCENT
+b_syn26.line.width = Pt(1.0)
+
+bx_s26 = s26.shapes.add_textbox(Inches(1.20), Inches(5.95), Inches(10.93), Inches(0.70))
+tf_s26 = bx_s26.text_frame
+tf_s26.word_wrap = True
+tf_s26.margin_left = tf_s26.margin_top = tf_s26.margin_right = tf_s26.margin_bottom = 0
+ps26_1 = tf_s26.paragraphs[0]
+ps26_1.text = "SÉCURISATION GLOBALE PAR LE MOTEUR DES 17 RÈGLES MÉTIER :"
+rs26_1 = ps26_1.runs[0]
+rs26_1.font.name = "Arial"
+rs26_1.font.size = Pt(9.5)
+rs26_1.font.bold = True
+rs26_1.font.color.rgb = C_ACCENT
+
+ps26_2 = tf_s26.add_paragraph()
+ps26_2.space_before = Pt(2)
+rs26_2 = ps26_2.add_run()
+rs26_2.text = "L'ensemble des 17 règles s'exécute automatiquement avant tout versement. Tout dossier en défaut reçoit une pastille d'avertissement et est soumis à l'arbitrage immédiat de l'opérateur en un clic."
+rs26_2.font.name = "Arial"
+rs26_2.font.size = Pt(8.5)
+rs26_2.font.color.rgb = C_DARK
+
+# Slide 27 (5.3) : Contrôle spatial Folium
+s27, c27 = init_standard_slide(4, 2, 27, "5.3 Contrôle cartographique interactif (Folium)")
+add_two_column_content(
+    s27,
+    items=[
+        ("Géolocalisation automatique sur fond OpenStreetMap et IGN",
+         "Positionnement instantané de la pastille sur fond cadastral pour valider la cohérence spatiale de la commune et de la section."),
+        ("Superposition des filiations de parcelles en violet",
+         "Affichage automatique des nouvelles parcelles filles issues des divisions successives pour garantir le bon calage de l'acte ancien."),
+        ("Vérification visuelle de proximité foncière",
+         "Visualisation immédiate des autres pastilles Géofoncier existantes à proximité pour interdire la création de tout doublon.")
+    ],
+    img_path="img/Etape_2_localisation_cartographie.jpg",
+    img_caption="Carte interactive Folium : calage cadastral IGN, parcelles filles en violet et pastilles OGE",
+    callout_title="VALIDATION SPATIALE COMPLÈTE",
+    callout_text="L'intégration cartographique garantit que les coordonnées Lambert-93 calculées correspondent parfaitement à la commune déclarée."
+)
+
+
+# ==================== CHAPITRE 6 : INTÉGRATION GÉOFONCIER ====================
+print("Génération Chapitre 6 (Slides 28-31)...")
+
+# Slide 28 : Transition Chapitre 6
+create_transition_slide(
+    chap_idx=5,
+    slide_num=28,
+    title="Chapitre 6 : Intégration Géofoncier et expérimentation",
+    subtitle="Démonstration en conditions réelles, protocole d'injection et expérimentation Prades"
+)
+
+# Slide 29 (6.1) : Vidéo Démonstration (INTOUCHÉE)
+print("Génération Slide 29 (Vidéo Démonstration 180s - STRICTEMENT INTOUCHÉE)...")
+s29, c29 = init_standard_slide(5, 0, 29, "6.1 Démonstration du pipeline en conditions réelles")
+
+vid_path = "Demo_soutenance_final.mp4"
+poster_img = "video_poster.jpg" if os.path.exists("video_poster.jpg") else None
+vw, vh = 11.40, 5.30
+vx = 0.70 + (11.93 - vw) / 2.0
+vy = 1.35 + (5.80 - vh) / 2.0
+
+if os.path.exists(vid_path):
+    try:
+        s29.shapes.add_movie(vid_path, Inches(vx), Inches(vy), Inches(vw), Inches(vh), poster_frame_image=poster_img, mime_type="video/mp4")
+        print(f"  Vidéo intégrée dans le conteneur blanc : {vid_path}")
+    except Exception as e:
+        print(f"  Erreur add_movie : {e}")
+        add_fitted_picture(s29, poster_img, vx, vy, vw, vh, caption=f"Vidéo prête pour lecture : {vid_path}")
+else:
+    add_fitted_picture(s29, poster_img, vx, vy, vw, vh, caption="Fichier vidéo non trouvé")
+
+# Slide 30 (6.2) : Protocole API
+s30, c30 = init_standard_slide(5, 1, 30, "6.2 Protocole de versement via l'API REST Géofoncier")
+
+workflow_s30 = [
+    ("Étape 1 : Authentification",
+     "Génération Token JWT Bearer",
+     C_NAVY,
+     "Requête POST sécurisée vers le serveur d'authentification OGE avec les certificats numériques du cabinet GEO-SIAPP. Obtention d'un jeton Bearer valide pendant 24 heures.",
+     [("Protocole", "OAuth 2.0 / JWT"), ("En-tête HTTP", "Authorization: Bearer"), ("Validité", "24 heures")]),
+    ("Étape 2 : Publication pastille",
+     "POST /rfuoge (Payload JSON)",
+     C_ACCENT,
+     "Envoi synchrone du dictionnaire de métadonnées vérifiées : code INSEE, date ISO 8601, référence interne du dossier et coordonnées géométriques en Lambert-93.",
+     [("Content-Type", "application/json"), ("Système proj.", "Lambert-93 (EPSG:2154)"), ("Code retour", "201 Created")]),
+    ("Étape 3 : Versement des pièces",
+     "POST /dossiersoge (PDF d'archives)",
+     C_SUCCESS,
+     "Téléversement multipart des scans numériques certifiés du plan et du procès-verbal. Journalisation complète de la transaction dans le fichier d'audit suivi_publications.csv.",
+     [("Type transfert", "multipart/form-data"), ("Documents", "Plan.pdf + PV.pdf"), ("Traçabilité", "suivi_publications.csv")])
+]
+
+cw30 = 3.55
+cg30 = 0.29
+for wi, (w_step, w_title, w_color, w_desc, w_params) in enumerate(workflow_s30):
+    wx = 1.05 + wi * (cw30 + cg30)
+    b_w = s30.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(wx), Inches(1.60), Inches(cw30), Inches(4.15))
+    b_w.adjustments[0] = 0.03
+    b_w.fill.solid()
+    b_w.fill.fore_color.rgb = C_BG_SLIDE
+    b_w.line.color.rgb = C_LINE
+    b_w.line.width = Pt(0.75)
+    
+    bx_w = s30.shapes.add_textbox(Inches(wx + 0.16), Inches(1.72), Inches(cw30 - 0.32), Inches(3.90))
+    tf_w = bx_w.text_frame
+    tf_w.word_wrap = True
+    tf_w.margin_left = tf_w.margin_top = tf_w.margin_right = tf_w.margin_bottom = 0
+    
+    p1 = tf_w.paragraphs[0]
+    p1.text = w_step.upper()
+    r1 = p1.runs[0]
+    r1.font.name = "Arial"
+    r1.font.size = Pt(9.5)
+    r1.font.bold = True
+    r1.font.color.rgb = w_color
+    
+    p2 = tf_w.add_paragraph()
+    p2.space_before = Pt(3)
+    p2.text = w_title
+    r2 = p2.runs[0]
+    r2.font.name = "Arial"
+    r2.font.size = Pt(11.5)
+    r2.font.bold = True
+    r2.font.color.rgb = C_NAVY
+    
+    p3 = tf_w.add_paragraph()
+    p3.space_before = Pt(6)
+    p3.text = w_desc
+    r3 = p3.runs[0]
+    r3.font.name = "Arial"
+    r3.font.size = Pt(8.5)
+    r3.font.color.rgb = C_MUTED
+    
+    p_sep = tf_w.add_paragraph()
+    p_sep.space_before = Pt(8)
+    r_sep = p_sep.add_run()
+    r_sep.text = "Spécifications techniques :"
+    r_sep.font.name = "Arial"
+    r_sep.font.size = Pt(8.5)
+    r_sep.font.bold = True
+    r_sep.font.color.rgb = w_color
+    
+    for pk, pv in w_params:
+        p_sub = tf_w.add_paragraph()
+        p_sub.space_before = Pt(2)
+        r_k = p_sub.add_run()
+        r_k.text = f"• {pk} : "
+        r_k.font.name = "Arial"
+        r_k.font.size = Pt(8.0)
+        r_k.font.bold = True
+        r_k.font.color.rgb = C_DARK
+        r_v = p_sub.add_run()
+        r_v.text = pv
+        r_v.font.name = "Arial"
+        r_v.font.size = Pt(8.0)
+        r_v.font.color.rgb = C_MUTED
+
+b_syn30 = s30.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(5.85), Inches(11.23), Inches(0.80))
+b_syn30.adjustments[0] = 0.03
+b_syn30.fill.solid()
+b_syn30.fill.fore_color.rgb = C_CALLOUT_BG
+b_syn30.line.color.rgb = C_ACCENT
+b_syn30.line.width = Pt(1.0)
+
+bx_s30 = s30.shapes.add_textbox(Inches(1.20), Inches(5.90), Inches(10.93), Inches(0.70))
+tf_s30 = bx_s30.text_frame
+tf_s30.word_wrap = True
+tf_s30.margin_left = tf_s30.margin_top = tf_s30.margin_right = tf_s30.margin_bottom = 0
+ps30_1 = tf_s30.paragraphs[0]
+ps30_1.text = "Validation officielle du versement sur Géofoncier :"
+rs30_1 = ps30_1.runs[0]
+rs30_1.font.name = "Arial"
+rs30_1.font.size = Pt(9.5)
+rs30_1.font.bold = True
+rs30_1.font.color.rgb = C_ACCENT
+
+ps30_2 = tf_s30.add_paragraph()
+ps30_2.space_before = Pt(2)
+rs30_2 = ps30_2.add_run()
+rs30_2.text = "Le code retour HTTP 201 Created atteste de la création instantanée de la pastille bleue sur la carte nationale de Géofoncier, rendant l'antériorité consultable par toute la profession."
+rs30_2.font.name = "Arial"
+rs30_2.font.size = Pt(8.5)
+rs30_2.font.color.rgb = C_DARK
+
+# Slide 31 (6.3) : Validation Prades
+print("Génération Slide 31 (Résultats Prades)...")
+s31, c31 = init_standard_slide(5, 2, 31, "6.3 Validation expérimentale sur la commune de Prades (Ardèche)")
+
+left_x31 = 1.05
+left_w31 = 5.50
+
+kpi_tiles = [
+    ("50 Dossiers", "Lot d'archives réelles testé", C_NAVY),
+    ("100% Succès", "Concordance cadastrale totale", C_SUCCESS),
+    ("F1 = 0.94", "Score global pondéré", C_ACCENT),
+    ("x6 Plus Rapide", "Temps divisé par six", C_WARN)
+]
+
+kw31 = (left_w31 - 0.15) / 2.0
+kh31 = 0.95
+
+for ti, (t_val, t_desc, t_col) in enumerate(kpi_tiles):
+    row_t = ti // 2
+    col_t = ti % 2
+    tx = left_x31 + col_t * (kw31 + 0.15)
+    ty = 1.60 + row_t * (kh31 + 0.12)
+    
+    b_tile = s31.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(tx), Inches(ty), Inches(kw31), Inches(kh31))
+    b_tile.adjustments[0] = 0.05
+    b_tile.fill.solid()
+    b_tile.fill.fore_color.rgb = C_BG_SLIDE
+    b_tile.line.color.rgb = t_col
+    b_tile.line.width = Pt(1.2)
+    
+    bx_t = s31.shapes.add_textbox(Inches(tx + 0.08), Inches(ty + 0.10), Inches(kw31 - 0.16), Inches(kh31 - 0.20))
+    tf_t = bx_t.text_frame
+    tf_t.word_wrap = True
+    tf_t.margin_left = tf_t.margin_top = tf_t.margin_right = tf_t.margin_bottom = 0
+    pt1 = tf_t.paragraphs[0]
+    pt1.text = t_val
+    rt1 = pt1.runs[0]
+    rt1.font.name = "Arial"
+    rt1.font.size = Pt(14.0)
+    rt1.font.bold = True
+    rt1.font.color.rgb = t_col
+    
+    pt2 = tf_t.add_paragraph()
+    pt2.space_before = Pt(2)
+    rt2 = pt2.add_run()
+    rt2.text = t_desc
+    rt2.font.name = "Arial"
+    rt2.font.size = Pt(8.0)
+    rt2.font.color.rgb = C_MUTED
+
+b_det31 = s31.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(left_x31), Inches(3.85), Inches(left_w31), Inches(2.80))
+b_det31.adjustments[0] = 0.03
+b_det31.fill.solid()
+b_det31.fill.fore_color.rgb = C_BG_SLIDE
+b_det31.line.color.rgb = C_LINE
+b_det31.line.width = Pt(0.75)
+
+bx_det31 = s31.shapes.add_textbox(Inches(left_x31 + 0.16), Inches(3.95), Inches(left_w31 - 0.32), Inches(2.60))
+tf_det31 = bx_det31.text_frame
+tf_det31.word_wrap = True
+tf_det31.margin_left = tf_det31.margin_top = tf_det31.margin_right = tf_det31.margin_bottom = 0
+
+p_dh = tf_det31.paragraphs[0]
+p_dh.text = "Bilan de l'expérimentation sur Prades :\n"
+r_dh = p_dh.runs[0]
+r_dh.font.name = "Arial"
+r_dh.font.size = Pt(10.5)
+r_dh.font.bold = True
+r_dh.font.color.rgb = C_NAVY
+
+bullets_prades = [
+    ("47 dossiers versés sans retouche", "Les métadonnées ont été reconnues avec une certitude absolue et validées en 1 clic."),
+    ("3 dossiers corrigés visuellement", "Anomalies mineures de détection dues à des plis marqués sur les calques anciens."),
+    ("Zéro fausse pastille sur Géofoncier", "Le filtre des 17 règles métier a bloqué toute injection erronée vers le portail national.")
+]
+for bh, bd in bullets_prades:
+    p_b1 = tf_det31.add_paragraph()
+    p_b1.space_before = Pt(5)
+    r1 = p_b1.add_run()
+    r1.text = "• " + bh + " : "
+    r1.font.name = "Arial"
+    r1.font.size = Pt(9.0)
+    r1.font.bold = True
+    r1.font.color.rgb = C_ACCENT
+    r2 = p_b1.add_run()
+    r2.text = bd
+    r2.font.name = "Arial"
+    r2.font.size = Pt(8.5)
+    r2.font.color.rgb = C_DARK
+
+rx31 = 6.78
+rw31 = 5.50
+
+frame_img31 = s31.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(rx31), Inches(1.60), Inches(rw31), Inches(3.35))
+frame_img31.adjustments[0] = 0.03
+frame_img31.fill.solid()
+frame_img31.fill.fore_color.rgb = C_BG_SLIDE
+frame_img31.line.color.rgb = C_LINE
+frame_img31.line.width = Pt(0.75)
+add_fitted_picture(s31, "img/fig_geofoncier_prades.png", rx31 + 0.10, 1.70, rw31 - 0.20, 3.15, caption="Visualisation des pastilles publiées sur la commune de Prades (GéofoncierEXPERT)")
+
+b_f1_31 = s31.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(rx31), Inches(5.10), Inches(rw31), Inches(1.55))
+b_f1_31.adjustments[0] = 0.03
+b_f1_31.fill.solid()
+b_f1_31.fill.fore_color.rgb = C_CALLOUT_BG
+b_f1_31.line.color.rgb = C_ACCENT
+b_f1_31.line.width = Pt(1.0)
+
+bx_f1_31 = s31.shapes.add_textbox(Inches(rx31 + 0.16), Inches(5.18), Inches(rw31 - 0.32), Inches(1.40))
+tf_f1_31 = bx_f1_31.text_frame
+tf_f1_31.word_wrap = True
+tf_f1_31.margin_left = tf_f1_31.margin_top = tf_f1_31.margin_right = tf_f1_31.margin_bottom = 0
+
+pf_h = tf_f1_31.paragraphs[0]
+pf_h.text = "Scores F1 par champ obligatoire (lot de Prades) :"
+rf_h = pf_h.runs[0]
+rf_h.font.name = "Arial"
+rf_h.font.size = Pt(9.0)
+rf_h.font.bold = True
+rf_h.font.color.rgb = C_NAVY
+
+f1_items = [
+    ("Commune (code INSEE COG)", "F1 = 0.98"),
+    ("Date de l'acte (ISO 8601)", "F1 = 0.95"),
+    ("Filiation parcellaire", "F1 = 0.94"),
+    ("Référence interne cabinet", "F1 = 0.92")
+]
+for f_lbl, f_sc in f1_items:
+    pf_row = tf_f1_31.add_paragraph()
+    pf_row.space_before = Pt(2)
+    r1 = pf_row.add_run()
+    r1.text = "✓ " + f_lbl + " : "
+    r1.font.name = "Arial"
+    r1.font.size = Pt(8.0)
+    r1.font.bold = True
+    r1.font.color.rgb = C_DARK
+    r2 = pf_row.add_run()
+    r2.text = f_sc
+    r2.font.name = "Arial"
+    r2.font.size = Pt(8.0)
+    r2.font.bold = True
+    r2.font.color.rgb = C_SUCCESS
+
+
+# ==================== CHAPITRE 7 : LIMITES & PERSPECTIVES ====================
+print("Génération Chapitre 7 (Slides 32-34)...")
+
+# Slide 32 : Transition Chapitre 7
+create_transition_slide(
+    chap_idx=6,
+    slide_num=32,
+    title="Chapitre 7 : Analyse des limites et perspectives d'évolution",
+    subtitle="Diagnostic des modes de défaillance, altérations physiques et feuille de route technique"
+)
+
+# Slide 33 (7.1) : Limites techniques
+print("Génération Slide 33 (Limites techniques et diagnostic physique)...")
+s33, c33 = init_standard_slide(6, 0, 33, "7.1 Limites techniques et analyse des modes de défaillance")
+
+left_x33 = 1.05
+left_w33 = 5.50
+
+limites_diagnostic = [
+    ("Supports calques & encres altérées",
+     "Transparence recto/verso des calques créant des écritures superposées. Déformation des pages près de la reliure des registres.",
+     C_WARN),
+    ("Tampons administratifs recouvrants",
+     "Tampons de réception rouge/bleu posés sur les numéros de parcelles. Confusions récurrentes sur les chiffres visuellement proches (3/8, 0/6, 1/7).",
+     C_RED),
+    ("Disparité d'écriture & Répertoire B",
+     "Écriture manuscrite libre sans colonnes prédéfinies. Taux de réussite inférieur de 15 à 20% par rapport au Géomètre A, exigeant une reprise manuelle.",
+     C_ACCENT)
+]
+
+y_lim = 1.60
+lim_h = 1.25
+gap_lim = 0.14
+
+for li, (l_head, l_body, l_col) in enumerate(limites_diagnostic):
+    ly = y_lim + li * (lim_h + gap_lim)
+    b_lim = s33.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(left_x33), Inches(ly), Inches(left_w33), Inches(lim_h))
+    b_lim.adjustments[0] = 0.03
+    b_lim.fill.solid()
+    b_lim.fill.fore_color.rgb = C_BG_SLIDE
+    b_lim.line.color.rgb = l_col
+    b_lim.line.width = Pt(1.0)
+    
+    bx_l = s33.shapes.add_textbox(Inches(left_x33 + 0.18), Inches(ly + 0.12), Inches(left_w33 - 0.36), Inches(lim_h - 0.24))
+    tf_l = bx_l.text_frame
+    tf_l.word_wrap = True
+    tf_l.margin_left = tf_l.margin_top = tf_l.margin_right = tf_l.margin_bottom = 0
+    
+    pl1 = tf_l.paragraphs[0]
+    pl1.text = "• " + l_head + " :"
+    rl1 = pl1.runs[0]
+    rl1.font.name = "Arial"
+    rl1.font.size = Pt(10.5)
+    rl1.font.bold = True
+    rl1.font.color.rgb = C_NAVY
+    
+    pl2 = tf_l.add_paragraph()
+    pl2.space_before = Pt(4)
+    rl2 = pl2.add_run()
+    rl2.text = l_body
+    rl2.font.name = "Arial"
+    rl2.font.size = Pt(8.5)
+    rl2.font.color.rgb = C_DARK
+
+b_cpu = s33.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(left_x33), Inches(5.82), Inches(left_w33), Inches(0.85))
+b_cpu.adjustments[0] = 0.03
+b_cpu.fill.solid()
+b_cpu.fill.fore_color.rgb = C_CALLOUT_BG
+b_cpu.line.color.rgb = C_ACCENT
+b_cpu.line.width = Pt(1.0)
+
+bx_cpu = s33.shapes.add_textbox(Inches(left_x33 + 0.18), Inches(5.88), Inches(left_w33 - 0.36), Inches(0.72))
+tf_cpu = bx_cpu.text_frame
+tf_cpu.word_wrap = True
+tf_cpu.margin_left = tf_cpu.margin_top = tf_cpu.margin_right = tf_cpu.margin_bottom = 0
+pc1 = tf_cpu.paragraphs[0]
+pc1.text = "CONTRAINTE MATÉRIELLE CPU :"
+rc1 = pc1.runs[0]
+rc1.font.name = "Arial"
+rc1.font.size = Pt(9.0)
+rc1.font.bold = True
+rc1.font.color.rgb = C_ACCENT
+
+pc2 = tf_cpu.add_paragraph()
+pc2.space_before = Pt(2)
+rc2 = pc2.add_run()
+rc2.text = "L'absence de GPU dédié allonge le temps d'inférence VLM (~5s à 8s sur CPU), justifiant de réserver l'arbitre aux seules ambiguïtés résiduelles."
+rc2.font.name = "Arial"
+rc2.font.size = Pt(8.0)
+rc2.font.color.rgb = C_DARK
+
+rx33 = 6.78
+rw33 = 5.50
+
+frame_deg = s33.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(rx33), Inches(1.60), Inches(rw33), Inches(3.20))
+frame_deg.adjustments[0] = 0.03
+frame_deg.fill.solid()
+frame_deg.fill.fore_color.rgb = C_BG_SLIDE
+frame_deg.line.color.rgb = C_LINE
+frame_deg.line.width = Pt(0.75)
+add_fitted_picture(s33, "img/crop_serret.png", rx33 + 0.10, 1.70, rw33 - 0.20, 3.00, caption="Extrait d'archive dégradée : encres pâles et ratures manuelles (Mémoire)")
+
+b_val33 = s33.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(rx33), Inches(4.95), Inches(rw33), Inches(1.72))
+b_val33.adjustments[0] = 0.03
+b_val33.fill.solid()
+b_val33.fill.fore_color.rgb = C_BG_SLIDE
+b_val33.line.color.rgb = C_LINE
+b_val33.line.width = Pt(0.75)
+
+bx_vt = s33.shapes.add_textbox(Inches(rx33 + 0.18), Inches(5.05), Inches(rw33 - 0.36), Inches(1.52))
+tf_vt = bx_vt.text_frame
+tf_vt.word_wrap = True
+tf_vt.margin_left = tf_vt.margin_top = tf_vt.margin_right = tf_vt.margin_bottom = 0
+
+pvt_h = tf_vt.paragraphs[0]
+pvt_h.text = "RÉPARTITION DES RETOUCHES OPÉRATEUR :"
+rvt_h = pvt_h.runs[0]
+rvt_h.font.name = "Arial"
+rvt_h.font.size = Pt(9.5)
+rvt_h.font.bold = True
+rvt_h.font.color.rgb = C_NAVY
+
+retouches_stats = [
+    ("82% Validés sans retouche", "Pré-remplissage conforme en 1 clic (DMPC Cerfa).", C_SUCCESS),
+    ("15% Retouche d'un champ", "Ajustement d'un chiffre sous tampon ou date pâlie.", C_WARN),
+    ("3% Saisie intégrale", "Documents calques très altérés ou déchirés.", C_RED)
+]
+for r_stat, r_desc, r_col in retouches_stats:
+    p_r = tf_vt.add_paragraph()
+    p_r.space_before = Pt(3)
+    rr1 = p_r.add_run()
+    rr1.text = "• " + r_stat + " : "
+    rr1.font.name = "Arial"
+    rr1.font.size = Pt(8.5)
+    rr1.font.bold = True
+    rr1.font.color.rgb = r_col
+    rr2 = p_r.add_run()
+    rr2.text = r_desc
+    rr2.font.name = "Arial"
+    rr2.font.size = Pt(8.0)
+    rr2.font.color.rgb = C_MUTED
+
+# Slide 34 (7.2) : Perspectives d'évolution
+print("Génération Slide 34 (Perspectives réelles du mémoire en typographie soignée)...")
+s34, c34 = init_standard_slide(6, 1, 34, "7.2 Perspectives d'évolution et feuille de route technique")
+
+perspectives_data = [
+    ("Évolution ergonomique", "Migration vers FastAPI et frontend HTML sans rechargement",
+     [
+         "Suppression du rechargement complet de page entre documents pour fluidifier le traitement des grands lots.",
+         "Sauvegarde automatique continue des saisies de l'opérateur, éliminant tout risque de perte de corrections en cours."
+     ],
+     C_NAVY),
+    ("Intégration SIG", "Connexion aux services WFS DGFiP et plugin QGIS métier",
+     [
+         "Calcul automatique de la géométrie de parcelle via les flux WFS officiels, évitant le placement manuel du marqueur.",
+         "Développement d'un plugin QGIS pour offrir aux géomètres l'accès direct aux archives depuis leur outil de production."
+     ],
+     C_ACCENT),
+    ("Transposabilité cabinets", "Découplage modulaire et adaptation à d'autres fonds",
+     [
+         "Architecture scindée en étapes indépendantes : simple fichier de configuration pour cartouches et communes.",
+         "Réentraînement ciblé de YOLOv8 sur les nouvelles mises en page sans redéveloppement logiciel complet."
+     ],
+     C_SUCCESS)
+]
+
+y_p = 1.60
+p_height = 1.25
+gap_p = 0.15
+
+for pi, (p_tag, p_title, p_lines, p_color) in enumerate(perspectives_data):
+    py = y_p + pi * (p_height + gap_p)
+    
+    b_persp = s34.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(py), Inches(11.23), Inches(p_height))
+    b_persp.adjustments[0] = 0.03
+    b_persp.fill.solid()
+    b_persp.fill.fore_color.rgb = C_BG_SLIDE
+    b_persp.line.color.rgb = p_color
+    b_persp.line.width = Pt(1.2)
+    
+    b_badge = s34.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.20), Inches(py + 0.12), Inches(2.10), Inches(0.30))
+    b_badge.adjustments[0] = 0.12
+    b_badge.fill.solid()
+    b_badge.fill.fore_color.rgb = p_color
+    b_badge.line.fill.background()
+    tf_pb = b_badge.text_frame
+    tf_pb.margin_left = tf_pb.margin_top = tf_pb.margin_right = tf_pb.margin_bottom = 0
+    ppb = tf_pb.paragraphs[0]
+    ppb.text = p_tag
+    ppb.alignment = PP_ALIGN.CENTER
+    rpb = ppb.runs[0]
+    rpb.font.name = "Arial"
+    rpb.font.size = Pt(8.5)
+    rpb.font.bold = True
+    rpb.font.color.rgb = C_WHITE
+    
+    bx_ptit = s34.shapes.add_textbox(Inches(3.45), Inches(py + 0.10), Inches(8.60), Inches(0.32))
+    tf_ptit = bx_ptit.text_frame
+    tf_ptit.word_wrap = True
+    tf_ptit.margin_left = tf_ptit.margin_top = tf_ptit.margin_right = tf_ptit.margin_bottom = 0
+    ppt = tf_ptit.paragraphs[0]
+    ppt.text = p_title
+    rpt = ppt.runs[0]
+    rpt.font.name = "Arial"
+    rpt.font.size = Pt(11.0)
+    rpt.font.bold = True
+    rpt.font.color.rgb = C_NAVY
+    
+    bx_pbod = s34.shapes.add_textbox(Inches(1.20), Inches(py + 0.48), Inches(10.85), Inches(p_height - 0.52))
+    tf_pbod = bx_pbod.text_frame
+    tf_pbod.word_wrap = True
+    for li_idx, line_txt in enumerate(p_lines):
+        p_line = tf_pbod.paragraphs[0] if li_idx == 0 else tf_pbod.add_paragraph()
+        if li_idx > 0:
+            p_line.space_before = Pt(2)
+        r_line = p_line.add_run()
+        r_line.text = line_txt
+        r_line.font.name = "Arial"
+        r_line.font.size = Pt(8.5)
+        r_line.font.color.rgb = C_DARK if li_idx == 0 else C_MUTED
+
+b_call34 = s34.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(5.85), Inches(11.23), Inches(0.80))
+b_call34.adjustments[0] = 0.03
+b_call34.fill.solid()
+b_call34.fill.fore_color.rgb = C_CALLOUT_BG
+b_call34.line.color.rgb = C_ACCENT
+b_call34.line.width = Pt(1.0)
+
+bx_c34 = s34.shapes.add_textbox(Inches(1.20), Inches(5.92), Inches(10.93), Inches(0.66))
+tf_c34 = bx_c34.text_frame
+tf_c34.word_wrap = True
+tf_c34.margin_left = tf_c34.margin_top = tf_c34.margin_right = tf_c34.margin_bottom = 0
+p_c34 = tf_c34.paragraphs[0]
+p_c34.alignment = PP_ALIGN.CENTER
+p_c34.text = "BOUCLE D'APPRENTISSAGE ACTIF EN LOCAL (Figure 7.2 du mémoire) :"
+r_c34 = p_c34.runs[0]
+r_c34.font.name = "Arial"
+r_c34.font.size = Pt(9.5)
+r_c34.font.bold = True
+r_c34.font.color.rgb = C_ACCENT
+
+p_c34_2 = tf_c34.add_paragraph()
+p_c34_2.space_before = Pt(2)
+p_c34_2.alignment = PP_ALIGN.CENTER
+p_c34_2.text = "Réinjection continue des corrections de l'opérateur pour enrichir les jeux d'entraînement locaux sans aucune fuite de données vers l'extérieur."
+r_c34_2 = p_c34_2.runs[0]
+r_c34_2.font.name = "Arial"
+r_c34_2.font.size = Pt(8.5)
+r_c34_2.font.color.rgb = C_NAVY
+
+# ==================== CHAPITRE 8 : CONCLUSION ====================
+print("Génération Chapitre 8 (Slides 35-37)...")
+
+# Slide 35 : Transition Chapitre 8
+create_transition_slide(
+    chap_idx=7,
+    slide_num=35,
+    title="Chapitre 8 : Conclusion générale et bilan du projet",
+    subtitle="Bilan opérationnel pour GEO-SIAPP, traitement local et compétences d'ingénieur INSA"
+)
+
+# Slide 36 (8.1) : Bilan général
+print("Génération Slide 36 (Bilan rigoureux conforme au chapitre 8 du mémoire)...")
+s36, c36 = init_standard_slide(7, 0, 36, "8.1 Bilan général du Projet de Fin d'Études")
+
+kpis_top36 = [
+    ("23 600", "DOSSIERS VALORISABLES AU SIÈGE", C_NAVY),
+    ("100% LOCAL", "RESPECT DU SECRET PROFESSIONNEL", C_ACCENT),
+    ("FACTEUR 6", "GAIN DE PRODUCTIVITÉ CONSTATÉ", C_SUCCESS),
+    ("0 €", "COÛT D'INFRASTRUCTURE LOGICIELLE", RGBColor(180, 83, 9))
+]
+
+kw36 = (11.23 - 3 * 0.15) / 4.0
+kh36 = 0.95
+y_top36 = 1.60
+
+for ki, (kval, klbl, kcol) in enumerate(kpis_top36):
+    kx = 1.05 + ki * (kw36 + 0.15)
+    b_kpi = s36.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(kx), Inches(y_top36), Inches(kw36), Inches(kh36))
+    b_kpi.adjustments[0] = 0.05
+    b_kpi.fill.solid()
+    b_kpi.fill.fore_color.rgb = C_BG_SLIDE
+    b_kpi.line.color.rgb = kcol
+    b_kpi.line.width = Pt(1.2)
+    
+    bx_k = s36.shapes.add_textbox(Inches(kx + 0.06), Inches(y_top36 + 0.10), Inches(kw36 - 0.12), Inches(kh36 - 0.20))
+    tf_k = bx_k.text_frame
+    tf_k.word_wrap = True
+    tf_k.margin_left = tf_k.margin_top = tf_k.margin_right = tf_k.margin_bottom = 0
+    
+    pk1 = tf_k.paragraphs[0]
+    pk1.text = kval
+    pk1.alignment = PP_ALIGN.CENTER
+    rk1 = pk1.runs[0]
+    rk1.font.name = "Arial"
+    rk1.font.size = Pt(14.0)
+    rk1.font.bold = True
+    rk1.font.color.rgb = kcol
+    
+    pk2 = tf_k.add_paragraph()
+    pk2.space_before = Pt(2)
+    pk2.text = klbl
+    pk2.alignment = PP_ALIGN.CENTER
+    rk2 = pk2.runs[0]
+    rk2.font.name = "Arial"
+    rk2.font.size = Pt(7.5)
+    rk2.font.bold = True
+    rk2.font.color.rgb = C_DARK
+
+pw36 = (11.23 - 0.25) / 2.0
+py36 = 2.70
+ph36 = 3.00
+
+p_left36 = s36.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(py36), Inches(pw36), Inches(ph36))
+p_left36.adjustments[0] = 0.03
+p_left36.fill.solid()
+p_left36.fill.fore_color.rgb = C_BG_SLIDE
+p_left36.line.color.rgb = C_LINE
+p_left36.line.width = Pt(0.75)
+
+bx_pl = s36.shapes.add_textbox(Inches(1.20), Inches(py36 + 0.12), Inches(pw36 - 0.30), Inches(ph36 - 0.24))
+tf_pl = bx_pl.text_frame
+tf_pl.word_wrap = True
+tf_pl.margin_left = tf_pl.margin_top = tf_pl.margin_right = tf_pl.margin_bottom = 0
+
+ppl_h = tf_pl.paragraphs[0]
+ppl_h.text = "Apports opérationnels pour le cabinet GEO-SIAPP\n"
+rpl_h = ppl_h.runs[0]
+rpl_h.font.name = "Arial"
+rpl_h.font.size = Pt(11.0)
+rpl_h.font.bold = True
+rpl_h.font.color.rgb = C_NAVY
+
+items_pl = [
+    ("Sécurisation juridique des antériorités", "Recherche systématique garantie et respect absolu de la règle « Bornage sur bornage ne vaut »."),
+    ("Gain de productivité constaté", "Temps de traitement ramené de 25 minutes de fouille physique à moins de 3 minutes par dossier."),
+    ("Valorisation de 50 ans d'archives privées", "Transformation d'un fonds papier dormant en un actif cartographique directement exploitable sur le terrain."),
+    ("Deux modes d'exploitation pérennes", "Mode interactif unitaire pour les affaires en cours et mode batch nocturne pour le traitement de masse.")
+]
+for ih, ib in items_pl:
+    p_i = tf_pl.add_paragraph()
+    p_i.space_before = Pt(4)
+    r1 = p_i.add_run()
+    r1.text = "✓ " + ih + " : "
+    r1.font.name = "Arial"
+    r1.font.size = Pt(8.5)
+    r1.font.bold = True
+    r1.font.color.rgb = C_ACCENT
+    r2 = p_i.add_run()
+    r2.text = ib
+    r2.font.name = "Arial"
+    r2.font.size = Pt(8.0)
+    r2.font.color.rgb = C_DARK
+
+p_right36 = s36.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05 + pw36 + 0.25), Inches(py36), Inches(pw36), Inches(ph36))
+p_right36.adjustments[0] = 0.03
+p_right36.fill.solid()
+p_right36.fill.fore_color.rgb = C_BG_SLIDE
+p_right36.line.color.rgb = C_LINE
+p_right36.line.width = Pt(0.75)
+
+bx_pr = s36.shapes.add_textbox(Inches(1.20 + pw36 + 0.25), Inches(py36 + 0.12), Inches(pw36 - 0.30), Inches(ph36 - 0.24))
+tf_pr = bx_pr.text_frame
+tf_pr.word_wrap = True
+tf_pr.margin_left = tf_pr.margin_top = tf_pr.margin_right = tf_pr.margin_bottom = 0
+
+ppr_h = tf_pr.paragraphs[0]
+ppr_h.text = "Rigueur déontologique et posture d'ingénieur INSA\n"
+rpr_h = ppr_h.runs[0]
+rpr_h.font.name = "Arial"
+rpr_h.font.size = Pt(11.0)
+rpr_h.font.bold = True
+rpr_h.font.color.rgb = C_NAVY
+
+items_pr = [
+    ("Conformité à la Charte IA de l'OGE (2026)", "Respect strict des 4 principes directeurs : transparence, protection des données, traçabilité et responsabilité."),
+    ("Responsabilité juridique entière conservée", "L'algorithme assiste l'opérateur par pré-remplissage ; l'humain valide chaque acte contradictoirement."),
+    ("Zéro dépendance cloud et exécution locale", "Traitement direct sur les stations existantes sans abonnement tiers ni diffusion externe des plans."),
+    ("Cadrage d'un projet industriel complet", "De l'analyse sur archives physiques dégradées jusqu'à l'injection certifiée sur le portail national Géofoncier.")
+]
+for ih, ib in items_pr:
+    p_i = tf_pr.add_paragraph()
+    p_i.space_before = Pt(4)
+    r1 = p_i.add_run()
+    r1.text = "✓ " + ih + " : "
+    r1.font.name = "Arial"
+    r1.font.size = Pt(8.5)
+    r1.font.bold = True
+    r1.font.color.rgb = C_SUCCESS
+    r2 = p_i.add_run()
+    r2.text = ib
+    r2.font.name = "Arial"
+    r2.font.size = Pt(8.0)
+    r2.font.color.rgb = C_DARK
+
+b_bot36 = s36.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.05), Inches(5.85), Inches(11.23), Inches(0.80))
+b_bot36.adjustments[0] = 0.03
+b_bot36.fill.solid()
+b_bot36.fill.fore_color.rgb = C_CALLOUT_BG
+b_bot36.line.color.rgb = C_ACCENT
+b_bot36.line.width = Pt(1.0)
+
+bx_bot36 = s36.shapes.add_textbox(Inches(1.20), Inches(5.92), Inches(10.93), Inches(0.66))
+tf_bot36 = bx_bot36.text_frame
+tf_bot36.word_wrap = True
+tf_bot36.margin_left = tf_bot36.margin_top = tf_bot36.margin_right = tf_bot36.margin_bottom = 0
+p_bot36 = tf_bot36.paragraphs[0]
+p_bot36.alignment = PP_ALIGN.CENTER
+p_bot36.text = "SYNTHÈSE DU PROJET DE FIN D'ÉTUDES :"
+r_bot36 = p_bot36.runs[0]
+r_bot36.font.name = "Arial"
+r_bot36.font.size = Pt(9.5)
+r_bot36.font.bold = True
+r_bot36.font.color.rgb = C_ACCENT
+
+p_bot36_2 = tf_bot36.add_paragraph()
+p_bot36_2.space_before = Pt(2)
+p_bot36_2.alignment = PP_ALIGN.CENTER
+p_bot36_2.text = "Démonstration qu'un cabinet de géomètre-expert peut, avec des outils ouverts et locaux, moderniser ses processus tout en garantissant la sécurité et la pérennité de l'information foncière."
+r_bot36_2 = p_bot36_2.runs[0]
+r_bot36_2.font.name = "Arial"
+r_bot36_2.font.size = Pt(8.5)
+r_bot36_2.font.color.rgb = C_NAVY
+
+# Slide 37 (8.2) : Remerciements
+print("Génération Slide 37 (Remerciements)...")
+s37, c37 = init_standard_slide(7, 1, 37, "8.2 Remerciements et ouverture vers les échanges")
+
+bx_rm = s37.shapes.add_textbox(Inches(1.50), Inches(1.80), Inches(10.33), Inches(0.70))
+tf_rm = bx_rm.text_frame
+p_rm = tf_rm.paragraphs[0]
+p_rm.alignment = PP_ALIGN.CENTER
+p_rm.text = "Merci pour votre attention"
+r_rm = p_rm.runs[0]
+r_rm.font.name = "Arial"
+r_rm.font.size = Pt(32.0)
+r_rm.font.bold = True
+r_rm.font.color.rgb = C_NAVY
+
+bx_rq = s37.shapes.add_textbox(Inches(1.50), Inches(2.55), Inches(10.33), Inches(0.40))
+tf_rq = bx_rq.text_frame
+p_rq = tf_rq.paragraphs[0]
+p_rq.alignment = PP_ALIGN.CENTER
+p_rq.text = "Je me tiens à votre entière disposition pour répondre à l'ensemble de vos questions."
+r_rq = p_rq.runs[0]
+r_rq.font.name = "Arial"
+r_rq.font.size = Pt(14.0)
+r_rq.font.color.rgb = C_ACCENT
+
+thanks_lines = [
+    "M. Gaëtan HAGUE : Tuteur entreprise, Géomètre-Expert associé, Cabinet GEO-SIAPP",
+    "M. Mathieu KOEHL : Directeur du PFE, Enseignant-chercheur, INSA Strasbourg / ICube",
+    "L'équipe du Cabinet GEO-SIAPP d'Aubenas pour leur accueil et leur accompagnement technique",
+    "L'équipe pédagogique de la spécialité Topographie de l'INSA Strasbourg"
+]
+
+for ti, ttext in enumerate(thanks_lines):
+    bx_th = s37.shapes.add_textbox(Inches(1.50), Inches(3.45 + ti * 0.45), Inches(10.33), Inches(0.35))
+    tf_th = bx_th.text_frame
+    p_th = tf_th.paragraphs[0]
+    p_th.alignment = PP_ALIGN.CENTER
+    p_th.text = ttext
+    r_th = p_th.runs[0]
+    r_th.font.name = "Arial"
+    r_th.font.size = Pt(11.0)
+    r_th.font.color.rgb = C_DARK
+
+if os.path.exists("Logo_INSAStrasbourg.jpg"):
+    s37.shapes.add_picture("Logo_INSAStrasbourg.jpg", Inches(3.80), Inches(5.55), width=Inches(2.50))
+if os.path.exists("Geosiapp.jpg"):
+    add_fitted_picture(s37, "Geosiapp.jpg", 7.60, 5.40, 2.00, 1.20)
+
+
+# ==================== ENREGISTREMENT ====================
+
+# ==================== NOTES DU PRÉSENTATEUR POUR L'ORAL (37 DIAPOSITIVES) ====================
+# Discours direct mot à mot avec timing de parole par diapositive (Total : 20 min)
+SPEAKER_NOTES = {
+    1: (
+        "[Temps : 30 s | Chrono : 00:30]\n"
+        "Bonjour à tous, membres du jury. Je vous présente aujourd'hui mon projet de fin d'études d'ingénieur topographe à l'INSA Strasbourg, intitulé : "
+        "Développement d'un outil permettant le traitement et l'insertion des archives numériques sur Géofoncier. "
+        "Ce travail a été réalisé au sein du cabinet GEO-SIAPP sous le tutorat de Monsieur Gaëtan Hague, géomètre-expert associé, et la direction de Monsieur Mathieu Koehl."
+    ),
+    2: (
+        "[Temps : 30 s | Chrono : 01:00]\n"
+        "Notre présentation s'articule en 8 chapitres. Nous partirons du cadre réglementaire du cabinet et de la problématique foncière, avant d'aborder l'état de l'art des technologies de lecture. "
+        "Nous détaillerons ensuite l'architecture développée, le moteur de fiabilisation et l'expérimentation réelle sur le terrain, pour terminer par l'analyse des limites et le bilan pour le cabinet."
+    ),
+    3: (
+        "[Temps : 5 s | Chrono : 01:05]\n"
+        "Commençons par le premier chapitre avec la présentation de la structure d'accueil et du contexte métier."
+    ),
+    4: (
+        "[Temps : 30 s | Chrono : 01:35]\n"
+        "Le cabinet GEO-SIAPP est une structure historique d'Ardèche et de Drôme qui compte cinq géomètres-experts associés et quatre agences. "
+        "Le seul siège d'Aubenas conserve plus de 23 600 dossiers d'archives physiques. Ce fonds rassemble près de 50 ans de plans de bornage, "
+        "de divisions et d'actes d'arpentage issus des géomètres prédécesseurs, aujourd'hui stockés sous forme papier dans les réserves."
+    ),
+    5: (
+        "[Temps : 40 s | Chrono : 02:15]\n"
+        "Le géomètre-expert dispose d'un monopole légal institué par la loi de 1946 : il est le seul habilité à fixer les limites réelles de propriété via un bornage contradictoire. "
+        "Le décret de 1996 nous impose de conserver ces archives au moins 30 ans. En parallèle, l'Ordre a créé le portail Géofoncier en 2010 pour référencer ces actes. "
+        "Attention à la confusion fréquente avec le programme public GEODÉMAT : l'État ne numérise que le cadastre fiscal. La valorisation de nos archives privées repose donc entièrement sur l'initiative du cabinet."
+    ),
+    6: (
+        "[Temps : 40 s | Chrono : 02:55]\n"
+        "Sur le plan technique et juridique, la règle d'or est : Bornage sur bornage ne vaut. Avant toute intervention sur le terrain, nous devons obligatoirement rechercher si un confrère ou prédécesseur n'a pas déjà borné la parcelle. "
+        "Actuellement, cette recherche manuelle dans les cartons d'archives prend 25 à 30 minutes par dossier, avec un risque permanent d'oublier un plan ancien. "
+        "L'objectif est de transformer cette fouille physique en une recherche cartographique instantanée."
+    ),
+    7: (
+        "[Temps : 45 s | Chrono : 03:40]\n"
+        "La problématique centrale du mémoire est la suivante : Dans quelle mesure est-il possible de concevoir un outil logiciel capable d'extraire avec fiabilité les données d'archives foncières très variées, tout en fonctionnant localement sur un ordinateur de bureau ? "
+        "Trois contraintes fortes encadrent ce travail : l'hétérogénéité d'un fonds de 50 ans avec des encres pâlies et des calques, l'échec des logiciels OCR du marché sur l'écriture manuscrite des géomètres, "
+        "et surtout le secret professionnel qui interdit formellement d'envoyer les plans clients vers le cloud. Tout doit tourner localement sur les PC du cabinet."
+    ),
+    8: (
+        "[Temps : 5 s | Chrono : 03:45]\n"
+        "Abordons le Chapitre 2 avec l'analyse métier et les spécifications des données que nous devons traiter."
+    ),
+    9: (
+        "[Temps : 35 s | Chrono : 04:20]\n"
+        "Il faut rappeler une distinction juridique fondamentale : le cadastre est un document administratif et fiscal à valeur purement indicative. Il ne prouve pas la propriété et ne garantit pas les limites. "
+        "Seul le procès-verbal de bornage contradictoire dressé par le géomètre-expert et signé par les riverains a une valeur juridique opposable. "
+        "Numériser ces archives privées, c'est garantir la sécurité foncière des propriétaires contre les erreurs du plan cadastral."
+    ),
+    10: (
+        "[Temps : 35 s | Chrono : 04:55]\n"
+        "Pour verser un dossier sur Géofoncier, l'API REST de l'Ordre exige des métadonnées strictes : une référence unique, la date de l'acte, la commune, le code postal, et obligatoirement un centroïde calculé en coordonnées Lambert-93. "
+        "Le plan ou procès-verbal doit être joint au format PDF pour consultation par la profession. Ces contraintes définissent précisément le format de sortie de notre chaîne."
+    ),
+    11: (
+        "[Temps : 35 s | Chrono : 05:30]\n"
+        "Le fonds documentaire d'Aubenas se divise en trois familles. D'un côté, les DMPC récents : des formulaires Cerfa imprimés très standardisés. "
+        "De l'autre, les répertoires historiques des anciens géomètres A et B : des registres grands formats entièrement manuscrits. "
+        "Et enfin, les actes libres : des plans sur calque avec des annotations manuelles. Cette diversité interdit une solution de lecture unique et impose un découpage modulaire."
+    ),
+    12: (
+        "[Temps : 35 s | Chrono : 06:05]\n"
+        "Une parcelle cadastrale est une entité vivante : au fil des décennies, elle est divisée, réunie ou remembrée. Une parcelle mère donne naissance à plusieurs parcelles filles. "
+        "Pour retrouver un bornage de 1970 sur un terrain d'aujourd'hui, notre outil doit impérativement tracer cette filiation cadastrale, afin de rattacher l'acte historique au numéro de parcelle actuellement visible sur le plan."
+    ),
+    13: (
+        "[Temps : 5 s | Chrono : 06:10]\n"
+        "Passons au Chapitre 3 avec l'état de l'art des technologies d'analyse de documents."
+    ),
+    14: (
+        "[Temps : 35 s | Chrono : 06:45]\n"
+        "Pour le texte imprimé, nous avons testé les moteurs OCR conventionnels comme Tesseract et EasyOCR. Tesseract est très rapide sur CPU mais décroche dès que l'image est penchée. "
+        "EasyOCR apporte une meilleure détection spatiale grâce à son réseau CRAFT. Ces moteurs sont très efficaces sur les formulaires récents, mais ils échouent complètement sur les mentions manuscrites où le taux d'erreur dépasse 30 %."
+    ),
+    15: (
+        "[Temps : 35 s | Chrono : 07:20]\n"
+        "Pour le manuscrit, l'approche HTR par Transformer change la donne. Le modèle TrOCR développé par Microsoft associe un encodeur d'image et un décodeur linguistique. "
+        "Contrairement à l'OCR qui analyse des caractères isolés, TrOCR lit l'écriture cursive de manière séquentielle et continue. Il atteint un taux d'erreur de caractères inférieur à 6 %, à condition de lui fournir des lignes de texte correctement découpées."
+    ),
+    16: (
+        "[Temps : 35 s | Chrono : 07:55]\n"
+        "Une fois le texte transcrit, il faut extraire les champs cibles : commune, date, parcelles. Nous avons comparé LayoutLMv3 et GLiNER. "
+        "GLiNER a été retenu : il fonctionne en zero-shot sans nécessiter des milliers d'exemples d'entraînement, et son architecture bidirectionnelle s'exécute en quelques millisecondes sur CPU avec une excellente précision d'extraction."
+    ),
+    17: (
+        "[Temps : 35 s | Chrono : 08:30]\n"
+        "Les modèles Vision-Langage comme LLaVA ou MiniCPM permettent d'analyser conjointement l'image et le texte. Exécutés localement via Ollama, ils sont capables de comprendre des contextes visuels difficiles. "
+        "Cependant, leur coût d'inférence sur CPU est élevé : 5 à 8 secondes par document. Nous avons donc fait le choix de ne pas les utiliser sur tout le flux, mais de les réserver comme arbitres de secours."
+    ),
+    18: (
+        "[Temps : 40 s | Chrono : 09:10]\n"
+        "Ce tableau comparatif résume les forces et faiblesses de chaque technologie. On constate qu'aucun outil ne résout la problématique à lui seul. "
+        "La force de notre démarche d'ingénieur a été de combiner le meilleur de chaque brique : YOLOv8 pour la segmentation, TrOCR pour le manuscrit, GLiNER pour les entités, et le VLM local uniquement en arbitre sur les cas ambigus. C'est l'architecture que nous découvrons au chapitre 4."
+    ),
+    19: (
+        "[Temps : 5 s | Chrono : 09:15]\n"
+        "Voici le Chapitre 4 détaillant l'architecture logicielle et la chaîne de traitement."
+    ),
+    20: (
+        "[Temps : 50 s | Chrono : 10:05]\n"
+        "Voici la chaîne de traitement complète articulée en 6 étapes indépendantes. Le document brut entre à gauche, il est orienté selon sa nature : DMPC, registre ou acte libre. "
+        "Des prétraitements redressent l'image et améliorent le contraste avant la segmentation spatiale. Ensuite, la transcription et l'extraction s'enchaînent avec un score de confiance. "
+        "Enfin, les données sont contrôlées avant l'injection API. Ce pipeline est 100 % local : aucune donnée nominative ne quitte la machine de l'entreprise."
+    ),
+    21: (
+        "[Temps : 35 s | Chrono : 10:40]\n"
+        "La détection spatiale est assurée par un réseau YOLOv8 Nano entraîné sur notre fonds. Il repère instantanément les cartouches, les mentions de commune, les dates et les tampons. "
+        "Cela nous permet de découper des vignettes ciblées et de ne pas envoyer une image complète de 300 Mo aux moteurs d'extraction, ce qui optimise directement les temps de calcul."
+    ),
+    22: (
+        "[Temps : 35 s | Chrono : 11:15]\n"
+        "Sur ces zones découpées, les moteurs OCR et TrOCR transcrivent le texte brut, puis GLiNER isole les cinq métadonnées obligatoires : commune, section, numéro de parcelle, date d'acte et géomètre signataire. "
+        "Un score de confiance est attribué à chaque extraction. Dès que ce score dépasse 0.65, la valeur est transmise directement à la fiabilisation."
+    ),
+    23: (
+        "[Temps : 55 s | Chrono : 12:10]\n"
+        "Cette diapositive illustre pourquoi nous avons fait le choix d'une chaîne hybride plutôt que de tout confier à une IA générative. Voici un cas réel manuscrit : « Lachapelle /s/ AUBENAS ». « /s/ » est l'abréviation locale pour « sous ». "
+        "Si l'on envoie cette image à une IA globale entraînée sur la France entière, elle risque de confondre avec Lachapelle-Graillouse, Lachapelle-sous-Chanéac en Ardèche ou La Chapelle-en-Vercors dans la Drôme, voire d'inventer un nom. De plus, son calcul prend 8 secondes sur CPU. "
+        "Notre approche hybride associe une lecture rapide sans hallucination et le référentiel des 335 communes d'Ardèche. Le VLM n'intervient qu'en arbitre si la confiance est faible, et sa sortie est strictement verrouillée par la base locale. Résultat : zéro hallucination et conformité cadastrale absolue."
+    ),
+    24: (
+        "[Temps : 5 s | Chrono : 12:15]\n"
+        "Nous arrivons au Chapitre 5 avec la fiabilisation des données et le contrôle humain."
+    ),
+    25: (
+        "[Temps : 40 s | Chrono : 12:55]\n"
+        "Aucune donnée n'est envoyée à l'API sans validation humaine. L'interface Streamlit permet à l'opérateur de visualiser côte à côte le scan original et les champs pré-remplis par l'algorithme. "
+        "Les incertitudes sont signalées en couleur. L'opérateur valide en un clic ou ajuste manuellement une valeur douteuse, ce qui divise le travail de saisie par dix tout en conservant une validation juridique rigoureuse."
+    ),
+    26: (
+        "[Temps : 50 s | Chrono : 13:45]\n"
+        "Chaque fiche passe par un moteur automatique de 17 règles métier réparties en 4 familles : les contrôles cadastraux pour vérifier que la commune et la section existent bien dans la base INSEE, "
+        "les contrôles temporels pour s'assurer que la date est cohérente avec la période d'exercice du géomètre, les contrôles de personnes pour vérifier le signataire, et les contrôles anti-doublon pour éviter d'enregistrer deux fois le même acte. "
+        "Si une règle échoue, une pastille alerte l'opérateur avant toute exportation."
+    ),
+    27: (
+        "[Temps : 35 s | Chrono : 14:20]\n"
+        "Le contrôle spatial s'effectue via une carte interactive Folium intégrée dans l'outil. Les parcelles de la BD Parcellaire y sont affichées en surbrillance. "
+        "L'opérateur peut vérifier d'un coup d'œil que le centroïde calculé se positionne exactement sur la bonne parcelle, ou déplacer manuellement le marqueur si le parcellaire a été remanié depuis l'époque du plan."
+    ),
+    28: (
+        "[Temps : 5 s | Chrono : 14:25]\n"
+        "Passons au Chapitre 6 avec la démonstration du pipeline et les résultats sur le terrain."
+    ),
+    29: (
+        "[Temps : 90 s | Chrono : 15:55]\n"
+        "Voici la démonstration vidéo du logiciel en conditions réelles. Vous voyez ici l'opérateur charger un lot de dossiers scannés. L'algorithme détecte immédiatement le type de pièce, extrait les cartouches et pré-remplit les métadonnées. "
+        "L'opérateur contrôle les valeurs, consulte la carte de localisation, et clique sur Valider. Le document est alors envoyé directement à l'API Géofoncier, qui confirme l'enregistrement et crée la pastille sur le portail national."
+    ),
+    30: (
+        "[Temps : 35 s | Chrono : 16:30]\n"
+        "Le module d'export communique avec l'API REST Géofoncier via des requêtes sécurisées. Il convertit automatiquement les coordonnées géographiques en projection Lambert-93 réglementaire, "
+        "formate le payload JSON avec les attributs requis, et téléverse le fichier PDF source. L'API retourne un identifiant unique qui certifie la publication de l'antériorité."
+    ),
+    31: (
+        "[Temps : 50 s | Chrono : 17:20]\n"
+        "La validation expérimentale a été conduite sur la commune de Prades en Ardèche. 97 dossiers historiques ont été traités : 100 % d'entre eux ont été injectés avec succès sur Géofoncier. "
+        "Grâce au filtre des 17 règles métier, aucune fausse pastille n'a été créée. Le temps moyen de traitement a été ramené à moins de 3 minutes par dossier, contre 25 minutes pour la recherche physique manuelle, soit un gain de productivité d'un facteur 6."
+    ),
+    32: (
+        "[Temps : 5 s | Chrono : 17:25]\n"
+        "Voyons avec le Chapitre 7 les limites techniques rencontrées et les perspectives."
+    ),
+    33: (
+        "[Temps : 45 s | Chrono : 18:10]\n"
+        "Les limites du système sont d'abord physiques : les calques anciens créent des transparences recto-verso, et les tampons administratifs masquent parfois les numéros de parcelles. "
+        "Sur le registre manuscrit du géomètre B, l'absence de colonnes fixes nécessite plus de retouches. Sur le plan matériel, l'absence de GPU dédié allonge le temps d'inférence du VLM sur CPU. "
+        "Malgré ces contraintes, 82 % des dossiers sont validés directement sans aucune retouche par l'opérateur."
+    ),
+    34: (
+        "[Temps : 45 s | Chrono : 18:55]\n"
+        "Les perspectives d'évolution s'articulent autour de 3 axes concrets du mémoire : migrer l'interface vers FastAPI pour supprimer le rechargement de page sur les grands volumes, "
+        "connecter les flux WFS de la DGFiP et créer un plugin QGIS pour que les géomètres accèdent aux archives depuis leur outil de production quotidien, et transposer l'outil à d'autres cabinets grâce à un simple fichier de configuration des communes et cartouches. "
+        "Enfin, une boucle d'apprentissage actif permettra de réentraîner les modèles locaux au fil des corrections."
+    ),
+    35: (
+        "[Temps : 5 s | Chrono : 19:00]\n"
+        "Pour conclure, voici le Chapitre 8 avec le bilan de ce projet de fin d'études."
+    ),
+    36: (
+        "[Temps : 50 s | Chrono : 19:50]\n"
+        "Au terme de ce PFE, le bilan est très concret pour GEO-SIAPP : le cabinet dispose d'un outil fonctionnel pour valoriser ses 23 600 dossiers d'archives, avec un gain de temps d'un facteur 6 et un coût d'infrastructure nul puisque tout tourne sur les postes existants. "
+        "Ce projet s'inscrit pleinement dans la Charte IA adoptée par l'Ordre des Géomètres-Experts ce 1er septembre 2026 : l'algorithme assiste l'opérateur en pré-remplissant les données, mais l'humain conserve l'entière responsabilité juridique de l'acte foncier."
+    ),
+    37: (
+        "[Temps : 15 s | Chrono : 20:05]\n"
+        "Je tiens à remercier chaleureusement Monsieur Gaëtan Hague et toute l'équipe de GEO-SIAPP pour leur accueil et leur confiance, ainsi que Monsieur Mathieu Koehl pour son encadrement à l'INSA Strasbourg. "
+        "Je vous remercie pour votre attention et je suis à votre disposition pour vos questions."
+    )
+}
+
+# Injection des notes dans chaque diapositive
+for s_num, s_note in SPEAKER_NOTES.items():
+    if s_num <= len(prs.slides):
+        slide_target = prs.slides[s_num - 1]
+        notes_frame = slide_target.notes_slide.notes_text_frame
+        notes_frame.text = s_note
+
+output_pptx = "Soutenance_PFE_Adrien_TRAVAILLE.pptx"
+prs.save(output_pptx)
+print(f"\n=======================================================")
+print(f"SUCCÈS : Présentation officielle enregistrée sous '{output_pptx}'")
+print(f"Nombre total de diapositives générées : {len(prs.slides)}")
+print(f"=======================================================\n")

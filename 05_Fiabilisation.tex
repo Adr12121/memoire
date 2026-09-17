@@ -126,37 +126,34 @@ La dernière étape regroupe l'ensemble des informations collectées pour l'envo
 
 La recherche dans les répertoires présentée à la section précédente repose sur des fichiers Excel qui listent l'ensemble des dossiers archivés par chaque géomètre. Ces fichiers n'existaient pas sous forme numérique pour certains, les répertoires du Géomètre A et du Géomètre B n'étaient disponibles que sous forme de registres papier manuscrits, numérisés en PDF. Deux programmes d'extraction indépendants ont été développés dans le cadre de ce PFE pour produire ces bases de données, chacun adapté à la mise en page et à la nature des écritures du géomètre concerné. Les deux suivent la même structure en deux temps : une phase d'extraction automatique, suivie d'une interface de validation. Chacun est lancé par un fichier \texttt{.bat} qui installe les dépendances manquantes, exécute l'extraction, puis ouvre l'interface dans le navigateur web.
 
-Le registre du Géomètre A (Figure~\ref{fig:geom_a_liste}) se présente sous la forme d'un tableau à double colonne : la colonne de gauche liste les anciens propriétaires, la colonne de droite les nouveaux. Les années sont imprimées en rouge et encadrent les blocs de dossiers. Les numéros de dossiers, portés dans la marge gauche, servent d'ancres pour délimiter chaque entrée. Le script \texttt{extract\_geometre\_A.py} traite les PDF page par page à haute résolution. EasyOCR retourne les blocs de texte avec leurs coordonnées. Une analyse de l'image localise ensuite la ligne verticale qui sépare les deux colonnes de propriétaires. Les blocs dont le fond est détecté comme rouge en espace HSV sont extraits comme marqueurs d'année, étant une des spécificité de ces registres. Une correction rectifie les confusions dues au soulignement rouge qui coupe certains chiffres (un \texttt{1913} lu par l'OCR peut être corrigé en \texttt{1973} si l'année sort de la plage attendue). Les numéros de dossiers dans la marge gauche servent d'ancres : chaque bloc de texte est assigné au dossier dont l'ancre est la plus proche en Y, puis affecté à la colonne \textit{Anciens} ou \textit{Nouveaux} selon sa position par rapport au séparateur. Les communes sont résolues par correspondance (\texttt{rapidfuzz}) contre la liste des communes de l'Ardèche et de la Drôme. Les dossiers extraits sont enregistrés dans un fichier JSON intermédiaire en attendant la validation.
-
+Le registre du Géomètre A (Figure~\ref{fig:geom_a_liste}) se présente sous la forme d'un tableau à double colonne : la colonne de gauche liste les anciens propriétaires, la colonne de droite les nouveaux. Les années sont imprimées en rouge et encadrent les blocs de dossiers. Les numéros de dossiers, portés dans la marge gauche, servent d'ancres pour délimiter chaque entrée. Le script \texttt{extract\_geometre\_A.py} traite les PDF page par page à haute résolution. EasyOCR retourne les blocs de texte avec leurs coordonnées. Une analyse de l'image localise ensuite la ligne verticale qui sépare les deux colonnes de propriétaires. Les blocs dont le fond est détecté comme rouge en espace HSV sont extraits comme marqueurs d'année. Une correction rectifie les confusions dues au soulignement rouge qui coupe certains chiffres (un \texttt{1913} lu par l'OCR peut être corrigé en \texttt{1973} si l'année sort de la plage attendue). Les communes sont résolues par correspondance (\texttt{rapidfuzz}) contre la liste des communes de l'Ardèche et de la Drôme. Les dossiers extraits sont enregistrés dans un fichier JSON intermédiaire en attendant la validation.
 \begin{figure}[H]
   \centering
   \setlength{\fboxsep}{0pt}
   \setlength{\fboxrule}{0.6pt}
   \fbox{\includegraphics[width=0.95\linewidth]{img/5.5_reprtoire_A_liste.jpg}}
-  \caption{Interface de validation du répertoire du Géomètre A (port 5050) -- Vue synthétique et liste des dossiers extraits.}
+  \caption{Interface de validation du répertoire du Géomètre A (port 5050) : liste des dossiers extraits.}
   \label{fig:geom_a_liste}
 \end{figure}
 
-\clearpage
 
-\begin{wrapfigure}{r}{0.46\textwidth}
-  \vspace{-1.2em}
+\begin{wrapfigure}{r}{0.36\textwidth}
+  \vspace{-0.8em}
   \centering
-  \setlength{\fboxsep}{0pt}%
-  \setlength{\fboxrule}{0.6pt}%
+  \setlength{\fboxsep}{0pt}
+  \setlength{\fboxrule}{0.6pt}
   \fbox{\includegraphics[width=\linewidth]{img/5.5_reprtoire_A_infos.jpg}}
   \caption{Interface du Géomètre A (port 5050) -- Fiche détaillée et édition des champs.}
   \label{fig:geom_a_infos}
-  \vspace{-1em}
 \end{wrapfigure}
 
-L'interface de validation est un serveur local accessible sur \texttt{localhost:5050}. Elle s'articule autour de deux vues principales. La première vue (Figure~\ref{fig:geom_a_liste}) présente la liste des dossiers extraits sous la forme d'un tableau de synthèse, permettant à l'opérateur de parcourir l'ensemble des affaires répertoriées.
+L'interface s'articule autour de deux vues principales. La première (Figure~\ref{fig:geom_a_liste}) présente la liste des dossiers extraits sous forme de tableau, permettant à l'opérateur de parcourir l'ensemble des affaires répertoriées.
 
-Lorsqu'un dossier est sélectionné dans le tableau, l'interface affiche la fiche détaillée (Figure~\ref{fig:geom_a_infos}) regroupant l'ensemble des champs d'indexation (commune, année, référence du dossier, anciens et nouveaux propriétaires). L'opérateur peut y consulter le scan de la page originale, réexécuter l'OCR sur une zone spécifique ou corriger directement les valeurs extraites.
+Lorsqu'un dossier est sélectionné, l'interface bascule sur la fiche détaillée (Figure~\ref{fig:geom_a_infos}), qui regroupe l'ensemble des champs d'indexation : commune, année, référence du dossier, anciens et nouveaux propriétaires. L'opérateur peut y consulter le scan de la page originale, relancer l'OCR sur une zone spécifique ou corriger directement les valeurs extraites.
 
-À la validation, les corrections sont fusionnées dans le fichier Excel principal (\texttt{Repertoire\_}\linebreak[0]\texttt{Archives\_}\linebreak[0]\texttt{geometre\_A.xlsx}), en utilisant les clés d'indexation (Commune, Année, N° Dossier) pour éviter tout doublon. Ce fichier est également synchronisé sur le serveur partagé du cabinet. (Les captures grand format sont consultables en Annexe G).
+À la validation, les corrections sont fusionnées dans le fichier Excel principal nommé {\small\texttt{Repertoire\_Archives\_geometre\_A.xlsx}}, en utilisant les clés d'indexation (Commune, Année, N° Dossier) pour éviter tout doublon. Le fichier est également synchronisé sur le serveur partagé du cabinet. (Les captures grand format sont consultables en Annexe G.)
 
-Le traitement du registre du Géomètre A repose sur une logique de découpage par colonnes fixes. Les lignes de séparation imprimées en rouge permettent d'isoler les noms des anciens et des nouveaux propriétaires. En cas de doute sur une lettre ou un nom propre, l'interface de validation permet à l'opérateur de visualiser immédiatement le bloc d'image découpé et de rectifier la saisie en quelques secondes.
+Le traitement repose sur une logique de découpage par colonnes fixes. Les lignes de séparation imprimées en rouge permettent d'isoler les noms des anciens et nouveaux propriétaires. En cas de doute sur une lettre ou un nom propre, l'interface permet à l'opérateur de visualiser immédiatement le bloc d'image découpé et de rectifier la saisie en quelques secondes.
 
 Le registre du Géomètre B présente des difficultés plus importantes en raison de son écriture manuscrite variée et de l'absence de colonnes imprimées. Pour limiter les erreurs de lecture, le script d'extraction applique un prétraitement d'image adaptatif qui redresse la page, ajuste le contraste et cherche les vallées de texte avant de transmettre l'image au modèle VLM. Malgré ces préconisations, les zones raturées et les écritures cursives inclinées exigent une relecture attentive par l'utilisateur avant l'enregistrement final dans le registre maître.
 
@@ -214,9 +211,18 @@ Pour chaque proposition de correction générée par la comparaison de Levenshte
 
 La combinaison du nettoyage automatique et du contrôle humain via les interfaces web permet d'obtenir des données fiables et directement exploitables. Les deux extracteurs (Géomètre A et Géomètre B) adoptent des stratégies très différentes dictées par la nature des registres, des colonnes fixes et marqueurs couleur pour l'un, découpe ligne par ligne et modèle VLM pour l'autre, mais débouchent tous deux sur le même format, prêt à l'indexation. Sur le registre du Géomètre A, l'extraction automatique a produit 97 dossiers couvrant la période 1970--1991, dont 27 signalés avec au moins un champ incomplet (absence d'année ou de colonne \textit{Nouveaux}). Ces avertissements ne bloquent pas le processus : ils orientent simplement l'opérateur vers les entrées qui méritent une relecture.
 
-Au-delà de la correction des champs, chaque fiche extraite est soumise à un ensemble de 17 règles de cohérence métier automatiques : vérification de la plage de dates, détection d'un géomètre dont le nom coïncide avec un nom de existant, contrôle du format du numéro de dossier selon le type de plan, signalement d'une section cadastrale inconnue pour la commune, ou encore détection d'anciens et nouveaux propriétaires identiques. Ces règles s'appuient sur la base de connaissances cadastrale construite au fil des traitements, qui recense aujourd'hui 335 communes de l'Ardèche (696 avec la Drôme) avec leurs sections connues.
+Au-delà de la correction des champs, chaque fiche extraite passe par un ensemble de 17 règles de cohérence métier automatiques. Ces contrôles s'appuient sur la base cadastrale locale construite au fil des traitements, qui recense aujourd'hui 335 communes de l'Ardèche (696 avec la Drôme) avec l'ensemble de leurs sections connues.
 
-Certains cas restent hors de portée de l'automatisation : une écriture entièrement illisible, un dossier partiellement scanné ou une commune disparue sans équivalent INSEE nécessitent une décision manuelle. Ces situations sont signalées  mais ne peuvent pas être résolues sans intervention de l'opérateur.
+Ces 17 règles se répartissent en quatre groupes de contrôles :
+\begin{itemize}
+  \item Contrôles des dates (4 règles) : l'algorithme vérifie que l'année se situe dans la plage d'activité du fonds (1950 à aujourd'hui), compare la date avec la période d'exercice du géomètre signataire, valide le format du calendrier (jour, mois, année) et vérifie que la date d'enregistrement reste postérieure à la réalisation du plan.
+  \item Contrôles cadastraux et géographiques (5 règles) : le programme croise le code INSEE avec le nom de commune officiel, s'assure que la lettre de section existe bien sur le territoire communal, nettoie les numéros de parcelles pour retirer les lettres parasites issues des tampons, refuse les parcelles numérotées zéro et exige au moins une parcelle rattachée à l'acte.
+  \item Contrôles des personnes et intervenants (4 règles) : l'outil vérifie la présence du nom du géomètre dans la liste des géomètres du cabinet, alerte l'opérateur si le champ des anciens propriétaires contient le même nom que celui des nouveaux acquéreurs, supprime les mentions juridiques isolées (comme \enquote{consorts} ou \enquote{veuve}) et contrôle le nom du donneur d'ordre.
+  \item Contrôles de dossier et anti-doublon (4 règles) : le script valide la structure de la référence selon le modèle propre à chaque géomètre, vérifie l'absence de doublon dans le registre général, recherche les actes déjà enregistrés sur la même parcelle la même année, et s'assure que le fichier PDF source reste accessible sur le disque.
+\end{itemize}
+Lorsqu'une fiche enfreint l'un de ces tests, l'interface affiche une pastille d'avertissement orange ou rouge. L'opérateur visualise directement la règle en défaut et corrige la valeur en un clic avant l'exportation finale. 
+
+Certains cas restent hors de portée de l'automatisation : une écriture entièrement illisible, un dossier partiellement scanné ou une commune disparue sans équivalent INSEE nécessitent une décision manuelle. Ces situations sont signalées mais ne peuvent pas être résolues sans intervention de l'opérateur.
 
 Enfin, cette étape de fiabilisation prépare les données pour la dernière phase du projet. Les répertoires propres et les dossiers correctement géolocalisés peuvent à présent être transmis de manière automatique au portail national Géofoncier, sujet présenté dans le chapitre suivant.
 

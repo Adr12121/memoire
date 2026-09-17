@@ -24,11 +24,11 @@ Avec l'arrivée du deep learning, l'OCR n'a plus besoin de découper chaque cara
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{img/baek_ocr_pipeline_crop.png}
-    \caption{Chaîne de reconnaissance de texte imprimé en quatre étapesExtrait de \cite{baek_stract_2019}.}
+    \caption{Chaîne de reconnaissance de texte imprimé en quatre étapes. Extrait de \cite{baek_stract_2019}.}
     \label{fig:ocr_pipeline}
 \end{figure}
 
-Cette méthode est fiable sur du texte imprimé. En revanche, elle trouve sa limite sur l'écriture manuscrite, car le chevauchement des lettres empêche le modèle de distinguer les caractères correctement, et donc de trouver une correspondance avec son entraînement.
+Cette méthode est fiable sur du texte imprimé. En revanche, elle trouve sa limite sur l'écriture manuscrite, car le chevauchement des lettres empêche le modèle de distinguer les caractères correctement et donc de trouver une correspondance avec son entraînement.
 
 Certains moteurs de numérisation s'appuient sur des filtres de binarisation adaptative. La méthode d'Otsu cherche un seuil global optimal en minimisant la variance intra-classe des intensités de gris, ce qui fonctionne bien sur un fond homogène. Néanmoins, la binarisation calcule un seuil local pour chaque pixel en fonction de la moyenne et de l'écart-type de son voisinage. Ce traitement préserve les traits fins des caractères imprimés et présente ainsi un résultat pour l'écriture manuscrite. Le retraitement de l'image peut améliorer significativement la lisibilité de l'écriture et réduire le taux d'erreur de l'OCR.
 
@@ -100,7 +100,7 @@ Pour résoudre ce problème, des approches hybrides ont été développées afin
 Deux méthodes principales existent :
 
 \begin{itemize}
-  \item \textbf{L'entraînement sur des données mixtes} : certains modèles comme TrOCR \citep{li_trocr_2021}, déjà évoqué, s'appuient sur un pré-entraînement combinant à la fois du texte imprimé et de l'écriture manuscrite. Comme le montre la Figure~\ref{fig:trocr_arch}, le modèle traite l'image de la ligne de façon unifiée et s'adapte automatiquement sans étape de tri préalable.
+  \item \textbf{L'entraînement sur des données mixtes} : certains modèles comme TrOCR \citep{li_trocr_2021}, déjà évoqués, s'appuient sur un pré-entraînement combinant à la fois du texte imprimé et de l'écriture manuscrite. Comme le montre la Figure~\ref{fig:trocr_arch}, le modèle traite l'image de la ligne de façon unifiée et s'adapte automatiquement sans étape de tri préalable.
   \item \textbf{La combinaison de deux outils successifs} : des systèmes comme PaddleOCR \citep{du_ppocr_2020} ou EasyOCR utilisent un premier modèle pour repérer l'emplacement des lignes sur la page (comme DBNet \citep{liao_dbnet_2020}), puis un second modèle chargé uniquement de lire le texte présent dans ces zones.
 \end{itemize}
 
@@ -120,7 +120,7 @@ Quelle que soit l'approche retenue (OCR, HTR ou hybride), envoyer une page enti�
 
 \subsection{La détection spatiale et l'analyse de mise en page par YOLO}
 
-Envoyer directement une photographie ou un scan d'un document à un moteur de lecture pose un problème : la page contient de nombreuse zones potentiellement inintéressantes, ou de nombreuses sources d'erreurs. Si le moteur essaie de tout lire sans tri, ce dernier perd du temps et produit du texte parasite qui peut nuire à la qualité des résultats finaux. Il est donc important d'isoler d'abord les zones d'intérêt dans la page avant d'extraire le texte.
+Envoyer directement une photographie ou un scan d'un document à un moteur de lecture pose un problème : la page contient de nombreuses zones potentiellement inintéressantes, ou de nombreuses sources d'erreurs. Si le moteur essaie de tout lire sans tri, ce dernier perd du temps et produit du texte parasite qui peut nuire à la qualité des résultats finaux. Il est donc important d'isoler d'abord les zones d'intérêt dans la page avant d'extraire le texte.
 
 Proposé à l'origine par \cite{redmon_yolo_2016}, le modèle YOLO (\textit{You Only Look Once}) a été conçu pour détecter des zones visuelles en un seul passage rapide sur l'image. Depuis sa création, cet algorithme a connu de nombreuses évolutions permettant d'en améliorer la précision et la vitesse \citep{jiang_review_2022}.
 
@@ -154,7 +154,7 @@ L'organisation du réseau de convolution responsable de la détection visuelle y
 
 Cette architecture permet à YOLO d'analyser rapidement la géométrie d'une page entière et d'isoler les zones d'intérêt.
 
-Contrairement aux approches par modèles de détection classiques reposant sur des boîtes d'ancres pré-définies, la version v8 de YOLO utilise une architecture sans ancres. Ce choix simplifie l'apprentissage sur des documents administratifs aux formats non standard, car le réseau prédit directement les coordonnées du centre et les dimensions de chaque zone au lieu d'ajuster des cadres pré-formés. Sur des archives foncières où l'échelle des cartouches et l'emplacement des formulaires varient selon l'époque et l'imprimeur, cette flexibilité peut permettre de détecter les zones utiles avec une meilleure précision qu'un simple découpage à coordonnées fixes.
+Contrairement aux approches par modèles de détection classiques reposant sur des boîtes d'ancrage pré-définies, la version v8 de YOLO utilise une architecture sans ancrage. Ce choix simplifie l'apprentissage sur des documents administratifs aux formats non standards, car le réseau prédit directement les coordonnées du centre et les dimensions de chaque zone au lieu d'ajuster des cadres pré-formés. Sur des archives foncières où l'échelle des cartouches et l'emplacement des formulaires varient selon l'époque et l'imprimeur, cette flexibilité peut permettre de détecter les zones utiles avec une meilleure précision qu'un simple découpage à coordonnées fixes.
 
 Comme détaillé ultérieurement lors de l'explication de la chaîne de traitement (chapitre~\ref{sec:architecture}), cette étape de découpage spatial constitue le point d'entrée de toute l'analyse : elle préserve la mémoire de calcul en évitant de soumettre l'intégralité des images aux modèles de reconnaissance de texte en selectionnant uniquement ce qui est nécessaire.
 
@@ -198,7 +198,7 @@ L'observation de cette matrice met en évidence deux comportements très différ
 Dans les évolutions ultérieures comme LayoutLMv3, les auteurs ont simplifié cette architecture en supprimant la dépendance envers un moteur OCR externe pour l'étape d'analyse visuelle. LayoutLMv3 découpe directement la page scannée en petits patchs d'images (de taille 16 par 16 pixels) traités par un transformateur visuel (Vision Transformer), tout en alignant conjointement les textes et les positions spatiales. Cependant, cette avancée exige un volume d'entraînement considérable sur plusieurs millions de documents annotés. Pour des cabinets de géomètres, le coût de réentraînement complet de telles architectures reste hors de portée.
 
 
-D'une part, sur des documents imprimés comme les e-mails (99,5~\%), les CV (98,8~\%) ou les dossiers (96,7~\%), le modèle atteint d'excellents résultats. Dans ces cas, les mots reconnus par l'OCR (comme des entêtes d'e-mail ou des sections de CV) fournissent des repères pouvant être exploité.
+D'une part, sur des documents imprimés comme les e-mails (99,5~\%), les CV (98,8~\%) ou les dossiers (96,7~\%), le modèle atteint d'excellents résultats. Dans ces cas, les mots reconnus par l'OCR (comme des entêtes d'e-mail ou des sections de CV) fournissent des repères pouvant être exploités.
 
 D'autre part, les performances diminuent sur des documents comme les formulaires (86,9~\%), les rapports scientifiques (90,2~\%) ou les courriers manuscrits (91,7~\%). Par exemple, la matrice indique que 2,3~\% des formulaires sont confondus avec des factures et 1,8~\% avec des courriers. Même si ces pourcentages d'erreur semblent faibles au premier abord, ils représentent rapidement une source d'erreur, ce qui peut nécessiter des corrections. 
 
@@ -226,7 +226,7 @@ Pour contourner cette contrainte, le modèle GLiNER proposé par \citet{zaratian
     \label{fig:gliner_architecture}
 \end{figure}
 
-La Figure~\ref{fig:gliner_architecture} détaille l'organisation de ce réseau à travers plusieurs traitement.
+La Figure~\ref{fig:gliner_architecture} détaille l'organisation de ce réseau à travers plusieurs traitements.
 
 En haut du schéma, le modèle reçoit deux entrées distinctes. À gauche, la consigne définit la liste des catégories recherchées (comme personne, organisation ou lieu), séparées par des balises. À droite, la phrase d'entrée contient le texte brut à analyser (par exemple \textit{Alain Farley works at McGill University}).
 
@@ -297,9 +297,9 @@ Dans ce projet, le choix s'est porté sur le modèle ouvert MiniCPM-V exécuté 
 
 Beaucoup de documents anciens organisent leur contenu en colonnes et en lignes. Repérer la structure d'un tableau dans une image et en extraire le contenu est un problème distinct de la simple lecture de texte. Ce problème a été étudié depuis les travaux de \citet{duda_hough_1972} sur la détection de lignes géométriques.
 
-Les premières approches reposent sur la transformée de Hough, qui repère les lignes horizontales et verticales dans l'image pour en déduire la grille du tableau. Cette technique fonctionne sur les tableaux imprimés dont les traits sont continus. En revanche, sur les documents anciens, les lignes de colonnes sont souvent discontinues ou absentes, remplacées par un simple alignement visuel des mots sans séparateur. \citet{canny_edge_1986} ont étendu cette approche par une détection préalable des contours, mais la limite sur les documents dégradés reste la même.
+Les premières approches reposent sur la transformée de Hough, qui repère les lignes horizontales et verticales dans l'image pour en déduire la grille du tableau. Cette technique fonctionne sur les tableaux imprimés dont les traits sont continus. En revanche, sur les documents anciens, les lignes de colonnes sont souvent discontinues ou absentes, remplacées par un simple alignement visuel des mots sans séparateur. \citet{canny_edge_1986} a étendu cette approche par une détection préalable des contours, mais la limite sur les documents dégradés reste la même.
 
-Des modèles entraînés à reconnaître la structure des tableaux ont ensuite été proposés. Le modèle \textit{Table Transformer} (TATR) de \citet{smock_table_2022} repose sur une architecture DETR (\textit{Detection Transformer}). Il analyse directement l'image et prédit la position de chaque ligne et colonne sous forme de boîtes englobantes, sans règles géométriques fixées à l'avance. Entraîné sur les jeux de données PubTables-1M et FinTabNet, il atteint un score F1 supérieur à 0,97 sur des tableaux imprimés normalisés. \citet{chi_complicated_2019} s'intéressent aux tableaux avec des cellules fusionnées et montrent que les architectures par décodage de graphe surpassent les approches par détection d'objets sur ces configurations.
+Des modèles entraînés à reconnaître la structure des tableaux ont ensuite été proposés. Le modèle \textit{Table Transformer} (TATR) de \citet{smock_table_2022} repose sur une architecture DETR (\textit{Detection Transformer}). Il analyse directement l'image et prédit la position de chaque ligne et colonne sous forme de boîtes englobantes, sans règles fixées à l'avance. Entraîné sur les jeux de données PubTables-1M et FinTabNet, il atteint un score F1 supérieur à 0,97 sur des tableaux imprimés normalisés. \citet{chi_complicated_2019} s'intéressent aux tableaux avec des cellules fusionnées et montrent que les architectures par décodage de graphe surpassent les approches par détection d'objets sur ces configurations.
 
 \begin{figure}[H]
     \centering
@@ -322,7 +322,7 @@ Cette analyse de la mise en page des tableaux est importante pour exploiter les 
 \subsection{Métriques d'évaluation de la reconnaissance de texte}
 \label{subsec:metrics_ocr}
 
-Pour comparer les performances des modèles d'OCR, de HTR et d'extraction d'entités, la littérature scientifique s'appuie sur plusieurs métriques standardisées.
+Pour comparer les performances des modèles d'OCR, de HTR et d'extraction d'entités, la littérature scientifique s'appuie sur plusieurs métriques standardisés.
 
 Le taux d'erreur sur les caractères (\textit{Character Error Rate} ou CER) mesure la proportion de caractères mal transcrits par rapport à la vérité terrain. Il repose sur la distance de Levenshtein au niveau des caractères :
 
@@ -354,7 +354,7 @@ Une fois l'ensemble des technologies et de leurs métriques présentées, il con
 
 \subsection{Synthèse des approches de l'état de l'art}
 
-Chaque technologie étudiée dans ce chapitre répond à une tâche précise de l'analyse de document, qu'il s'agisse d'isoler des zones, de lire du texte ou d'en comprendre le sens. Le Tableau~\ref{tab:comparaison_modeles} regroupe ces différentes méthodes afin de comparer leur fonctionnement, leurs avantages et leurs limites, avec pour objectif de selectionner le plus propice au cas d'étude.
+Chaque technologie étudiée dans ce chapitre répond à une tâche précise de l'analyse de document, qu'il s'agisse d'isoler des zones, de lire du texte ou d'en comprendre le sens. Le Tableau~\ref{tab:comparaison_modeles} regroupe ces différentes méthodes afin de comparer leur fonctionnement, leurs avantages et leurs limites, avec pour objectif de selectionner le plus approprié au cas d'étude.
 
 \begin{table}[H]
   \centering
@@ -387,11 +387,11 @@ Chaque technologie étudiée dans ce chapitre répond à une tâche précise de 
   \label{tab:comparaison_modeles}
 \end{table}
 
-Pour comparer ces outils, il faut prendre en compte la machine de test. L'ensemble des essais s'appuie sur une configuration standard équipée d'un processeur Intel Core i7, de 32 Go de RAM et d'une carte graphique NVIDIA de 8 Go (VRAM), ce matériel constitue le cas d'étude, la puissance variant que très légèrement entres les postes du cabinet. 
+Pour comparer ces outils, il faut prendre en compte la machine de test. L'ensemble des essais s'appuie sur une configuration standard équipée d'un processeur Intel Core i7, de 32 Go de RAM et d'une carte graphique NVIDIA de 8 Go (VRAM). Ce matériel constitue le cas d'étude, la puissance ne variant que très légèrement entres les postes du cabinet. 
 
-Cette configuration influence directement le choix des modèles du Tableau~\ref{tab:comparaison_modeles}. Les outils légers comme YOLOv8 et GLiNER occupent moins de 2 Go de mémoire graphique et répondent presque instantanément. PyLaia utilise environ 4 Go pour lire une ligne en moins d'une seconde. À l'inverse, les modèles plus lourds comme LayoutLMv3 et LLaVA demandent beaucoup plus de ressources. Avec Ollama, LLaVA prend environ 4,8 secondes par extrait. De plus, son risque principal reste l'hallucination : sur un texte dégradé, le modèle a parfois tendance à inventer une réponse crédible au lieu de signaler qu'il n'arrive pas à lire. Cette hallucination est aussi présente chez Qwen, mais elle est moins frequente.
+Cette configuration influence directement le choix des modèles du Tableau~\ref{tab:comparaison_modeles}. Les outils légers comme YOLOv8 et GLiNER occupent moins de 2 Go de mémoire graphique et répondent presque instantanément. PyLaia utilise environ 4 Go pour lire une ligne en moins d'une seconde. À l'inverse, les modèles plus lourds comme LayoutLMv3 et LLaVA demandent beaucoup plus de ressources. Avec Ollama, LLaVA prend environ 4,8 secondes par extrait. De plus, son risque principal reste l'hallucination : sur un texte dégradé, le modèle a parfois tendance à inventer une réponse crédible au lieu de signaler qu'il n'arrive pas à lire. Cette hallucination est aussi présente chez Qwen, mais elle est moins fréquente.
 
-Pour compléter ces observations, la Figure~\ref{fig:benchmark_comparatif} compare la précision de chaque méthode (en bleu) et son temps de traitement moyen par zone (en orange). Ces valeurs sont issues des tests présentés dans les articles scientifiques sur des documents administratifs, des registres manuscrits et des documents synthétiques.
+Pour compléter ces observations, la Figure~\ref {fig:benchmark_comparatif} compare la précision de chaque méthode (en bleu) et son temps de traitement moyen par zone (en orange). Ces valeurs sont issues des tests présentés dans les articles scientifiques sur des documents administratifs, des registres manuscrits et des documents synthétiques.
 
 \begin{figure}[H]
     \centering
@@ -425,7 +425,7 @@ Afin de répondre aux contraintes du projet et de trouver une solution pour mini
   \item LLaVA et MiniCPM-V via Ollama en secours local : ces deux modèles VLM s'exécutent uniquement sur les zones incertaines, chacun sélectionné selon le type de document traité.
 \end{itemize}
 
-Plusieurs alternatives ont été envisagées et écartées pour des raisons précises, après pour la plupart des tests effectués en interne. Tesseract, moteur OCR classique, produit un taux d'erreur supérieur à 30\,\% dès que le texte est manuscrit, ce qui le rend inutilisable sur les registres anciens. LayoutLM, qui exploite à la fois le texte et la mise en page, voit ses performances chuter (autour de 88\,\% au mieux d'après \citealt{bajrami_comprehensive_2023}) dès que l'OCR sous-jacent commet des erreurs, ce qui arrive fréquemment sur les parties manuscrites. Donut décode directement l'image sans OCR mais ne peut produire que les structures de documents sur lesquels il a été entraîné : il aurait fallu constituer un jeu d'annotation complet de chaque type de formulaire du cabinet, ce qui dépasse les ressources disponibles. Qwen-VL a été écarté en raison d'un temps de calcul trop élevé sur la configuration du cabinet. Phi-3 Vision est quasi exclusivement entraîné sur des données anglophones, ce qui pénalise ses performances sur du texte en français, surtout pour un vocabulaire technique ou cadastral. LLaVA et MiniCPM-V, tous deux exécutés localement via Ollama, ont été retenus comme modèles de secours : LLaVA pour les formulaires imprimés standards et les documents génériques, MiniCPM-V pour les documents dont la mise en page est plus complexe, voire même aléatoire (ex: DMPC, PV d'abornement, croquis). Cette répartition a été établie lors des tests, LLaVA présentant davantage d'hallucinations sur certains types de registres manuscrits, en particulier les DMPC.
+Plusieurs alternatives ont été envisagées et écartées pour des raisons expliquées ci-après, après pour la plupart des tests effectués en interne. Tesseract, moteur OCR classique, produit un taux d'erreur supérieur à 30\,\% dès que le texte est manuscrit, ce qui le rend inutilisable sur les registres anciens. LayoutLM, qui exploite à la fois le texte et la mise en page, voit ses performances chuter (autour de 88\,\% au mieux d'après \citealt{bajrami_comprehensive_2023}) dès que l'OCR sous-jacent commet des erreurs, ce qui arrive fréquemment sur les parties manuscrites. Donut décode directement l'image sans OCR mais ne peut produire que les structures de documents sur lesquels il a été entraîné : il aurait fallu constituer un jeu d'annotation complet de chaque type de formulaire du cabinet, ce qui dépasse les ressources disponibles. Qwen-VL a été écarté en raison d'un temps de calcul trop élevé sur la configuration du cabinet. Phi-3 Vision est quasi exclusivement entraîné sur des données anglophones, ce qui pénalise ses performances sur du texte en français, surtout pour un vocabulaire technique ou cadastral. LLaVA et MiniCPM-V, tous deux exécutés localement via Ollama, ont été retenus comme modèles de secours : LLaVA pour les formulaires imprimés standards et les documents génériques, MiniCPM-V pour les documents dont la mise en page est plus complexe, voire même aléatoire (ex: DMPC, PV d'abornement, croquis). Cette répartition a été établie lors des tests, LLaVA présentant davantage d'hallucinations sur certains types de registres manuscrits, en particulier les DMPC.
 
 Cette architecture garantit le respect du secret professionnel en fonctionnant intégralement en local (chapitre~\ref{sec:analyse_metier}). Elle prépare les données pour la phase de fiabilisation et de validation par l'opérateur (chapitre~\ref{sec:fiabilisation}), avant l'exportation vers le portail Géofoncier (chapitre~\ref{sec:integration}).
 
@@ -435,7 +435,7 @@ Pour le repérage des zones, le modèle YOLOv8 a été choisi. Son rôle est d'i
 
 Pour la transcription du texte manuscrit, le modèle TrOCR a été sélectionné, dans sa variante francophone \texttt{agomberto/trocr-large-handwritten-fr}. Alors que l'OCR classique comme Tesseract échoue sur l'écriture manuelle, TrOCR lit les registres manuscrits avec précision dès que les lignes lui sont transmises sous forme de découpes isolées par YOLO.
 
-Pour l'extraction des données clés (noms de communes, dates, numéros de parcelles), l'outil GLiNER a été retenu. Contrairement aux modèles comme LayoutLM qui deviennent inefficaces lorsque le texte contient des fautes, GLiNER identifie les entités sans entraînement spécifique et réduit le risque de faux positif, comme présenté dans ce chapitre.
+Pour l'extraction des données clés (noms de communes, dates, numéros de parcelles), l'outil GLiNER a été retenu. Contrairement aux modèles comme LayoutLM qui deviennent inefficaces lorsque le texte contient des fautes, GLiNER identifie les entités sans entraînement spécifique et réduit le risque de faux positifs, comme présenté dans ce chapitre.
 
 Le détail de l'implémentation de chacun de ces outils et leur enchaînement dans la chaîne de traitement sont détaillés au chapitre~\ref{sec:architecture}.
 

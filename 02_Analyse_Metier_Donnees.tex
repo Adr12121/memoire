@@ -30,7 +30,7 @@ Les opérations foncières réalisées par les géomètres-experts font l'objet 
   \setlength{\fboxrule}{0.5pt}%
   \fbox{\includegraphics[width=0.85\textwidth]{img/Chap2_pastilles_enhanced.jpg}}\par
   \vspace{0.5em}
-  \caption{Capture d'écran du portail GéofoncierEXPERT.}
+  \caption{Capture d'écran du portail GéofoncierEXPERT(sans échelle).}
   \label{fig:interface_geofoncier}
 \end{figure}
 
@@ -67,9 +67,9 @@ Lors de l'envoi, l'API renvoie un code de statut HTTP. Un code `201 Created` con
 
 \subsection{Structure des actes fonciers}
 
-Le traitement automatisé vise spécifiquement les actes fonciers ayant une valeur juridique utiles au versement Géofoncier, à savoir les DMPC, les PV de bornage, ainsi que les registres d'affaires qui les répertorient, car sur ces derniers figurent des informations obligatoires sur les dossiers à verser.
+Le traitement automatisé vise spécifiquement les actes fonciers ayant une valeur juridique qui sont utiles au versement Géofoncier, à savoir les DMPC, les PV de bornage, ainsi que les registres d'affaires qui les répertorient, car sur ces derniers figurent des informations obligatoires sur les dossiers à verser.
 
-Les DMPC, autrefois appelés DA, sont établis lors des divisions parcellaires pour permettre la mise à jour du plan cadastral par la DGFiP. Rendus obligatoires en France depuis la réforme de la publicité foncière issue du décret n$^\circ$55-22 du 4 janvier 1955 et du décret n$^\circ$55-471 du 30 avril 1955, ces actes visent à garantir la concordance exacte entre les actes notariés publiés et la représentation cadastrale. Ces documents suivent un modèle Cerfa structuré, ce qui peut faciliter le repérage automatique des informations, étant à chaque feuille au même endroit. Ils comportent un cartouche (précisant la commune, la section et les numéros de parcelles) et un extrait de plan.
+Les DMPC, autrefois appelés DA, sont établis lors des divisions parcellaires pour permettre la mise à jour du plan cadastral par la DGFiP. Rendus obligatoires en France depuis la réforme de la publicité foncière issue du décret n$^\circ$55-22 du 4 janvier 1955 et du décret n$^\circ$55-471 du 30 avril 1955, ces actes visent à garantir la concordance exacte entre les actes notariés publiés et la représentation cadastrale. Ces documents suivent un modèle Cerfa structuré, ce qui peut faciliter le repérage automatique des informations, qui se trouvent au même endroit sur chaque document. Ils comportent un cartouche (précisant la commune, la section et les numéros de parcelles) et un extrait de plan. 
 
 Les PV de bornage sont des actes sous seing privé qui fixent la délimitation réelle et définitive entre deux propriétés contiguës. Fondés sur l'article 646 du Code civil (issu du Code Napoléon de 1804) et sur le monopole légal réservé aux géomètres-experts par la loi n$^\circ$46-942 du 7 mai 1946, ces procès-verbaux possèdent une valeur juridique supérieure aux indications cadastrales. Une fois signés de manière contradictoire par l'ensemble des propriétaires riverains, ils sont irrévocables, opposables aux tiers et lient définitivement les propriétaires actuels ainsi que leurs ayants droit. Contrairement aux DMPC, leur rédaction s'effectue sous forme de texte libre. Le géomètre y détaille la désignation des biens, la liste des riverains présents, les repères physiques posés (bornes OGE, clous) et l'historique de la propriété. La disposition du texte, des signatures et la présence de croquis annexés varient selon les époques et les habitudes du géomètre rédacteur, ce qui rend la lecture automatique plus complexe.
 
@@ -90,14 +90,14 @@ Pour le traitement automatique, on distingue trois grandes catégories de docume
 
 Les registres d'affaires tenus par chaque géomètre récapitulent la liste des dossiers. Pour les plus anciens rédigés à la main, la faible qualité du contraste et l'absence de grille fixe selon le prédécesseur rendent la lecture difficile.
 
-Les documents dactylographiés (principalement entre 1980 et 2000) ont été créés à la machine à écrire. Le bruit présent dans le document (taches, ratures, etc.) nécessite un prétraitement pour améliorer la lisibilité.
+Les documents à préremplir (principalement entre 1980 et 2000) ont été créés à la machine à écrire. Les erreurs présent dans le document (taches, ratures, etc.) nécessite un prétraitement pour améliorer la lisibilité.
 
 Enfin, les dossiers contiennent de nombreuses pièces annexes (devis, factures). Le projet doit savoir trier les pages pour extraire uniquement les données des actes et des registres utiles.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.95\textwidth]{img/repartition_archives.png}
-  \caption{Répartition estimée du fonds d'archives du cabinet par fonds de géomètres prédécesseurs (Volume total : environ 23~600 dossiers).}
+  \caption{Répartition estimée du fonds d'archives du cabinet par noms de géomètres prédécesseurs (Volume total : environ 23~600 dossiers).}
   \label{fig:repartition_archives}
 \end{figure}
 
@@ -105,13 +105,13 @@ La recherche d'informations au sein de ces fonds d'archives nécessite de croise
 
 \subsection{Analyse des registres et des difficultés de lecture}
 
-Les registres récapitulent l'ensemble des affaires traitées au fil du temps. Dans un registre il y figure quelques informations clés de chaque dossier : le numéro d'affaire, la date de l'opération, le nom du client, la commune et les références parcellaires. En fonction du fonds, ces informations ne sont pas toutes présentes, rendant l'interprétation de la mission difficile. 
+Les registres récapitulent l'ensemble des affaires traitées au fil du temps. Dans un registre figure quelques informations clés de chaque dossier : le numéro d'affaire, la date de l'opération, le nom du client, la commune et les références parcellaires. En fonction du fonds, ces informations peuvent ne pas toutes être présentes, rendant l'interprétation de la mission difficile. 
 
-De plus, ces registres ne sont pas tous identiques. Chaque géomètre avait sa propre tenue. Certains traçaient des colonnes fixes à la règle, d'autres écrivaient en texte libre ou utilisaient des imprimés différents.
+De plus, ces registres ne sont pas tous identiques. Chaque géomètre avait sa propre manière de rédiger. Certains traçaient des colonnes fixes à la règle, d'autres écrivaient en texte libre ou utilisaient des imprimés différents.
 
 Cette diversité entraîne trois difficultés principales pour le projet:
 
-Premièrement, l'absence de grille pour certains registres rend l'alignement des colonnes variable d'un à l'autre et parfois d'une page à l'autre.
+Premièrement, l'absence de grille pour certains registres rend l'alignement des colonnes variable l'une par rapport à l'autre et parfois d'une page à l'autre.
 
 Deuxièmement, l'utilisation de guillemets de répétition (\enquote{"}), d'abréviations, ou encore de la mention \enquote{Idem} pour éviter de réécrire la commune ou la date d'une ligne sur l'autre. Le projet doit savoir conserver la valeur précédente en mémoire pour reconstituer ce type de schéma.
 
@@ -124,20 +124,20 @@ Troisièmement, le chevauchement de l'écriture manuscrite. Comme le montre la f
   \label{fig:registre_ancien}
 \end{figure}
 
-% A RELIRE
-Pour résoudre la présence de dits ou de guillemets de répétition dans les registres, le script d'analyse conserve en mémoire la dernière valeur valide observée dans chaque colonne. Lorsqu'un symbole de répétition ou une case vide est détecté sous une valeur identique, le script attribue la valeur mémorisée à la ligne courante. Cette propagation évite de créer des fiches incomplètes pour les dossiers regroupés sur une même commune.
 
-Sur les registres tenus sur plusieurs années par des géomètres différents, la couleur de l'encre varie du noir au bleu ou au sepia, et l'épaisseur du trait change d'un rédacteur à l'autre. Comme expliqué plus loin lors de l'étape de prétraitement (section~\ref{sec:architecture}), l'application d'un filtre de contraste améliore la lisibilité du trait manuscrit avant sa lecture par le modèle.
-% >>>>>>>>>>>>>>>>>>>
+Pour résoudre la présence de lieux-dits ou de guillemets de répétition dans les registres, le script d'analyse conserve en mémoire la dernière valeur valide observée dans chaque colonne. Lorsqu'un symbole de répétition ou une case vide est détecté sous une valeur identique, le script attribue la valeur mémorisée à la ligne courante. Cette propagation évite de créer des fiches incomplètes pour les dossiers regroupés sur une même commune.
+
+Sur les registres tenus sur plusieurs années par des géomètres différents, la couleur de l'encre varie du noir au bleu. L'épaisseur du trait change d'un rédacteur à l'autre. Comme expliqué plus loin lors de l'étape de prétraitement (section~\ref{sec:architecture}), l'application d'un filtre de contraste améliore la lisibilité du trait manuscrit avant sa lecture par le modèle.
+
 
 Ainsi, la lecture des registres nécessite de traiter ces difficultés de présentation pour extraire correctement les données. Cependant, une fois ces informations récupérées, une autre étape est indispensable : réussir à lier les anciens numéros de parcelles aux références actuelles, qui ont pour la plupart évolué au fil des années.
 
 
 \subsection{La filiation parcellaire}
 
-La filiation parcellaire est importante pour retrouver les parcelles concernées par les archives du cabinet. Lorsqu'un géomètre recherche un dossier aujourd'hui, il dispose souvent uniquement du numéro de la parcelle actuelle. Cette même logique est à appliquer lors de la création de ces anciens dossiers. Les actes anciens ont été enregistrés sous les numéros parcellaires qui pour la plupart ont subi une modification, un découpage, ou tout autre intervention. L'un des objectif de ce projet est donc de remonter dans le temps pour retrouver les numéros de parcelles d'époques.
+La filiation parcellaire est importante pour retrouver les parcelles concernées par les archives du cabinet. Lorsqu'un géomètre recherche un dossier aujourd'hui, il dispose souvent uniquement du numéro de la parcelle actuelle. Cette même logique est à appliquer lors de la création de ces anciens dossiers. Les actes anciens ont été enregistrés sous les numéros parcellaires qui pour la plupart ont subi une modification, un découpage, ou tout autre intervention. L'un des objectifs de ce projet est donc de remonter dans le temps pour retrouver les numéros de parcelles d'époques.
 
-Lors d'une division foncière réalisée par un DMPC, l'ancien numéro de parcelle (la parcelle mère, par exemple \texttt{A 14}) est supprimé du cadastre et remplacé par de nouveaux numéros (les parcelles filles, par exemple \texttt{A 115} et \texttt{A 116}). Au fil du temps, ces nouvelles parcelles peuvent elles aussi être divisées. Sans le suivi de ces changements successifs, une recherche effectuée sur la parcelle actuelle ne permet de retrouver aucune localisation, le portail Géofoncier étant mis à jour régulièrement.
+Lors d'une division foncière réalisée par un DMPC, l'ancien numéro de parcelle (la parcelle mère, par exemple \texttt{A 14}) est supprimée du cadastre et remplacée par de nouveaux numéros (les parcelles filles, par exemple \texttt{A 115} et \texttt{A 116}). Au fil du temps, ces nouvelles parcelles peuvent elles aussi être divisées. Sans le suivi de ces changements successifs, une recherche effectuée sur la parcelle actuelle ne permet de retrouver aucune localisation, le portail Géofoncier étant mis à jour régulièrement.
 
 \begin{figure}[H]
   \centering
@@ -155,10 +155,10 @@ En interrogeant cette base de filiation, le projet peut remonter automatiquement
 
 La réussite de l'extraction automatique dépend directement de la qualité des documents papier et des réglages du scanner du cabinet. Les archives du cabinet accumulées depuis des dizaines d'années présentent différentes formes d'usure physique et de dégradation.
 
-Sur les documents anciens rédigés sur du papier acide ou sur des calques, le support jaunit avec le temps et devient cassant. Ce jaunissement réduit le contraste entre le fond du papier et le texte. De plus, sur les calques devenus transparents, l'écriture du verso apparaît au scanner et crée des bruits de lecture. Les pochettes d'archives montrent aussi des plis, des déchirures et des traces d'agrafes rouillées. Des notes ajoutées plus tard au crayon ou au stylo par les géomètres croisent parfois le texte d'origine.
+Sur les documents anciens rédigés sur du papier acide ou sur des calques, le support jaunit avec le temps et devient cassant. Ce jaunissement réduit le contraste entre le fond du papier et le texte. De plus, sur les calques devenus transparents, l'écriture du verso apparaît au scanner et crée des éléments sources d'erreurs de lecture. Les pochettes d'archives montrent aussi des plis, des déchirures et des traces d'agrafes rouillées. Des notes ajoutées plus tard au crayon ou au stylo par les géomètres croisent parfois le texte d'origine.
 
-Enfin, les tampons de réception du cadastre posés sur les formulaires DMPC recouvrent souvent les numéros de parcelles avec une encre rouge ou bleue. Comme illustré plus loin lors de l'étude des limites (section~\ref{sec:limites_perspectives}), ces bruits visuels perturbent les modèles de lecture automatique.
-% >>>>>>>>>>>>>>>>>>>
+Enfin, les tampons de réception du cadastre posés sur les formulaires DMPC recouvrent souvent les numéros de parcelles avec une encre rouge ou bleue. Comme illustré plus loin lors de l'étude des limites (section~\ref{sec:limites_perspectives}), ces éléments visuels perturbent les modèles de lecture automatique.
+
 
 \begin{table}[H]
   \centering
@@ -193,7 +193,7 @@ Ensuite, le tri des documents et le recoupement des informations imposent d'isol
 
 De plus, la recherche par la filiation parcellaire doit s'appuyer sur l'historique des parcelles pour faire le lien entre les numéros d'époque figurant sur les archives et les numéros actuels recherchés.
 
-Enfin, la confidentialité et l'exécution locale imposent que l'ensemble des traitements d'analyse d'image et d'extraction de texte s'effectue directement sur les postes du cabinet, sans envoyer de données sur des serveurs externes distants.
+Enfin, la confidentialité et l'exécution locale imposent que l'ensemble des traitements d'analyse d'image et d'extraction de texte s'effectuent directement sur les postes du cabinet, sans envoyer de données sur des serveurs externes distants.
 
 
 Ainsi, ces différentes exigences imposent de s'appuyer sur des solutions techniques capables de traiter aussi bien des documents imprimés que des registres manuscrits. Le chapitre suivant présente l'état de l'art des technologies d'extraction et d'analyse documentaire afin de sélectionner les outils les plus adaptés aux besoins du cabinet.

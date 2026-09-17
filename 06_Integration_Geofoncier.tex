@@ -83,9 +83,9 @@ Enfin, chaque publication engage la responsabilité du cabinet. Pour conserver u
 
 En complément de l'interface de validation, un script (\texttt{export\_geofoncier.py}) permet de traiter des lots de documents sans intervention manuelle document par document. Ce script est prévu pour être lancé en tâche de fond, en parallèle du traitement OCR.
 
-Son fonctionnement repose sur une boucle infinie qui scanne le dossier \texttt{outputs/} toutes les 30 secondes. À chaque itération, le script liste tous les fichiers JSON produits par la chaîne d'extraction (nommés selon le schéma \texttt{*\_plan\_*.json}) qui n'ont pas encore été traités. Pour chacun, il appelle \texttt{create\_geofoncier\_dossier()} avec le JSON comme source de données, puis tente de metre à jour le PDF associé depuis \texttt{inputs/}. Une fois le traitement terminé (avec succès ou échec définitif), le fichier JSON est déplacé dans le sous-dossier \texttt{outputs/archives\_publiees/} pour ne pas être retraité au prochain scan.
+Son fonctionnement repose sur une boucle infinie qui scanne le dossier \texttt{outputs/} toutes les 30 secondes. À chaque itération, le script liste tous les fichiers JSON produits par la chaîne d'extraction (nommés selon le schéma \texttt{*\_plan\_*.json}) qui n'ont pas encore été traités. Pour chacun, il appelle \texttt{create\_geofoncier\_dossier()} avec le JSON comme source de données, puis tente de mettre à jour le PDF associé depuis \texttt{inputs/}. Une fois le traitement terminé (avec succès ou échec définitif), le fichier JSON est déplacé dans le sous-dossier \texttt{outputs/archives\_publiees/} pour ne pas être retraité au prochain scan.
 
-Ce mode est adapté au traitement par grands groupes de documents: un echantillon de documents scannés peut être injectée dans \texttt{inputs/}, l'extraction automatique tourne la nuit, et les dossiers sont versés sur Géofoncier après vérification au fur et à mesure que les JSON sont produits. La supervision humaine reste indirecte : l'opérateur consulte le registre de suivi le lendemain pour vérifier les résultats, et si ce dernier présente trop d'erreurs, il peut corriger par ses propres moyens comme pour l'option classique et publier ensuite les modifications sur Géofoncier.
+Ce mode est adapté au traitement par grands groupes de documents: un échantillon de documents scannés peut être injecté dans \texttt{inputs/}, l'extraction automatique tourne la nuit, et les dossiers sont versés sur Géofoncier après vérification au fur et à mesure que les JSON sont produits. La supervision humaine reste indirecte : l'opérateur consulte le registre de suivi le lendemain pour vérifier les résultats, et si ce dernier présente trop d'erreurs, il peut corriger par ses propres moyens comme pour l'option classique et publier ensuite les modifications sur Géofoncier.
 
 Après chaque versement, le script enregistre une entrée dans deux fichiers stockés dans le dossier \texttt{suivi\_geofoncier/}. Le premier fichier, \texttt{suivi\_publications.json}, conserve l'historique complet des versements (heure, commune, code INSEE, géomètre, référence du dossier, identifiant Géofoncier, nom du document source et statut final). Le second, \texttt{suivi\_publications.csv}, propose un tableau équivalent trié par commune puis par date, directement exploitable sous Excel.
 
@@ -96,7 +96,7 @@ En cas de coupure de réseau ou de panne temporaire du serveur distant pendant l
 
 \subsection{Déroulement d'un cas d'étude : commune de Prades}
 
-Cette section suit le traitement d'un dossier réel de bout en bout, depuis le document papier jusqu'au dossier créée sur Géofoncier.
+Cette section suit le traitement d'un dossier réel de bout en bout, depuis le document papier jusqu'au dossier créé sur Géofoncier.
 
 Le document traité est un DMPC issu du fonds du cabinet, concernant la commune de Prades (code INSEE~: \texttt{07182}), section cadastrale A. Il s'agit d'un plan d'une page, complété à la main. Le fichier est fourni au programme sous forme de PDF, placé dans le dossier d'entrée.
 
@@ -139,7 +139,7 @@ Cette figure montre l'écran où l'application affiche la référence d'archive 
   \label{fig:etape2_parcelle}
 \end{figure}
 
-Cette figure illustre l'étape de vérification. On y observe bien la filiation parcellaire : l'emprise affichée correspond à l'ancienne parcelle d'origine, plus grande. L'opérateur peut alors deplacer le curseur ici en rouge pour placer au mieux le dossier en fonction du DMPC. 
+Cette figure illustre l'étape de vérification. On y observe bien la filiation parcellaire : l'emprise affichée correspond à l'ancienne parcelle d'origine, plus grande. L'opérateur peut alors déplacer le curseur ici en rouge pour placer au mieux le dossier en fonction du DMPC. 
 
 
 
@@ -156,11 +156,18 @@ L'opérateur clique sur \enquote{Créer le dossier sur Géofoncier}. L'API retou
   \label{fig:confirmation_geofoncier}
 \end{figure}
 
-Le dossier est désormais visible sur GéofoncierEXPERT sous forme de pastille géolocalisée, consultable par l'ensemble de la profession. Le statut de la ligne dans le fichier CSV local est automatiquement mis à jour avec la mention \texttt{Versé sur Géofoncier} et l'heure de publication.
+Le dossier est désormais visible sur GéofoncierEXPERT sous forme de pastille géolocalisée, consultable par l'ensemble de la profession. Le statut de la ligne dans le fichier CSV local est automatiquement mis à jour avec la mention \texttt{Versé sur Géofoncier} ainsi que l'heure de publication.
+
+
+Pour ce dossier de Prades, le retrouver manuellement dans les archives du cabinet a demandé environ 25 minutes. Les étapes sont : ouvrir le bon registre, feuilleter les pages pour retrouver la commune et le numéro de dossier, puis aller dans la salle d'archives chercher le carton correspondant. Dans ce cas, la classification par ordre alphabétique a été respectée, ce qui a rendue la recherche plus facile. Si tel n'est pas le cas, le temps de recherche peut rapidement augmenter.
+
+Le problème majeur est que ce temps est perdu à chaque fois. Si un opérateur a de nouveau besoin de cette affaire quelques mois plus tard pour un travail sur une parcelle voisine, ce dernier doit refaire exactement la même démarche et reperdre du temps à chercher dans les boîtes. Ce temps est donc improductif.
+
+Avec l'outil développé, le traitement complet (découpage YOLOv8, lecture par le modèle VLM, vérification des parcelles et confirmation) a pris moins de 3 minutes. Le dossier est ensuite directement versé sur Géofoncier et enregistré dans le tableau récapitulatif. Le gain de temps se fait donc à deux niveaux : le traitement initial est beaucoup plus rapide, et surtout, n'importe quel membre du cabinet, ou d'une autre entreprise, peut désormais retrouver l'affaire en quelques secondes sur son ordinateur sans avoir à retourner chercher dans les archives. 
 
 \subsection{Évaluation des performances}
 
-Sans l'outil, retrouver un dossier dans les archives prend au minimum une dizaine de minutes lorsque les dossiers sont bien organisés. Ce temps s'allonge si les dossiers sont mal rangés, si le registre du géomètre correspondant n'est pas encore numérisé, ou si plusieurs affaires correspondent aux mêmes références cadastrales.
+Sans l'outil, retrouver un dossier dans les archives prend au minimum une dizaine de minutes lorsque les dossiers sont bien organisés, et peut monter à 25 ou 30 minutes sur des fonds anciens nécessitant des manipulations de cartons. Ce temps s'allonge encore si les dossiers sont mal rangés, si le registre du géomètre correspondant n'est pas encore numérisé, ou si plusieurs affaires correspondent aux mêmes références cadastrales.
 
 Avec cet outil, le déroulement ne demande que quelques minutes de traitement OCR automatique (environ dix minutes pour un groupe de cinq à six documents), suivies de deux ou trois minutes de contrôle dans l'interface pour relire les champs et valider la position, puis enfin quelques secondes pour le versement final par l'API.
 

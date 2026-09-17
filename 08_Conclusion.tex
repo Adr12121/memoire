@@ -3,37 +3,79 @@
 \section{Conclusion}
 \label{sec:conclusion_generale}
 
-Ce projet avait un objectif principal : lire automatiquement des archives foncières très diverses, extraire les informations utiles et les verser sur Géofoncier, le tout sans aucun transfert de données vers l'extérieur du cabinet.
+Ce projet de fin d'études avait un objectif précis : concevoir une chaîne de traitement automatisée capable d'analyser des archives foncières hétérogènes, d'en extraire les informations clés et de les verser sur la plateforme nationale Géofoncier, tout en conservant l'ensemble des données sur les serveurs locaux du cabinet.
 
 
 \subsection{Ce que le projet a produit}
 
-Avant ce PFE, retrouver un dossier ancien demandait de consulter physiquement les registres, de chercher dans des boîtes ou d'appeler un autre site du cabinet. Verser un document sur Géofoncier était une démarche ponctuelle, manuelle, réalisée seulement quand le temps le permettait. L'outil produit ici change ces deux réalités : la recherche d'antériorités peut désormais s'effectuer en quelques secondes depuis un navigateur, et le versement sur Géofoncier s'intègre directement dans le flux de validation, sans étape supplémentaire pour l'opérateur.
+Avant le démarrage de ces travaux, la gestion des archives au sein du cabinet GEO-SIAPP reposait sur des recherches manuelles. Retrouver un document d'arpentage ou un plan de bornage ancien exigeait de consulter manuellement les répertoires, de chercher dans les boîtes d'archives rangées en réserve, ou de contacter les autres agences du cabinet réparties sur le territoire. Le versement sur Géofoncier constituait une démarche chronophage, réalisée uniquement lorsqu'un temps suffisant pouvait y être consacré au cours d'une nouvelle affaire.
 
-Ce résultat a été obtenu sans recours à un service cloud et sans budget matériel spécifique : les modèles tournent sur les postes existants du cabinet, les données ne quittent jamais le réseau local. La contrainte de confidentialité imposée par le secret professionnel a orienté chaque choix technique, et elle a été tenue.
+L'outil développé apporte une réponse concrète et opérationnelle à ces deux problématiques. La chaîne logicielle mise en place prend en charge le document depuis son fichier brut scanné jusqu'à sa publication sur la plateforme nationale Géofoncier. Elle s'articule autour de plusieurs modules complémentaires :
+\begin{itemize}
+  \item Un module de classification automatique qui oriente le flux selon la nature de la pièce (DMPC, registre ou acte libre).
+  \item Un découpage visuel par YOLOv8 associé à des prétraitements d'images adaptés (redressement par transformée de Hough, seuillage d'Otsu).
+  \item Une extraction hybride combinant OCR, extraction par modèle Vision-Langage (MiniCPM-V via Ollama) et modèles d'entités nommées.
+  \item Deux extracteurs sur mesure pour les répertoires historiques des géomètres prédécesseurs A et B.
+  \item Un module de fiabilisation fondé sur 17 règles métier et sur la distance de Levenshtein pour valider les communes et les sections cadastrales.
+  \item Une interface web développée avec Streamlit, permettant à l'opérateur de visualiser, corriger et valider les données en quelques clics.
+  \item Un module de communication avec l'API REST de Géofoncier, permettant la conversion en Lambert-93, l'envoi des métadonnées et la transmission du document source.
+\end{itemize}
+
+Ce résultat a été atteint en respectant une exigence fondamentale : le secret professionnel et la confidentialité des données foncières. Aucun document n'a été transmis vers des plateformes tierces. Les modèles de vision et de langage s'exécutent localement sur les postes de travail existants de l'entreprise, sans investissement matériel. Sur le cas d'étude réel de Prades, le temps de traitement a été ramené à moins de 3 minutes par dossier, alors que la recherche manuelle initiale nécessitait 25 minutes et devait être recommencée à chaque nouvelle consultation.
+
+Au-delà du gain de temps immédiat, cet outil valorise durablement le patrimoine documentaire du cabinet. Les archives dormantes deviennent un actif, directement interrogeable sur plan ou par mot-clé, ce qui renforce la qualité des prestations fournies aux clients et la réactivité des équipes.
 
 
-\subsection{Ce qui reste à faire}
+\subsection{Ce qui reste à faire et déploiement opérationnel}
 
-Ce projet a surtout démontré que l'approche fonctionne. Sur les types de documents les plus courants du cabinet, la chaîne produit des fiches exploitables, le versement sur Géofoncier est opérationnel, et les opérateurs ont pris l'outil en main rapidement lors des sessions de test. C'est le résultat principal du PFE.
+Ce PFE a permis de valider la faisabilité technique de la chaîne et de tester son ergonomie auprès des collaborateurs du cabinet. Les résultats obtenus sur le jeu de test confirment que l'architecture retenue est fonctionnelle et adaptée aux besoins de l'entreprise.
 
-La suite dépend de la mise en pratique. Le volume réel des archives est bien plus grand que le jeu de test : traiter les 23\,600 dossiers du siège d'Aubenas demandera plusieurs mois de travail régulier par les opérateurs. C'est cet usage continu, plus que tout ajustement technique, qui déterminera la valeur finale de l'outil pour le cabinet. Les pistes d'amélioration identifiées au chapitre précédent, comme le modèle HTR pour le Géomètre B, la boucle d'apprentissage actif, la migration de l'interface, restent des idées ouvertes, réalisable indépendamment selon les priorités du cabinet.
+Néanmoins, le passage à une exploitation à grande échelle représente la véritable étape suivante. Le fonds d'archives du seul siège d'Aubenas compte plus de 23\,600 dossiers, auxquels s'ajoutent les fonds conservés dans les agences secondaires du cabinet. Le traitement de cette masse documentaire s'étalera sur plusieurs mois de travail régulier. Pour organiser ce travail de façon efficace, une méthodologie de scan par commune prioritaire est préconisée, en ciblant d'abord les secteurs à forte densité, où les demandes d'antériorités sont les plus fréquentes.
+
+L'outil a été pensé pour s'intégrer dans cette routine selon deux modes :
+\begin{itemize}
+  \item Un mode interactif, utilisé par les techniciens pour traiter et indexer les dossiers au fur et à mesure des nouvelles commandes.
+  \item Un mode batch en arrière-plan (\texttt{export\_geofoncier.py}), capable de traiter des lots de plusieurs dizaines de plans scannés pendant la nuit et de préparer les fiches de synthèse pour une validation rapide le lendemain matin.
+\end{itemize}
+
+Sur le plan technique, plusieurs pistes d'évolution restent ouvertes pour améliorer le dispositif :
+\begin{itemize}
+  \item La mise en place d'une boucle d'apprentissage actif permettra d'exploiter les corrections quotidiennes des opérateurs pour réentraîner automatiquement le modèle YOLOv8 sur les zones de texte difficiles.
+  \item Pour le répertoire manuscrit du Géomètre B, l'entraînement ciblé d'un modèle HTR spécialisé apportera un gain de précision sur les écritures cursives inclinées.
+  \item Une connexion directe avec le logiciel de gestion de cabinet (ERP interne) évitera les doubles saisies lors de l'ouverture d'un nouveau dossier client.
+  \item L'intégration d'un visualiseur cartographique local permettra de consulter l'ensemble des pastilles créées sur le SIG du cabinet avant même leur synchronisation externe.
+\end{itemize}
 
 
 \subsection{Bilan personnel}
 
-Ce projet a confirmé que la problématique traitée ici n'est pas propre au cabinet GEO-SIAPP. Un grand nombre de documents sont stockés dans les archives des cabinets de géomètres, et la plupart des équipes les recherchent manuellement. Le besoin existe à grande échelle, et l'approche développée ici, même incomplète, montre qu'il est possible d'y répondre avec des outils accessibles, sans infrastructure cloud et sans budget matériel important.
-
-Des bases en Python existaient avant ce projet, mais la distance entre écrire des scripts simples et assembler une arborescence de traitement d'images fonctionnel sur des documents dégradés est réelle. La difficulté principale n'était pas technique, c'était de partir d'une problématique large, de la cadrer, et de produire quelque chose utile au cabinet en six mois. Les outils d'IA générative ont été une aide pour avancer plus vite sur les parties de code les moins familières, notamment le traitement d'image avec OpenCV et l'intégration des modèles via Ollama, avant tout application sur des exemples concrets pour ne pas diffuser ces mêmes plans.
-
-Ce projet a également rappelé que l'IA n'est pas une solution en soi. C'est un ensemble d'outils qui, bien choisis et bien assemblés, peuvent répondre à des problèmes très concrets. Mais chaque modèle a ses limites, et ces limites apparaissent vite dès qu'on sort des conditions idéales. Le travail de fiabilisation et de contrôle, décrit au chapitre~\ref{sec:fiabilisation}, est au moins aussi important que le choix des modèles.
+Ce projet a confirmé que la problématique traitée ici n’est pas propre au cabinet GEO-SIAPP. Un
+grand nombre de documents sont stockés dans les archives des cabinets de géomètres, et la plupart des
+équipes les recherchent manuellement. Le besoin existe à grande échelle, et l’approche développée ici,
+même incomplète, montre qu’il est possible d’y répondre avec des outils accessibles, sans infrastructure
+cloud et sans budget matériel important.
+Des bases en Python existaient avant ce projet, mais la distance entre écrire des scripts simples et
+assembler une arborescence de traitement d’images fonctionnel sur des documents dégradés est réelle.
+La difficulté principale n’était pas technique, c’était de partir d’une problématique large, de la cadrer,
+et de produire quelque chose de pertinent pour le cabinet en six mois, que la solution proposée s'intègre directement aux outils déja en place et aux habitudes de opérateurs. Les outils d’IA générative ont été une aide
+pour avancer plus vite sur les parties de code les moins familières, notamment le traitement d’image avec
+OpenCV et l’intégration des modèles via Ollama, avant tout application sur des exemples concrets pour
+ne pas diffuser ces mêmes plans.
+Ce projet a également rappelé que l’IA n’est pas une solution en soi. C’est un ensemble d’outils qui,
+bien choisis et bien assemblés, peuvent répondre à des problèmes très concrets. Mais chaque modèle a
+ses limites, et ces limites apparaissent vite dès qu’on sort des conditions idéales. Le travail de fiabilisation
+et de contrôle, décrit au chapitre 5, est au moins aussi important que le choix des modèles.
 
 
 \subsection{Ouverture}
 
-Ce projet s'inscrit dans un mouvement plus large. Le 48\textsuperscript{e} Congrès des géomètres-experts, qui s'est tenu à Nantes du 23 au 25 juin 2026, a été entièrement consacré à l'impact de l'intelligence artificielle sur les technologies et les expertises de la profession. Plus de 1\,400 professionnels s'y sont réunis, ce qui en fait le plus grand rassemblement de l'Ordre depuis sa création. À l'issue de cette édition, une charte d'utilisation de l'IA, votée le 19 mai 2026, est entrée en application le 1\textsuperscript{er} septembre 2026. Elle repose sur quatre principes : transparence vis-à-vis du client, protection des données, traçabilité, et maintien de la responsabilité du professionnel sur le livrable final.
+Ce projet s'inscrit au cœur des transformations numériques qui traversent la profession de géomètre-expert. Le 48\textsuperscript{e} Congrès des géomètres-experts, réuni à Nantes du 23 au 25 juin 2026 autour du thème de l'intelligence artificielle, a rassemblé plus de 1\,400 professionnels. Les débats ont souligné l'intérêt grandissant pour l'automatisation des tâches répétitives et la valorisation des fonds patrimoniaux.
 
-Ce cadre correspond à ce que ce projet a cherché à respecter : l'outil produit des propositions, l'opérateur valide. Aucun versement ne se fait sans relecture humaine. La question de la place de l'IA dans le métier de géomètre-expert ne se limite d'ailleurs pas aux archives. Le traitement de nuages de points, la génération de procès-verbaux, l'analyse d'images issues de drones : autant de domaines où des approches similaires pourraient être utiles. Ce PFE est, à sa modeste échelle, un cas d'usage concret parmi ceux que la profession commence à explorer.
+La charte d'utilisation de l'intelligence artificielle, adoptée par l'Ordre des Géomètres-Experts le 19 mai 2026 et entrée en application le 1\textsuperscript{er} septembre 2026, fixe un cadre clair articulé autour de quatre principes directeurs : la transparence envers le client, la protection stricte des données, la traçabilité des processus et le maintien de la responsabilité entière du professionnel sur les livrables.
+
+La démarche adoptée tout au long de ce mémoire respecte scrupuleusement ces principes : l'algorithme assiste l'opérateur en pré-remplissant les champs, mais ne prend aucune décision juridique à sa place. Aucun acte n'est versé sur Géofoncier sans une validation explicite par un collaborateur du cabinet.
+
+Au-delà de l'indexation des archives papier, les technologies explorées ici ouvrent des perspectives prometteuses pour d'autres activités du géomètre : le filtrage automatique de nuages de points LiDAR, la vectorisation assistée de plans anciens, la détection d'éléments topographiques sur des orthophotographies par drone, ou l'aide à la rédaction de procès-verbaux de bornage. Ce travail démontre qu'un cabinet de taille moyenne peut, avec des outils ouverts et des méthodes adaptées, s'approprier ces technologies pour moderniser ses processus tout en garantissant la sécurité et la pérennité de l'information foncière.
 
 
 
