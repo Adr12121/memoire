@@ -1,5 +1,6 @@
 % !TeX root = main.tex
 
+\phantomsection
 \section*{Résumé}
 \addcontentsline{toc}{section}{Résumé}
 
@@ -13,16 +14,18 @@ Une interface de validation permet aux opérateurs de contrôler et corriger les
 \vspace{1.5em}
 \noindent\textbf{Mots-clés :} archivage numérique, reconnaissance de texte manuscrit (HTR), traitement automatisé, Géofoncier, intelligence artificielle, géomètre-expert, vision par ordinateur.
 
+{\let\thefootnote\relax\footnotetext{\footnotesize Ce rapport a fait l'objet d'une relecture et d'une correction orthographique et grammaticale assistées par intelligence artificielle.}}
+
 \clearpage
 
 \section*{Abstract}
 \addcontentsline{toc}{section}{Abstract}
 
-Land surveying firms accumulate, over the decades, a considerable archive of boundary delimitation plans, survey reports and cadastral documents in highly heterogeneous formats. A large portion of this documentary heritage, produced before the widespread adoption of digital tools, remains unindexed and has not been submitted to the profession's reference platforms. This work aims to design and deploy an automated archive processing tool within the GEO-SIAPP firm in Ardèche, France, with a view to uploading the data to the national Geofoncier platform.
+Land surveying firms build up, over decades, a large archive of boundary delimitation plans, survey reports and cadastral documents in highly heterogeneous formats. A significant part of this documentary heritage, produced before digital tools became widely used, remains unindexed and has not been uploaded to Geofoncier, the profession's national platform. This work aims to design and deploy an automated archive processing tool within the GEO-SIAPP firm in Ardèche, France, in order to feed this data into the national Geofoncier platform.
 
-The developed tool relies on a modular processing chain structured around four steps: automatic classification of incoming documents, extraction of key information (municipality, date, cadastral survey number), data validation through cross-referencing with official databases, and preparation for upload to the Geofoncier platform. To address the high variability of the documents - recent cadastral plans, old handwritten registers, degraded scanned images - the architecture draws on complementary techniques from computer vision, handwritten text recognition and generative artificial intelligence.
+The developed tool relies on a modular processing chain built around four steps: automatic classification of incoming documents, extraction of key information (municipality, date, cadastral survey number), data validation by cross-referencing official databases, and preparation for submission to Geofoncier. To handle the high variability of the documents, recent cadastral plans (old handwritten registers, degraded scanned images) the architecture combines techniques from computer vision, handwritten text recognition and generative artificial intelligence.
 
-A validation interface allows operators to review and correct the machine's results before any definitive submission, thus ensuring the quality of the produced land data in line with the profession's ethical obligations.
+A validation interface allows operators to review and correct the machine's results before the final submission, guaranteeing the quality of the land data produced and compliance with the profession's ethical obligations.
 
 \vspace{1.5em}
 \noindent\textbf{Keywords:} digital archiving, handwritten text recognition (HTR), automated processing, Geofoncier, artificial intelligence, land surveyor, computer vision.

@@ -1,0 +1,226 @@
+=== Shape [0] 'Rectangle 52' ===
+  P0 (align=CENTER (2)): ('ORGANIGRAMME', sz=None, b=True, c=FFFFFF) | (' DE LA SOLUTION PROPOSÉE', sz=18.0, b=True, c=FFFFFF)
+=== Shape [1] 'Rectangle 22' ===
+  P0 (align=CENTER (2)): ('Mots-clés : ', sz=17.5, b=True, c=102C57) | ('archivage numérique, reconnaissance de texte manuscrit (HTR), traitement automatisé, ', sz=16.5, b=False, c=141E32) | ('Géofoncier', sz=16.5, b=False, c=141E32) | (', intelligence artificielle, géomètre-expert, vision par ordinateur.', sz=16.5, b=False, c=141E32)
+=== Shape [2] 'Rectangle 17' ===
+  P0 (align=None): (' Auteur : ', sz=15.5, b=True, c=102C57) | ('TRAVAILLÉ Adrien', sz=15.5, b=True, c=0284C7)
+  P1 (align=None): 
+  P2 (align=None): (' Date de soutenance : ', sz=12.5, b=True, c=102C57) | ('24 septembre 2026 (10h30)', sz=12.5, b=False, c=141E32)
+  P3 (align=None): (' Tuteur entreprise : ', sz=12.5, b=True, c=102C57) | ('M. Gaëtan HAGUE (GEO-SIAPP)', sz=12.5, b=False, c=141E32)
+  P4 (align=None): (' Correcteur : ', sz=12.5, b=True, c=102C57) | ('M. Mathieu KOEHL (INSA Strasbourg)', sz=12.5, b=False, c=141E32)
+=== Shape [3] 'Rectangle 4' ===
+  P0 (align=CENTER (2)): ('DÉVELOPPEMENT D'UN OUTIL PERMETTANT LE TRAITEMENT ET L'INSERTION', sz=26.0, b=True, c=FFFFFF)
+  P1 (align=CENTER (2)): ('DES ARCHIVES NUMÉRIQUES SUR GÉOFONCIER AU SEIN D'UN CABINET DE GÉOMÈTRE-EXPERT', sz=23.0, b=True, c=FFFFFF)
+=== Shape [8] 'Rectangle 23' ===
+  P0 (align=CENTER (2)): ('TECHNOLOGIES ', sz=18.0, b=True, c=FFFFFF) | ('ET ', sz=None, b=True, c=FFFFFF) | ('EXTRACTION DES DONNÉES', sz=18.0, b=True, c=FFFFFF)
+=== Shape [10] 'Rectangle 29' ===
+  P0 (align=CENTER (2)): ('CONTEXTE MÉTIER ET PROBLÉMATIQUE', sz=18.0, b=True, c=FFFFFF)
+=== Shape [12] 'Rectangle 44' ===
+  P0 (align=CENTER (2)): ('VERIFICATION ET FIABILISATION DES DONNÉES', sz=18.0, b=True, c=FFFFFF)
+=== Shape [14] 'Rectangle 48' ===
+  P0 (align=CENTER (2)): ('INTERFACE DE VALIDATION / CONTRÔLE OPÉRATEUR', sz=17.5, b=True, c=FFFFFF)
+=== Shape [17] 'Rectangle 56' ===
+  P0 (align=CENTER (2)): ('PERSPECTIVES D'ÉVOLUTION ET DÉMONSTRATION VIDÉO', sz=17.5, b=True, c=FFFFFF)
+=== Shape [19] 'Rectangle 59' ===
+  P0 (align=CENTER (2)): ('Archives papier du cabinet', sz=10.5, b=True, c=102C57)
+  P1 (align=CENTER (2)): ('Fonds historique de 1959 à 2007', sz=8.8, b=False, c=64748B)
+=== Shape [20] 'Rectangle 61' ===
+  P0 (align=CENTER (2)): ('Répertoires ', sz=10.5, b=True, c=102C57)
+  P1 (align=CENTER (2)): ('Actes, dates et noms de clients', sz=8.8, b=False, c=64748B)
+=== Shape [21] 'Rectangle 63' ===
+  P0 (align=CENTER (2)): ('DMPC et plans d'arpentage', sz=10.5, b=True, c=102C57)
+  P1 (align=CENTER (2)): ('Procès-verbaux, croqui', sz=8.8, b=False, c=64748B) | ('s, feuille…', sz=8.8, b=None, c=64748B)
+=== Shape [24] 'Rectangle 68' ===
+  P0 (align=CENTER (2)): ('Numérisation et tri', sz=10.5, b=True, c=102C57)
+  P1 (align=CENTER (2)): ('Scanné et ', sz=8.8, b=False, c=64748B) | ('orienté vers le traitement adéquat', sz=8.8, b=None, c=64748B)
+=== Shape [29] 'Rectangle 80' ===
+  P0 (align=CENTER (2)): ('Recherche d'antériorité', sz=10.5, b=True, c=102C57)
+  P1 (align=CENTER (2)): ('Recherche si page déjà scannée', sz=8.8, b=False, c=64748B)
+=== Shape [31] 'Ellipse 85' ===
+  P0 (align=CENTER (2)): ('Cadastre IGN et DGFiP', sz=10.5, b=True, c=102C57)
+  P1 (align=CENTER (2)): ('Filiation parcellaire (flux WFS)', sz=8.8, b=False, c=64748B)
+=== Shape [32] 'Rectangle 87' ===
+  P0 (align=CENTER (2)): ('Recherche automatique des informations', sz=10.5, b=True, c=102C57)
+  P1 (align=CENTER (2)): ('Programme propre à chaque registre', sz=8.8, b=None, c=102C57)
+=== Shape [33] 'Rectangle 89' ===
+  P0 (align=CENTER (2)): ('Découpage visuel YOLOv8', sz=10.5, b=True, c=102C57)
+  P1 (align=CENTER (2)): ('spatial_extracteur.py', sz=8.8, b=False, c=64748B)
+=== Shape [34] 'Ellipse 91' ===
+  P0 (align=CENTER (2)): ('Prétraitement ', sz=10.5, b=True, c=102C57) | ('OpenCV', sz=10.5, b=True, c=102C57)
+  P1 (align=CENTER (2)): ('Redressement et binarisation', sz=8.8, b=False, c=64748B)
+=== Shape [35] 'Ellipse 93' ===
+  P0 (align=CENTER (2)): ('Lecture OCR et HTR', sz=10.5, b=True, c=102C57)
+  P1 (align=CENTER (2)): ('TrOCR', sz=8.8, b=False, c=64748B) | (' et ', sz=8.8, b=False, c=64748B) | ('EasyOCR', sz=8.8, b=False, c=64748B)
+=== Shape [37] 'Rectangle 97' ===
+  P0 (align=CENTER (2)): ('Rôle d'arbitre de l’intelligence artificielle', sz=10.5, b=True, c=B45309)
+  P1 (align=CENTER (2)): ('Arbitre VLM local sur les cas difficiles', sz=8.8, b=False, c=64748B)
+=== Shape [39] 'Rectangle 101' ===
+  P0 (align=CENTER (2)): ('Extraction d'entités ', sz=10.5, b=True, c=102C57) | ('GLiNER', sz=10.5, b=True, c=102C57)
+  P1 (align=CENTER (2)): ('Uniquement pour les entités nécessaires', sz=8.8, b=None, c=64748B)
+=== Shape [40] 'Rectangle 103' ===
+  P0 (align=CENTER (2)): ('Métadonnées de référence', sz=10.5, b=True, c=102C57)
+  P1 (align=CENTER (2)): ('Bases de données  de contrôle', sz=8.8, b=False, c=64748B)
+=== Shape [43] 'Rectangle 111' ===
+  P0 (align=CENTER (2)): ('Contrôles manuels', sz=10.5, b=True, c=102C57)
+  P1 (align=CENTER (2)): ('Croisement texte et cadastre', sz=8.8, b=False, c=64748B)
+=== Shape [44] 'Rectangle 113' ===
+  P0 (align=CENTER (2)): ('Cohérence avec 17 règles métier', sz=10.5, b=True, c=B45309)
+=== Shape [45] 'Rectangle 115' ===
+  P0 (align=CENTER (2)): ('Validation opérateur', sz=10.5, b=True, c=102C57)
+  P1 (align=CENTER (2)): ('Interface ', sz=8.8, b=False, c=64748B) | ('Streamlit', sz=8.8, b=False, c=64748B) | (' ', sz=8.8, b=False, c=64748B)
+=== Shape [49] 'Rectangle 129' ===
+  P0 (align=CENTER (2)): ('Versement sur ', sz=10.5, b=True, c=16A34A) | ('Géofoncier', sz=10.5, b=True, c=16A34A)
+  P1 (align=CENTER (2)): ('Transmission à l’API et archivage (Excel local)', sz=8.8, b=False, c=64748B)
+=== Shape [50] 'Rectangle 131' ===
+  P0 (align=CENTER (2)): ('RÉSULTATS  ET IMPACTS DU PROJET', sz=18.0, b=True, c=FFFFFF)
+=== Shape [53] 'Rectangle 8' ===
+  P0 (align=CENTER (2)): ('Résolution communale', sz=13.0, b=True, c=102C57)
+  P1 (align=CENTER (2)): 
+  P2 (align=CENTER (2)): ('95 % Résolus direct', sz=15.5, b=True, c=0284C7)
+  P3 (align=CENTER (2)): ('Correction automatique et code INSEE', sz=11.0, b=False, c=141E32)
+=== Shape [54] 'Rectangle 14' ===
+  P0 (align=CENTER (2)): ('Contrôles de cohérence', sz=13.0, b=True, c=102C57)
+  P1 (align=CENTER (2)): 
+  P2 (align=CENTER (2)): ('17 Règles métier', sz=15.5, b=True, c=0284C7)
+  P3 (align=CENTER (2)): ('Dates, cadastre, acteurs, doublons', sz=11.0, b=False, c=141E32)
+=== Shape [55] 'Rectangle 18' ===
+  P0 (align=CENTER (2)): ('Fiabilité globale', sz=13.0, b=True, c=102C57)
+  P1 (align=CENTER (2)): 
+  P2 (align=CENTER (2)): ('Jusqu'à 88 % de conformité', sz=15.5, b=True, c=16A34A)
+  P3 (align=CENTER (2)): ('Évaluation sur dossiers réels', sz=11.0, b=False, c=141E32)
+=== Shape [56] 'Rectangle 40' ===
+  P0 (align=CENTER (2)): ('DIFFICULTÉS RENCONTRÉES ET SOLUTIONS APPORTÉES', sz=17.5, b=True, c=FFFFFF)
+=== Shape [58] 'Rounded Rectangle 192' ===
+  P0 (align=LEFT (1)): ('Cadre juridique et recherche d'antériorités', sz=12.0, b=True, c=102C57)
+  P1 (align=JUSTIFY (4)): ('En vertu de l’obligation déontologique de recherche d’antériorités (art 646 C du code civil), le géomètre-expert doit retrouver les opérations passées pour rétablir les ', sz=10.0, b=False, c=141E32) | ('limit', sz=10.0, b=False, c=141E32) | ('es réelles déjà fixées', sz=10.0, b=None, c=141E32) | (' . Le plan cadastral n'ayant qu'une ', sz=10.0, b=False, c=141E32) | ('valeur fiscale', sz=10.0, b=True, c=102C57) | (', les archives papier du cabinet constituent les ', sz=10.0, b=False, c=141E32) | ('seules preuves juridiques', sz=10.0, b=True, c=102C57) | (' opposables.', sz=10.0, b=False, c=141E32)
+  P2 (align=LEFT (1)): 
+  P3 (align=LEFT (1)): ('Problématique de l'étude', sz=12.0, b=True, c=102C57)
+  P4 (align=LEFT (1)): ('La recherche manuelle dans les archives est un processus long, incertain et fastidieux. Ce projet répond à la problématique suivante :', sz=10.0, b=False, c=141E32)
+  P5 (align=LEFT (1)): ('« Dans quelle mesure est-il possible de concevoir un outil logiciel capable d'extraire avec fiabilité les données d'archives foncières très variées, tout en fonctionnant localement ? »', sz=9.8, b=True, c=1B365D)
+  P6 (align=LEFT (1)): 
+  P7 (align=LEFT (1)): ('Objectifs opérationnels et contraintes', sz=12.0, b=True, c=102C57)
+  P8 (align=LEFT (1)): ('Le projet vise à développer une ', sz=10.0, b=False, c=141E32) | ('chaîne de traitement automatisée', sz=10.0, b=True, c=102C57) | (' capable d'analyser les plans scannés et d'extraire les données foncières pour accélérer l'indexation. Pour garantir le secret professionnel et le respect du ', sz=10.0, b=False, c=141E32) | ('RGPD', sz=10.0, b=True, c=102C57) | (', l'ensemble des traitements s'exécute à ', sz=10.0, b=False, c=141E32) | ('100 % en local', sz=10.0, b=True, c=102C57) | (' au cabinet, avant versement ', sz=10.0, b=False, c=141E32) | ('direct ', sz=10.0, b=False, c=no-rgb) | ('sur ', sz=10.0, b=None, c=no-rgb) | ('Géofoncier', sz=10.0, b=None, c=no-rgb) | (', ', sz=10.0, b=True, c=no-rgb) | ('plateforme nationale', sz=10.0, b=None, c=no-rgb) | ('.', sz=10.0, b=False, c=141E32)
+=== Shape [61] 'TextBox 195' ===
+  P0 (align=CENTER (2)): ('Registre répertoriant les dossiers du cabinet (1979) ', sz=11.2, b=True, c=102C57)
+  P1 (align=CENTER (2)): ('répertoire manuscrit associant client, commune et numéro de dossier.', sz=10.19, b=False, c=64748B)
+=== Shape [64] 'TextBox 198' ===
+  P0 (align=JUSTIFY (4)): ('Découpage des zones d’intérêt par mots clés (YOLOv8)', sz=13.8, b=True, c=102C57)
+  P1 (align=JUSTIFY (4)): ('Localisation automatique des zones utiles', sz=11.2, b=True, c=0284C7)
+  P2 (align=JUSTIFY (4)): 
+  P3 (align=JUSTIFY (4)): ('Le modèle ', sz=11.0, b=None, c=141E32) | ('YOLOv8', sz=11.0, b=True, c=102C57) | (' repère et isole automatiquement les régions d'intérêt : cartouches de titre, tampons, tableaux de contenance et même dans le corps du plan.', sz=11.0, b=False, c=141E32)
+  P4 (align=JUSTIFY (4)): 
+  P5 (align=JUSTIFY (4)): ('Ce découpage sépare les informations pertinentes du dessin. Il permet une détection robuste même sur des documents anciens présentant des pliures, des taches, des ratures ou encore des déformations du papier.', sz=11.0, b=False, c=141E32)
+=== Shape [66] 'TextBox 200' ===
+  P0 (align=JUSTIFY (4)): ('Prétraitement de l’image (', sz=13.8, b=True, c=102C57) | ('OpenCV', sz=13.8, b=True, c=102C57) | (')', sz=13.8, b=True, c=102C57)
+  P1 (align=JUSTIFY (4)): ('Restauration et redressement avant lecture', sz=11.2, b=True, c=0284C7)
+  P2 (align=JUSTIFY (4)): 
+  P3 (align=JUSTIFY (4)): ('Avant la transcription, l'orientation du document est analysée pour ', sz=11.0, b=False, c=141E32) | ('redresser automatiquement l'image', sz=11.0, b=True, c=102C57) | (' et ', sz=11.0, b=False, c=141E32) | ('remettre l’écriture à ', sz=11.0, b=False, c=141E32) | ('l'horizontale.', sz=11.0, b=False, c=141E32)
+  P4 (align=JUSTIFY (4)): 
+  P5 (align=JUSTIFY (4)): ('Un ', sz=11.0, b=False, c=141E32) | ('filtrage d'image adapté', sz=11.0, b=True, c=102C57) | (' sépare ensuite l'encre du fond et élimine les bruits de numérisation. Les tracés manuscrits fins sont consolidés pour rendre le texte  net et lisible avant la lecture optique.', sz=11.0, b=False, c=141E32)
+=== Shape [70] 'TextBox 204' ===
+  P0 (align=LEFT (1)): ('Lecture optique et extraction d'entités (', sz=13.0, b=True, c=102C57) | ('TrOCR', sz=13.0, b=True, c=102C57) | (' et ', sz=13.0, b=True, c=102C57) | ('GLiNER', sz=13.0, b=True, c=102C57) | (')', sz=13.0, b=True, c=102C57)
+  P1 (align=LEFT (1)): ('Reconnaissance conjointe de l'imprimé et du manuscrit', sz=10.5, b=True, c=0284C7)
+  P2 (align=LEFT (1)): ('La lecture optique associe ', sz=10.19, b=False, c=141E32) | ('EasyOCR', sz=10.19, b=True, c=102C57) | (' pour les textes imprimés et ', sz=10.19, b=False, c=141E32) | ('TrOCR', sz=10.19, b=True, c=102C57) | (' pour les écritures manuscrites des géomètres. Le modèle  ', sz=10.19, b=False, c=141E32) | ('GLiNER', sz=10.19, b=True, c=102C57) | (' extrait les entités clés (commune, section, parcelles, date, géomètre).', sz=10.19, b=False, c=141E32)
+  P3 (align=LEFT (1)): 
+  P4 (align=LEFT (1)): ('En cas de doute ou d'anomalie de lecture, le modèle VLM local sous ', sz=10.19, b=False, c=141E32) | ('Ollama', sz=10.19, b=True, c=102C57) | (' intervient en ', sz=10.19, b=False, c=141E32) | ('arbitre', sz=10.19, b=True, c=102C57) | (' pour trancher directement sur l'image de la zone.', sz=10.19, b=False, c=141E32)
+=== Shape [72] 'Rectangle 206' ===
+  P0 (align=LEFT (1)): ('Contrôle cadastral et filiation parcellaire', sz=13.0, b=True, c=102C57)
+  P1 (align=LEFT (1)): 
+  P2 (align=LEFT (1)): ('Le contrôle spatial croise les informations avec le ', sz=10.6, b=False, c=141E32) | ('cadastre officiel (IGN et DGFiP)', sz=10.6, b=True, c=0284C7) | (' pour attester de l'existence des parcelles et vérifier les opérations antérieures sur ', sz=10.6, b=False, c=141E32) | ('GéofoncierEXPERT', sz=10.6, b=False, c=141E32) | ('.', sz=10.6, b=False, c=141E32)
+  P3 (align=LEFT (1)): 
+  P4 (align=LEFT (1)): ('En cas de division ancienne, le module retrace la ', sz=10.6, b=False, c=141E32) | ('filiation parcellaire', sz=10.6, b=True, c=0284C7) | (' en reliant parcelles mères et filles. Un filtre ', sz=10.6, b=False, c=141E32) | ('anti-doublon', sz=10.6, b=True, c=0284C7) | (' avertit l'opérateur pour prévenir tout risque de double versement.', sz=10.6, b=False, c=141E32)
+  P5 (align=LEFT (1)): 
+  P6 (align=LEFT (1)): ('Ce croisement automatique fiabilise le ', sz=10.6, b=False, c=141E32) | ('positionnement géographique', sz=10.6, b=True, c=102C57) | (' et prépare le dossier pour la validation finale par l'opérateur.', sz=10.6, b=False, c=141E32)
+=== Shape [73] 'TextBox 207' ===
+  P0 (align=LEFT (1)): ('17 règles de cohérence métier avant validation', sz=14.5, b=True, c=102C57)
+  P1 (align=LEFT (1)): ('Contrôles automatiques préalables à la relecture opérateur :', sz=11.2, b=True, c=0284C7)
+=== Shape [74] 'Rounded Rectangle 208' ===
+  P0 (align=LEFT (1)): ('Cohérence des dates (4 règles)', sz=12.0, b=True, c=102C57)
+  P1 (align=LEFT (1)): ('Contrôle du format standard, vérification de l'antériorité de l'acte et concordance avec les années d'exercice du géomètre au cabinet.', sz=10.5, b=False, c=141E32)
+=== Shape [75] 'Rounded Rectangle 209' ===
+  P0 (align=LEFT (1)): ('Contrôles cadastraux (5 règles)', sz=12.0, b=True, c=102C57)
+  P1 (align=LEFT (1)): ('Validation du code officiel INSEE, cohérence des sections, normalisation des numéros de parcelles et rejet des incohérences.', sz=10.5, b=False, c=141E32)
+=== Shape [76] 'Rounded Rectangle 210' ===
+  P0 (align=LEFT (1)): ('Contrôles des personnes (4 règles)', sz=12.0, b=True, c=102C57)
+  P1 (align=LEFT (1)): ('Authentification du géomètre signataire dans l'annuaire du cabinet, vérification des parties et tri entre vendeur et acquéreur.', sz=10.5, b=False, c=141E32)
+=== Shape [77] 'Rounded Rectangle 211' ===
+  P0 (align=LEFT (1)): ('Contrôles de dossier et anti-doublon (4 règles)', sz=12.0, b=True, c=16A34A)
+  P1 (align=LEFT (1)): ('Validation de la référence par recherche d'antériorités sur la même parcelle, ou compréhension de la mission par un opérateur dans les cas les plus complexes.', sz=10.5, b=False, c=141E32)
+=== Shape [78] 'Rectangle 212' ===
+  P0 (align=CENTER (2)): ('TEMPS DIVISÉ PAR 8', sz=13.5, b=True, c=102C57)
+  P1 (align=CENTER (2)): ('De 25 min à 2 min 40 s (moyenne)', sz=12.0, b=True, c=0284C7)
+  P2 (align=CENTER (2)): ('par dossier d'arpentage', sz=10.19, b=False, c=141E32)
+=== Shape [79] 'Rectangle 213' ===
+  P0 (align=CENTER (2)): ('82 % SANS CORRECTION', sz=13.5, b=True, c=16A34A)
+  P1 (align=CENTER (2)): ('27 sur 33 dossiers validés', sz=12.0, b=True, c=102C57)
+  P2 (align=CENTER (2)): ('dès le premier passage', sz=10.19, b=False, c=141E32)
+=== Shape [80] 'Rectangle 214' ===
+  P0 (align=CENTER (2)): ('23 600 DOSSIERS TRAITABLES', sz=13.5, b=True, c=102C57)
+  P1 (align=CENTER (2)): ('Fonds historique valorisé', sz=12.0, b=True, c=0284C7)
+  P2 (align=CENTER (2)): ('directement au cabinet', sz=10.19, b=False, c=141E32)
+=== Shape [82] 'TextBox 216' ===
+  P0 (align=LEFT (1)): ('Ce projet répond à une exigence actuelle du cabinet ', sz=10.6, b=False, c=141E32) | ('GEO-SIAPP', sz=10.6, b=True, c=102C57) | ('. En fiabilisant l'accès aux anciens travaux mais aussi à d’anciennes bases de données du cadastre par exemple, l'outil permet de rétablir les limites réelles sans risque de litige du fait d’anciennes interventions.', sz=10.6, b=False, c=141E32)
+  P1 (align=LEFT (1)): 
+  P2 (align=LEFT (1)): ('L'architecture ', sz=10.6, b=False, c=141E32) | ('100 % locale', sz=10.6, b=True, c=102C57) | (' garantit le respect du secret professionnel et la conformité au ', sz=10.6, b=False, c=141E32) | ('RGPD', sz=10.6, b=True, c=102C57) | ('. Les plans d'archives deviennent consultables et s'insèrent directement sur ', sz=10.6, b=False, c=141E32) | ('Géofoncier', sz=10.6, b=True, c=no-rgb) | ('.', sz=10.6, b=False, c=no-rgb)
+=== Shape [87] 'Rounded Rectangle 222' ===
+  P0 (align=CENTER (2)): ('Aperçu de l’interface de contrôle', sz=10.5, b=True, c=FFFFFF)
+=== Shape [90] 'TextBox 225' ===
+  P0 (align=LEFT (1)): ('      Interface web développée via le langage de programmation Python :', sz=12.5, b=True, c=102C57)
+  P1 (align=LEFT (1)): ('Supervision interactive et validation humaine', sz=11.2, b=True, c=0284C7)
+  P2 (align=JUSTIFY (4)): ('L'application offre une ', sz=10.8, b=False, c=141E32) | ('double vue synchronisée', sz=10.8, b=True, c=102C57) | (' associant le plan scanné avec zoom dynamique et le formulaire des données extraites. Des ', sz=10.8, b=False, c=141E32) | ('pastilles de couleur ', sz=10.8, b=True, c=no-rgb) | ('signalent instantanément l'état des contrôles : vert pour les données conformes, orange ou rouge dès qu'une règle métier présente un problème.', sz=10.8, b=False, c=141E32)
+  P3 (align=JUSTIFY (4)): 
+  P4 (align=JUSTIFY (4)): ('Chaque correction est mémorisée localement pour assister la saisie des pages suivantes du même dossier. Conformément aux exigences déontologiques du cabinet, la ', sz=10.8, b=False, c=141E32) | ('validation humaine reste obligatoire', sz=10.8, b=True, c=102C57) | (' : aucun dossier n'est versé sur ', sz=10.8, b=False, c=141E32) | ('Géofoncier', sz=10.8, b=False, c=141E32) | (' sans vérification par l'opérateur.', sz=10.8, b=False, c=141E32)
+=== Shape [91] 'Rounded Rectangle 226' ===
+  P0 (align=CENTER (2)): ('DIFFICULTÉS RENCONTRÉES DANS LE PROJET', sz=11.2, b=True, c=B91C1C)
+=== Shape [92] 'Rounded Rectangle 227' ===
+  P0 (align=CENTER (2)): ('SOLUTIONS DÉVELOPPÉES', sz=11.2, b=True, c=166534)
+=== Shape [93] 'Rounded Rectangle 228' ===
+  P0 (align=LEFT (1)): ('Plans sans numéro de dossier', sz=10.8, b=True, c=B91C1C)
+  P1 (align=LEFT (1)): 
+  P2 (align=LEFT (1)): ('Les numéros de dossiers n'apparaissent presque jamais sur les plans, rendant l'indexation directe impossible à partir du seul document.', sz=9.6, b=False, c=141E32)
+=== Shape [95] 'Rounded Rectangle 230' ===
+  P0 (align=LEFT (1)): ('Croisement avec les répertoires', sz=10.8, b=True, c=16A34A)
+  P1 (align=LEFT (1)): 
+  P2 (align=LEFT (1)): ('Rapprochement automatique avec les registres d'actes numérisés du cabinet pour réassocier le dossier, le client et la date au plan, via un script dédié. ', sz=9.6, b=False, c=141E32)
+=== Shape [96] 'Rounded Rectangle 231' ===
+  P0 (align=LEFT (1)): ('Évolution cadastrale et parcelles disparues', sz=10.8, b=True, c=B91C1C)
+  P1 (align=LEFT (1)): 
+  P2 (align=LEFT (1)): ('Les remembrements et divisions successives depuis 1959 ont fait disparaître du cadastre actuel les numéros de parcelles d'origine et présents sur les plans de l’étude.', sz=9.6, b=False, c=141E32)
+=== Shape [98] 'Rounded Rectangle 233' ===
+  P0 (align=LEFT (1)): ('Filiation parcellaire et flux DGFiP', sz=10.8, b=True, c=16A34A)
+  P1 (align=LEFT (1)): 
+  P2 (align=LEFT (1)): ('Remontée automatique de la chaîne généalogique des parcelles mères via le cadastre officiel pour rattacher l'acte historique au terrain.', sz=9.6, b=False, c=141E32)
+=== Shape [99] 'Rounded Rectangle 234' ===
+  P0 (align=LEFT (1)): ('Risque de doublon et publication erronée', sz=10.8, b=True, c=B91C1C)
+  P1 (align=LEFT (1)): 
+  P2 (align=LEFT (1)): ('La publication sur le portail national ', sz=9.6, b=False, c=141E32) | ('Géofoncier', sz=9.6, b=False, c=141E32) | (' engage la responsabilité du cabinet et ne tolère aucun doublon d'acte foncier.', sz=9.6, b=False, c=141E32)
+=== Shape [101] 'Rounded Rectangle 236' ===
+  P0 (align=LEFT (1)): ('Contrôle anti-doublon et validation humaine', sz=10.8, b=True, c=16A34A)
+  P1 (align=LEFT (1)): 
+  P2 (align=LEFT (1)): ('Empreinte numérique unique du document, contrôle d'antériorités en base et relecture humaine obligatoire avant versement API.', sz=9.6, b=False, c=141E32)
+=== Shape [103] 'TextBox 238' ===
+  P0 (align=JUSTIFY (4)): ('Apprentissage actif local :', sz=12.0, b=True, c=102C57)
+  P1 (align=JUSTIFY (4)): ('Les corrections validées par l'opérateur alimentent une base d'apprentissage locale pour réentraîner périodiquement YOLOv8 et ', sz=10.19, b=False, c=141E32) | ('TrOCR', sz=10.19, b=False, c=141E32) | (' sans aucune dépendance au serveur.', sz=10.19, b=False, c=141E32)
+  P2 (align=JUSTIFY (4)): 
+  P3 (align=JUSTIFY (4)): ('Automatisation WFS et intégration SIG :', sz=12.0, b=True, c=102C57)
+  P4 (align=JUSTIFY (4)): ('Connexion aux flux WFS pour calculer directement le centroïde parcellaire et développement d'un plugin QGIS dédié pour les géomètres du cabinet, au lieu d’avoir plusieurs petits scripts à lancer au fur et à mesure de l’avancement du dossier.', sz=10.19, b=False, c=141E32)
+  P5 (align=JUSTIFY (4)): 
+  P6 (align=JUSTIFY (4)): ('Déploiement sur toutes les agences :', sz=12.0, b=True, c=102C57)
+  P7 (align=JUSTIFY (4)): ('Extension de l'outil aux 4 agences du cabinet GEO-SIAPP et possibilité de l’utiliser avec  d'autres fonds d'archives par réentraînement ciblé.', sz=10.19, b=False, c=141E32)
+=== Shape [105] 'Rounded Rectangle 240' ===
+  P0 (align=CENTER (2)): ('▶  DÉMONSTRATION VIDÉO DU PFE', sz=11.5, b=True, c=FFFFFF)
+=== Shape [107] 'TextBox 242' ===
+  P0 (align=CENTER (2)): ('Scannez pour lancer la vidéo :', sz=11.0, b=True, c=102C57)
+  P1 (align=CENTER (2)): ('Démonstration du logiciel en conditions réelles (extraction, contrôle et versement). Les données sont modifiées ou fictives.', sz=9.8, b=False, c=141E32)
+=== Shape [109] 'Rectangle 15' ===
+  P0 (align=CENTER (2)): ('Structure d'accueil :', sz=14.5, b=True, c=102C57)
+  P1 (align=CENTER (2)): ('Cabinet GEO-SIAPP', sz=13.5, b=True, c=1B365D)
+  P2 (align=CENTER (2)): ('2 Avenue Jean Monnet, 07200 Aubenas', sz=12.0, b=False, c=141E32)
+  P3 (align=CENTER (2)): ('04 75 35 07 50', sz=12.0, b=False, c=141E32)
+=== Shape [112] 'Rounded Rectangle 243' ===
+  P0 (align=CENTER (2)): ('Documents non pertinents', sz=10.5, b=True, c=B91C1C)
+  P1 (align=CENTER (2)): ('Factures, devis, dessins d'exemple', sz=8.5, b=False, c=334155)
+  P2 (align=CENTER (2)): ('Suppression automatique (non traités)', sz=8.0, b=True, c=B91C1C)
+=== Shape [114] 'Rounded Rectangle 245' ===
+  P0 (align=CENTER (2)): ('Croisement des informations ', sz=9.8, b=True, c=0F172A)
+  P1 (align=CENTER (2)): ('Plan, registres', sz=8.5, b=False, c=64748B) | (', ', sz=8.5, b=None, c=64748B) | ('cadastre… ', sz=8.5, b=False, c=64748B)

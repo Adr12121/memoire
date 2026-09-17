@@ -1,0 +1,265 @@
+Dimensions slide: 59.40 x 84.10 cm
+[0] Rectangle 52 | type=AUTO_SHAPE (1) | pos=(30.5, 12.1, w=27.9, h=2.0)
+    P0 (sz=[None, 18.0]): ORGANIGRAMME DE LA SOLUTION PROPOSÉE
+
+[1] Rectangle 22 | type=AUTO_SHAPE (1) | pos=(-0.0, 10.0, w=59.5, h=1.3)
+    P0 (sz=[17.5, 16.5, 16.5, 16.5]): Mots-clés : archivage numérique, reconnaissance de texte manuscrit (HTR), traitement automatisé, Géofoncier, intelligence artificielle, géomètre-expert, vision par ordinateur.
+
+[2] Rectangle 17 | type=AUTO_SHAPE (1) | pos=(43.2, 4.1, w=16.2, h=6.0)
+    P0 (sz=[15.5, 15.5]): Auteur : TRAVAILLÉ Adrien
+    P2 (sz=[12.5, 12.5]): Date de soutenance : 24 septembre 2026 (10h30)
+    P3 (sz=[12.5, 12.5]): Tuteur entreprise : M. Gaëtan HAGUE (GEO-SIAPP)
+    P4 (sz=[12.5, 12.5]): Correcteur : M. Mathieu KOEHL (INSA Strasbourg)
+
+[3] Rectangle 4 | type=AUTO_SHAPE (1) | pos=(0.1, -0.0, w=59.3, h=4.0)
+    P0 (sz=[26.0]): DÉVELOPPEMENT D'UN OUTIL PERMETTANT LE TRAITEMENT ET L'INSERTION
+    P1 (sz=[23.0]): DES ARCHIVES NUMÉRIQUES SUR GÉOFONCIER AU SEIN D'UN CABINET DE GÉOMÈTRE-EXPERT
+
+[8] Rectangle 23 | type=AUTO_SHAPE (1) | pos=(1.3, 25.6, w=27.9, h=2.0)
+    P0 (sz=[18.0, None, 18.0]): TECHNOLOGIES ET EXTRACTION DES DONNÉES
+
+[10] Rectangle 29 | type=AUTO_SHAPE (1) | pos=(1.3, 12.2, w=27.9, h=1.9)
+    P0 (sz=[18.0]): CONTEXTE MÉTIER ET PROBLÉMATIQUE
+
+[12] Rectangle 44 | type=AUTO_SHAPE (1) | pos=(1.4, 48.8, w=27.9, h=2.0)
+    P0 (sz=[18.0]): VERIFICATION ET FIABILISATION DES DONNÉES
+
+[14] Rectangle 48 | type=AUTO_SHAPE (1) | pos=(30.5, 50.6, w=27.9, h=2.0)
+    P0 (sz=[17.5]): INTERFACE DE VALIDATION / CONTRÔLE OPÉRATEUR
+
+[17] Rectangle 56 | type=AUTO_SHAPE (1) | pos=(30.5, 72.9, w=27.9, h=2.0)
+    P0 (sz=[17.5]): PERSPECTIVES D'ÉVOLUTION ET DÉMONSTRATION VIDÉO
+
+[19] Rectangle 59 | type=AUTO_SHAPE (1) | pos=(40.6, 15.3, w=7.6, h=1.6)
+    P0 (sz=[10.5]): Archives papier du cabinet
+    P1 (sz=[8.8]): Fonds historique de 1959 à 2007
+
+[20] Rectangle 61 | type=AUTO_SHAPE (1) | pos=(31.6, 17.7, w=7.6, h=1.6)
+    P0 (sz=[10.5]): Répertoires
+    P1 (sz=[8.8]): Actes, dates et noms de clients
+
+[21] Rectangle 63 | type=AUTO_SHAPE (1) | pos=(49.2, 17.7, w=7.6, h=1.6)
+    P0 (sz=[10.5]): DMPC et plans d'arpentage
+    P1 (sz=[8.8, 8.8]): Procès-verbaux, croquis, feuille…
+
+[24] Rectangle 68 | type=AUTO_SHAPE (1) | pos=(40.6, 20.5, w=7.6, h=1.6)
+    P0 (sz=[10.5]): Numérisation et tri
+    P1 (sz=[8.8, 8.8]): Scanné et orienté vers le traitement adéquat
+
+[29] Rectangle 80 | type=AUTO_SHAPE (1) | pos=(31.8, 23.2, w=7.6, h=1.6)
+    P0 (sz=[10.5]): Recherche d'antériorité
+    P1 (sz=[8.8]): Recherche si page déjà scannée
+
+[31] Ellipse 85 | type=AUTO_SHAPE (1) | pos=(31.8, 31.5, w=7.6, h=1.6)
+    P0 (sz=[10.5]): Cadastre IGN et DGFiP
+    P1 (sz=[8.8]): Filiation parcellaire (flux WFS)
+
+[32] Rectangle 87 | type=AUTO_SHAPE (1) | pos=(31.8, 26.6, w=7.6, h=1.6)
+    P0 (sz=[10.5]): Recherche automatique des informations
+    P1 (sz=[8.8]): Programme propre à chaque registre
+
+[33] Rectangle 89 | type=AUTO_SHAPE (1) | pos=(49.2, 23.2, w=7.6, h=1.6)
+    P0 (sz=[10.5]): Découpage visuel YOLOv8
+    P1 (sz=[8.8]): spatial_extracteur.py
+
+[34] Ellipse 91 | type=AUTO_SHAPE (1) | pos=(49.2, 26.6, w=7.6, h=1.6)
+    P0 (sz=[10.5, 10.5]): Prétraitement OpenCV
+    P1 (sz=[8.8]): Redressement et binarisation
+
+[35] Ellipse 93 | type=AUTO_SHAPE (1) | pos=(49.2, 30.0, w=7.6, h=1.6)
+    P0 (sz=[10.5]): Lecture OCR et HTR
+    P1 (sz=[8.8, 8.8, 8.8]): TrOCR et EasyOCR
+
+[37] Rectangle 97 | type=AUTO_SHAPE (1) | pos=(49.2, 36.8, w=7.6, h=1.6)
+    P0 (sz=[10.5]): Rôle d'arbitre de l’intelligence artificielle
+    P1 (sz=[8.8]): Arbitre VLM local sur les cas difficiles
+
+[39] Rectangle 101 | type=AUTO_SHAPE (1) | pos=(49.2, 33.4, w=7.6, h=1.6)
+    P0 (sz=[10.5, 10.5]): Extraction d'entités GLiNER
+    P1 (sz=[8.8]): Uniquement pour les entités nécessaires
+
+[40] Rectangle 103 | type=AUTO_SHAPE (1) | pos=(31.8, 36.8, w=7.6, h=1.6)
+    P0 (sz=[10.5]): Métadonnées de référence
+    P1 (sz=[8.8]): Bases de données  de contrôle
+
+[43] Rectangle 111 | type=AUTO_SHAPE (1) | pos=(31.8, 41.2, w=7.6, h=1.6)
+    P0 (sz=[10.5]): Contrôles manuels
+    P1 (sz=[8.8]): Croisement texte et cadastre
+
+[44] Rectangle 113 | type=AUTO_SHAPE (1) | pos=(40.6, 41.2, w=7.6, h=1.6)
+    P0 (sz=[10.5]): Cohérence avec 17 règles métier
+
+[45] Rectangle 115 | type=AUTO_SHAPE (1) | pos=(49.2, 41.3, w=7.6, h=1.6)
+    P0 (sz=[10.5]): Validation opérateur
+    P1 (sz=[8.8, 8.8, 8.8]): Interface Streamlit
+
+[49] Rectangle 129 | type=AUTO_SHAPE (1) | pos=(40.7, 46.8, w=7.6, h=1.6)
+    P0 (sz=[10.5, 10.5]): Versement sur Géofoncier
+    P1 (sz=[8.8]): Transmission à l’API et archivage (Excel local)
+
+[50] Rectangle 131 | type=AUTO_SHAPE (1) | pos=(1.3, 74.6, w=27.9, h=2.0)
+    P0 (sz=[18.0]): RÉSULTATS  ET IMPACTS DU PROJET
+
+[53] Rectangle 8 | type=AUTO_SHAPE (1) | pos=(1.7, 51.2, w=8.6, h=3.5)
+    P0 (sz=[13.0]): Résolution communale
+    P2 (sz=[15.5]): 95 % Résolus direct
+    P3 (sz=[11.0]): Correction automatique et code INSEE
+
+[54] Rectangle 14 | type=AUTO_SHAPE (1) | pos=(11.0, 51.2, w=8.6, h=3.5)
+    P0 (sz=[13.0]): Contrôles de cohérence
+    P2 (sz=[15.5]): 17 Règles métier
+    P3 (sz=[11.0]): Dates, cadastre, acteurs, doublons
+
+[55] Rectangle 18 | type=AUTO_SHAPE (1) | pos=(20.3, 51.2, w=8.6, h=3.5)
+    P0 (sz=[13.0]): Fiabilité globale
+    P2 (sz=[15.5]): Jusqu'à 88 % de conformité
+    P3 (sz=[11.0]): Évaluation sur dossiers réels
+
+[56] Rectangle 40 | type=AUTO_SHAPE (1) | pos=(30.5, 59.7, w=27.9, h=2.0)
+    P0 (sz=[17.5]): DIFFICULTÉS RENCONTRÉES ET SOLUTIONS APPORTÉES
+
+[58] Rounded Rectangle 192 | type=AUTO_SHAPE (1) | pos=(1.5, 14.3, w=15.8, h=10.1)
+    P0 (sz=[12.0]): Cadre juridique et recherche d'antériorités
+    P1 (sz=[10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0]): En vertu de l’obligation déontologique de recherche d’antériorités (art 646 C du code civil), le géomètre-expert doit retrouver les opérations passées pour rétablir les limites réelles déjà fixées . Le plan cadastral n'ayant qu'une valeur fiscale, les archives papier du cabinet constituent les seules preuves juridiques opposables.
+    P3 (sz=[12.0]): Problématique de l'étude
+    P4 (sz=[10.0]): La recherche manuelle dans les archives est un processus long, incertain et fastidieux. Ce projet répond à la problématique suivante :
+    P5 (sz=[9.8]): « Dans quelle mesure est-il possible de concevoir un outil logiciel capable d'extraire avec fiabilité les données d'archives foncières très variées, tout en fonctionnant localement ? »
+    P7 (sz=[12.0]): Objectifs opérationnels et contraintes
+    P8 (sz=[10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0]): Le projet vise à développer une chaîne de traitement automatisée capable d'analyser les plans scannés et d'extraire les données foncières pour accélérer l'indexation. Pour garantir le secret professionnel et le respect du RGPD, l'ensemble des traitements s'exécute à 100 % en local au cabinet, avant versement direct sur Géofoncier, plateforme nationale.
+
+[61] TextBox 195 | type=TEXT_BOX (17) | pos=(18.0, 22.9, w=10.7, h=1.7)
+    P0 (sz=[11.2]): Registre répertoriant les dossiers du cabinet (1979)
+    P1 (sz=[10.19]): répertoire manuscrit associant client, commune et numéro de dossier.
+
+[64] TextBox 198 | type=TEXT_BOX (17) | pos=(9.0, 28.7, w=19.8, h=4.8)
+    P0 (sz=[13.8]): Découpage des zones d’intérêt par mots clés (YOLOv8)
+    P1 (sz=[11.2]): Localisation automatique des zones utiles
+    P3 (sz=[11.0, 11.0, 11.0]): Le modèle YOLOv8 repère et isole automatiquement les régions d'intérêt : cartouches de titre, tampons, tableaux de contenance et même dans le corps du plan.
+    P5 (sz=[11.0]): Ce découpage sépare les informations pertinentes du dessin. Il permet une détection robuste même sur des documents anciens présentant des pliures, des taches, des ratures ou encore des déformations du papier.
+
+[66] TextBox 200 | type=TEXT_BOX (17) | pos=(1.7, 35.4, w=17.2, h=4.8)
+    P0 (sz=[13.8, 13.8, 13.8]): Prétraitement de l’image (OpenCV)
+    P1 (sz=[11.2]): Restauration et redressement avant lecture
+    P3 (sz=[11.0, 11.0, 11.0, 11.0, 11.0]): Avant la transcription, l'orientation du document est analysée pour redresser automatiquement l'image et remettre l’écriture à l'horizontale.
+    P5 (sz=[11.0, 11.0, 11.0]): Un filtrage d'image adapté sépare ensuite l'encre du fond et élimine les bruits de numérisation. Les tracés manuscrits fins sont consolidés pour rendre le texte  net et lisible avant la lecture optique.
+
+[70] TextBox 204 | type=TEXT_BOX (17) | pos=(12.6, 42.2, w=16.2, h=4.6)
+    P0 (sz=[13.0, 13.0, 13.0, 13.0, 13.0]): Lecture optique et extraction d'entités (TrOCR et GLiNER)
+    P1 (sz=[10.5]): Reconnaissance conjointe de l'imprimé et du manuscrit
+    P2 (sz=[10.19, 10.19, 10.19, 10.19, 10.19, 10.19, 10.19]): La lecture optique associe EasyOCR pour les textes imprimés et TrOCR pour les écritures manuscrites des géomètres. Le modèle  GLiNER extrait les entités clés (commune, section, parcelles, date, géomètre).
+    P4 (sz=[10.19, 10.19, 10.19, 10.19, 10.19]): En cas de doute ou d'anomalie de lecture, le modèle VLM local sous Ollama intervient en arbitre pour trancher directement sur l'image de la zone.
+
+[72] Rectangle 206 | type=AUTO_SHAPE (1) | pos=(1.7, 64.3, w=13.2, h=8.0)
+    P0 (sz=[13.0]): Contrôle cadastral et filiation parcellaire
+    P2 (sz=[10.6, 10.6, 10.6, 10.6, 10.6]): Le contrôle spatial croise les informations avec le cadastre officiel (IGN et DGFiP) pour attester de l'existence des parcelles et vérifier les opérations antérieures sur GéofoncierEXPERT.
+    P4 (sz=[10.6, 10.6, 10.6, 10.6, 10.6]): En cas de division ancienne, le module retrace la filiation parcellaire en reliant parcelles mères et filles. Un filtre anti-doublon avertit l'opérateur pour prévenir tout risque de double versement.
+    P6 (sz=[10.6, 10.6, 10.6]): Ce croisement automatique fiabilise le positionnement géographique et prépare le dossier pour la validation finale par l'opérateur.
+
+[73] TextBox 207 | type=TEXT_BOX (17) | pos=(15.4, 55.1, w=13.5, h=2.1)
+    P0 (sz=[14.5]): 17 règles de cohérence métier avant validation
+    P1 (sz=[11.2]): Contrôles automatiques préalables à la relecture opérateur :
+
+[74] Rounded Rectangle 208 | type=AUTO_SHAPE (1) | pos=(15.4, 57.5, w=13.5, h=3.6)
+    P0 (sz=[12.0]): Cohérence des dates (4 règles)
+    P1 (sz=[10.5]): Contrôle du format standard, vérification de l'antériorité de l'acte et concordance avec les années d'exercice du géomètre au cabinet.
+
+[75] Rounded Rectangle 209 | type=AUTO_SHAPE (1) | pos=(15.4, 61.4, w=13.5, h=3.6)
+    P0 (sz=[12.0]): Contrôles cadastraux (5 règles)
+    P1 (sz=[10.5]): Validation du code officiel INSEE, cohérence des sections, normalisation des numéros de parcelles et rejet des incohérences.
+
+[76] Rounded Rectangle 210 | type=AUTO_SHAPE (1) | pos=(15.4, 65.3, w=13.5, h=3.6)
+    P0 (sz=[12.0]): Contrôles des personnes (4 règles)
+    P1 (sz=[10.5]): Authentification du géomètre signataire dans l'annuaire du cabinet, vérification des parties et tri entre vendeur et acquéreur.
+
+[77] Rounded Rectangle 211 | type=AUTO_SHAPE (1) | pos=(15.4, 69.2, w=13.5, h=3.8)
+    P0 (sz=[12.0]): Contrôles de dossier et anti-doublon (4 règles)
+    P1 (sz=[10.5]): Validation de la référence par recherche d'antériorités sur la même parcelle, ou compréhension de la mission par un opérateur dans les cas les plus complexes.
+
+[78] Rectangle 212 | type=AUTO_SHAPE (1) | pos=(1.7, 76.9, w=8.6, h=2.7)
+    P0 (sz=[13.5]): TEMPS DIVISÉ PAR 8
+    P1 (sz=[12.0]): De 25 min à 2 min 40 s (moyenne)
+    P2 (sz=[10.19]): par dossier d'arpentage
+
+[79] Rectangle 213 | type=AUTO_SHAPE (1) | pos=(11.0, 76.9, w=8.6, h=2.7)
+    P0 (sz=[13.5]): 82 % SANS CORRECTION
+    P1 (sz=[12.0]): 27 sur 33 dossiers validés
+    P2 (sz=[10.19]): dès le premier passage
+
+[80] Rectangle 214 | type=AUTO_SHAPE (1) | pos=(20.3, 76.9, w=8.6, h=2.7)
+    P0 (sz=[13.5]): 23 600 DOSSIERS TRAITABLES
+    P1 (sz=[12.0]): Fonds historique valorisé
+    P2 (sz=[10.19]): directement au cabinet
+
+[82] TextBox 216 | type=TEXT_BOX (17) | pos=(1.7, 80.0, w=27.2, h=2.8)
+    P0 (sz=[10.6, 10.6, 10.6]): Ce projet répond à une exigence actuelle du cabinet GEO-SIAPP. En fiabilisant l'accès aux anciens travaux mais aussi à d’anciennes bases de données du cadastre par exemple, l'outil permet de rétablir les limites réelles sans risque de litige du fait d’anciennes interventions.
+    P2 (sz=[10.6, 10.6, 10.6, 10.6, 10.6, 10.6, 10.6]): L'architecture 100 % locale garantit le respect du secret professionnel et la conformité au RGPD. Les plans d'archives deviennent consultables et s'insèrent directement sur Géofoncier.
+
+[87] Rounded Rectangle 222 | type=AUTO_SHAPE (1) | pos=(30.8, 52.6, w=12.4, h=0.7)
+    P0 (sz=[10.5]): Aperçu de l’interface de contrôle
+
+[90] TextBox 225 | type=TEXT_BOX (17) | pos=(43.5, 52.8, w=14.6, h=6.0)
+    P0 (sz=[12.5]): Interface web développée via le langage de programmation Python :
+    P1 (sz=[11.2]): Supervision interactive et validation humaine
+    P2 (sz=[10.8, 10.8, 10.8, 10.8, 10.8]): L'application offre une double vue synchronisée associant le plan scanné avec zoom dynamique et le formulaire des données extraites. Des pastilles de couleur signalent instantanément l'état des contrôles : vert pour les données conformes, orange ou rouge dès qu'une règle métier présente un problème.
+    P4 (sz=[10.8, 10.8, 10.8, 10.8, 10.8]): Chaque correction est mémorisée localement pour assister la saisie des pages suivantes du même dossier. Conformément aux exigences déontologiques du cabinet, la validation humaine reste obligatoire : aucun dossier n'est versé sur Géofoncier sans vérification par l'opérateur.
+
+[91] Rounded Rectangle 226 | type=AUTO_SHAPE (1) | pos=(30.8, 62.1, w=13.2, h=1.0)
+    P0 (sz=[11.2]): DIFFICULTÉS RENCONTRÉES DANS LE PROJET
+
+[92] Rounded Rectangle 227 | type=AUTO_SHAPE (1) | pos=(44.8, 62.1, w=13.2, h=1.0)
+    P0 (sz=[11.2]): SOLUTIONS DÉVELOPPÉES
+
+[93] Rounded Rectangle 228 | type=AUTO_SHAPE (1) | pos=(30.8, 63.3, w=13.2, h=2.7)
+    P0 (sz=[10.8]): Plans sans numéro de dossier
+    P2 (sz=[9.6]): Les numéros de dossiers n'apparaissent presque jamais sur les plans, rendant l'indexation directe impossible à partir du seul document.
+
+[95] Rounded Rectangle 230 | type=AUTO_SHAPE (1) | pos=(44.8, 63.3, w=13.2, h=2.7)
+    P0 (sz=[10.8]): Croisement avec les répertoires
+    P2 (sz=[9.6]): Rapprochement automatique avec les registres d'actes numérisés du cabinet pour réassocier le dossier, le client et la date au plan, via un script dédié.
+
+[96] Rounded Rectangle 231 | type=AUTO_SHAPE (1) | pos=(30.8, 66.3, w=13.2, h=2.7)
+    P0 (sz=[10.8]): Évolution cadastrale et parcelles disparues
+    P2 (sz=[9.6]): Les remembrements et divisions successives depuis 1959 ont fait disparaître du cadastre actuel les numéros de parcelles d'origine et présents sur les plans de l’étude.
+
+[98] Rounded Rectangle 233 | type=AUTO_SHAPE (1) | pos=(44.8, 66.3, w=13.2, h=2.7)
+    P0 (sz=[10.8]): Filiation parcellaire et flux DGFiP
+    P2 (sz=[9.6]): Remontée automatique de la chaîne généalogique des parcelles mères via le cadastre officiel pour rattacher l'acte historique au terrain.
+
+[99] Rounded Rectangle 234 | type=AUTO_SHAPE (1) | pos=(30.8, 69.3, w=13.2, h=2.7)
+    P0 (sz=[10.8]): Risque de doublon et publication erronée
+    P2 (sz=[9.6, 9.6, 9.6]): La publication sur le portail national Géofoncier engage la responsabilité du cabinet et ne tolère aucun doublon d'acte foncier.
+
+[101] Rounded Rectangle 236 | type=AUTO_SHAPE (1) | pos=(44.8, 69.3, w=13.2, h=2.7)
+    P0 (sz=[10.8]): Contrôle anti-doublon et validation humaine
+    P2 (sz=[9.6]): Empreinte numérique unique du document, contrôle d'antériorités en base et relecture humaine obligatoire avant versement API.
+
+[103] TextBox 238 | type=TEXT_BOX (17) | pos=(30.8, 75.5, w=14.7, h=7.3)
+    P0 (sz=[12.0]): Apprentissage actif local :
+    P1 (sz=[10.19, 10.19, 10.19]): Les corrections validées par l'opérateur alimentent une base d'apprentissage locale pour réentraîner périodiquement YOLOv8 et TrOCR sans aucune dépendance au serveur.
+    P3 (sz=[12.0]): Automatisation WFS et intégration SIG :
+    P4 (sz=[10.19]): Connexion aux flux WFS pour calculer directement le centroïde parcellaire et développement d'un plugin QGIS dédié pour les géomètres du cabinet, au lieu d’avoir plusieurs petits scripts à lancer au fur et à mesure de l’avancement du dossier.
+    P6 (sz=[12.0]): Déploiement sur toutes les agences :
+    P7 (sz=[10.19]): Extension de l'outil aux 4 agences du cabinet GEO-SIAPP et possibilité de l’utiliser avec  d'autres fonds d'archives par réentraînement ciblé.
+
+[105] Rounded Rectangle 240 | type=AUTO_SHAPE (1) | pos=(45.8, 75.1, w=12.2, h=0.9)
+    P0 (sz=[11.5]): ▶  DÉMONSTRATION VIDÉO DU PFE
+
+[107] TextBox 242 | type=TEXT_BOX (17) | pos=(46.1, 81.2, w=11.6, h=1.6)
+    P0 (sz=[11.0]): Scannez pour lancer la vidéo :
+    P1 (sz=[9.8]): Démonstration du logiciel en conditions réelles (extraction, contrôle et versement). Les données sont modifiées ou fictives.
+
+[109] Rectangle 15 | type=AUTO_SHAPE (1) | pos=(27.1, 4.1, w=16.1, h=6.0)
+    P0 (sz=[14.5]): Structure d'accueil :
+    P1 (sz=[13.5]): Cabinet GEO-SIAPP
+    P2 (sz=[12.0]): 2 Avenue Jean Monnet, 07200 Aubenas
+    P3 (sz=[12.0]): 04 75 35 07 50
+
+[112] Rounded Rectangle 243 | type=AUTO_SHAPE (1) | pos=(40.4, 17.7, w=7.6, h=1.6)
+    P0 (sz=[10.5]): Documents non pertinents
+    P1 (sz=[8.5]): Factures, devis, dessins d'exemple
+    P2 (sz=[8.0]): Suppression automatique (non traités)
+
+[114] Rounded Rectangle 245 | type=AUTO_SHAPE (1) | pos=(40.6, 31.5, w=7.6, h=1.6)
+    P0 (sz=[9.8]): Croisement des informations
+    P1 (sz=[8.5, 8.5, 8.5]): Plan, registres, cadastre…
+

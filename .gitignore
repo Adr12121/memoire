@@ -17,3 +17,6 @@
 .vscode/
 compile_out.txt
 compilation_log.txt
+__pycache__/
+*.pyc
+

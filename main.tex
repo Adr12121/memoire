@@ -8,11 +8,12 @@
 \input{glyphtounicode}
 \pdfgentounicode=1
 
+\usepackage{mathptmx} % Police Times New Roman (corps de texte + maths)
 \usepackage{csquotes}
 \usepackage[authoryear,round]{natbib}
 \usepackage[french]{babel}
 \usepackage{indentfirst} % Pour forcer l'alinéa au premier paragraphe
-\usepackage{geometry}
+\usepackage[tmargin=2.5cm,bmargin=2.5cm,lmargin=3cm,rmargin=2cm]{geometry}% Marges et format
 \usepackage{hyperref}
 \usepackage{xcolor}
 \usepackage{graphicx}
@@ -43,14 +44,7 @@
 
 \addto\captionsfrench{\renewcommand{\contentsname}{Sommaire}}
 
-\geometry{
-  a4paper,
-  left=2.5cm,
-  right=2.5cm,
-  top=2.5cm,
-  bottom=2.5cm,
-  centering
-}
+
 
 \setlength{\headheight}{15pt}
 \setlength{\headsep}{12pt}
@@ -87,12 +81,12 @@
   \thispagestyle{empty}
   \noindent% <-- important : le % supprime l'espace parasite
   \begin{minipage}[c]{0.45\textwidth}
-    \includegraphics[height=2.8cm]{Logo_INSAStrasbourg.jpg}
+    \includegraphics[height=2.8cm,width=\linewidth,keepaspectratio]{Logo_INSAStrasbourg.jpg}
   \end{minipage}% <-- important : supprime le saut de ligne
   \hfill
   \begin{minipage}[c]{0.45\textwidth}
     \raggedleft
-    \includegraphics[height=2.8cm]{Geosiapp.jpg}
+    \includegraphics[height=2.8cm,width=\linewidth,keepaspectratio]{Geosiapp.jpg}
   \end{minipage}
 
   \vspace{1.2em}
@@ -142,7 +136,12 @@
   \end{center}
 \end{titlepage}
 
-\cleardoublepage
+% Page blanche après la page de garde (impression recto-verso)
+\newpage
+\thispagestyle{empty}
+\mbox{}
+\newpage
+
 \pagenumbering{gobble}
 \pdfbookmark[1]{\contentsname}{toc}
 
@@ -182,10 +181,13 @@
 \clearpage
 
 %--- Liste des figures ---
+\clearpage
+\phantomsection
 \addcontentsline{toc}{section}{\listfigurename}
 \listoffigures
 \clearpage
 
+\phantomsection
 \addcontentsline{toc}{section}{Bibliographie}
 \bibliographystyle{plainnat}
 \bibliography{PFE_AT}

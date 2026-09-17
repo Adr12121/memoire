@@ -31,7 +31,7 @@ Cette séparation en différents scripts permet de dérouler le traitement étap
 
 \subsection{Environnement technique et organisation du code}
 
-Tout l'outil fonctionne directement sur l'ordinateur du cabinet sous Windows. Aucune donnée n'est envoyée sur Internet, ce qui garantit le respect du secret professionnel évoqué plus tôt.
+L'ensemble de l'outil fonctionne directement sur l'ordinateur du cabinet sous Windows. Aucune donnée n'est envoyée sur Internet, ce qui garantit le respect du secret professionnel évoqué plus tôt.
 
 Les outils et bibliothèques utilisés dans le projet sont les suivants :
 \begin{itemize}
@@ -45,7 +45,7 @@ Les outils et bibliothèques utilisés dans le projet sont les suivants :
   \item Label Studio : annotation des 500 pages pour l'apprentissage (\href{https://github.com/HumanSignal/label-studio}{Dépôt Label Studio}).
 \end{itemize}
 
-Pour garantir la stabilité de l'application et éviter les conflits entre les bibliothèques, l'ensemble des modules Python s'exécute au sein d'un environnement virtuel dédié. Les dépendances informatiques sont figées dans un fichier de configuration qui recense les versions exactes de chaque paquet. Ce mécanisme permet de réinstaller à l'identique la chaîne de traitement sur n'importe quelle station de travail du cabinet sans risquer de casser la compatibilité du code.
+Pour garantir la stabilité de l'application et éviter les conflits entre les bibliothèques, l'ensemble des modules Python s'exécute au sein d'un environnement virtuel dédié. Les dépendances informatiques sont figées dans un fichier de configuration qui recense les versions exactes de chaque groupe. Ce mécanisme permet de réinstaller à l'identique la chaîne de traitement sur n'importe quelle station de travail du cabinet sans risquer de casser la compatibilité du code.
 
 L'arborescence du projet s'organise autour d'un dossier principal regroupant les scripts d'exécution, les fichiers de configuration et les répertoires de données. Les modèles d'intelligence artificielle entraînés (poids YOLOv8 et modèles de lecture) sont stockés dans un dossier spécifique pour séparer la logique du programme des fichiers de paramètres. De même, les fichiers temporaires créés lors du découpage des images sont automatiquement nettoyés en fin de traitement pour ne pas surcharger l'espace disque du serveur local.
 
@@ -101,21 +101,21 @@ Du fait de cette problématique, un script Python a été développé pour l'acq
 
 \subsection{Classification et orientation du document}
 
-Le tri permet de savoir quel type de document est à traiter (plan récent fait à l'aide d'un outil de dessin assisté par ordinateur (DAO), plan ancien scanné, registre manuscrit ou document imprimé), et orienter le traitement en conséquence, vers la bonne branche du programme. Pour gagner du temps, le script \texttt{plan\_classifieur.py} utilise des règles simples qui s'exécutent en quelques secondes.
+Le tri permet de savoir quel type de document est à traiter (plan récent fait à l'aide d'un outil de dessin assisté par ordinateur (DAO), plan ancien scanné, registre manuscrit ou document imprimé), et permet d'orienter le traitement en conséquence, vers la bonne partie du programme. Pour gagner du temps, le script \texttt{plan\_classifieur.py} utilise des règles simples qui s'exécutent en quelques secondes.
 
 Le choix repose sur trois critères :
 
 \begin{itemize}
   \item Présence de texte dans le PDF : si le fichier est un PDF issu d'un logiciel de DAO, son texte est directement lisible. La bibliothèque \texttt{PyMuPDF} l'extrait et recherche des mots-clés caractéristiques ("DMPC", "PROCÈS-VERBAL", "LOTISSEMENT", etc.) pour déterminer le type de document sans passer par l'OCR.
 
-  \item Mots-clés détectés par OCR sur la première page : si le PDF est scanné, EasyOCR lit la première page et cherche les mêmes mots-clés, avec une tolérance aux fautes de lecture via du fuzzy matching. Les labels de formulaire trouvés sans valeur en face ("Commune~:" seul, sans texte) signalent un formulaire ancien de type DMPC.
+  \item Mots-clés détectés par OCR sur la première page : si le PDF est scanné, EasyOCR lit la première page et cherche les mêmes mots-clés, avec une tolérance aux fautes de lecture via du \textit{fuzzy matching} (comparaison approchée qui accepte un écart de quelques caractères entre le mot lu et le mot attendu, pour absorber les erreurs d'OCR comme une lettre manquante ou substituée). Les labels trouvés sans valeur en face (``Commune~:'' seul, sans texte) signalent un formulaire ancien de type DMPC.
 
   \item Densité des blocs de texte détectés : le script compte le nombre de blocs OCR à haute confiance sur la page. Un document imprimé dense produit beaucoup de blocs fiables. Un croquis ou un registre peu chargé en produit peu, ce qui oriente vers un traitement adapté aux documents anciens ou manuscrits.
 \end{itemize}
 
 En cas de doute, le document est envoyé vers la lecture manuscrite. Un modèle capable de lire le manuscrit est aussi capable de lire le texte imprimé, alors qu'un OCR classique échoue sur l'écriture manuelle.
 
-une fois le document classifié, il est envoyé vers le script \texttt{spatial\allowbreak\_extracteur\allowbreak.py} qui découpe les zones utiles sur la page.
+Une fois le document classifié, il est envoyé vers le script \texttt{spatial\allowbreak\_extracteur\allowbreak.py} qui découpe les zones utiles sur la page.
 
 \subsection{Segmentation visuelle par YOLOv8}
 
@@ -146,7 +146,7 @@ Lorsqu'une feuille est numérisée avec un léger penchant, les lignes de texte 
   \rho = x \cos\theta + y \sin\theta
 \end{equation}
 
-où $\rho$ est la distance de la droite à l'origine et $\theta$ son angle par rapport à l'axe horizontal. Les lignes les plus représentées correspondent aux séparateurs de colonnes ou aux lignes de texte du document. L'angle dominant $\theta$ déduit de ces calculs définit l'inclinaison à corriger. Le script applique ensuite une rotation inverse de cet angle sur toute l'image avant de la transmettre au modèle de lecture.
+où $\rho$ est la distance de la droite à l'origine (en pixels), $\theta$ son angle par rapport à l'axe horizontal (en degrés), et $(x, y)$ les coordonnées des pixels dans le repère de l'image. Les lignes les plus représentées correspondent aux séparateurs de colonnes ou aux lignes de texte du document. L'angle dominant $\theta$ déduit de ces calculs définit l'inclinaison à corriger. Le script applique ensuite une rotation inverse de cet angle sur toute l'image avant de la transmettre au modèle de lecture.
 
 Comme présenté dans l'état de l'art (section~\ref{subsec:ocr}), les archives présentent souvent du papier jauni, des taches ou de l'encre effacée. Un réglage global du contraste sur toute la page risque de faire disparaître les écritures claires. Le script utilise donc la méthode de binarisation par seuil local d'~\citet{otsu_threshold_1979}. L'image est découpée en fenêtres rectangulaires qui se chevauchent partiellement, et l'algorithme calcule automatiquement le seuil de séparation optimal entre l'écriture et le fond pour chaque région. Ce seuil est déterminé en maximisant la variance inter-classes :
 
@@ -154,7 +154,7 @@ Comme présenté dans l'état de l'art (section~\ref{subsec:ocr}), les archives 
   \sigma_B^2 = \omega_0(t)\,\omega_1(t)\,\bigl[\mu_0(t) - \mu_1(t)\bigr]^2
 \end{equation}
 
-où $\omega_0$ et $\omega_1$ sont les poids de probabilité des deux classes (fond et encre) et $\mu_0$, $\mu_1$ leurs moyennes d'intensité pour un seuil $t$ donné. Maximiser cette variance permet de séparer les deux classes de pixels, même quand leur niveau de gris varie d'une zone à l'autre du document. Cette adaptation locale fait ressortir l'écriture manuscrite et les traits légers tout en éliminant les variations de couleur dues au vieillissement du papier.
+où $\omega_0$ et $\omega_1$ sont les poids de probabilité des deux classes (fond et encre) et $\mu_0$, $\mu_1$ leurs moyennes d'intensité de gris pour un seuil $t$ donné. Maximiser cette variance permet de séparer les deux classes de pixels, même quand leur niveau de gris varie d'une zone à l'autre du document. Cette adaptation locale fait ressortir l'écriture manuscrite et les traits légers tout en éliminant les variations de couleur dues au vieillissement du papier.
 
 Certains documents anciens, numérisés depuis un livre ou un carnet, présentent une déformation en trapèze vers l'intérieur de la reliure. Dans ce cas, la simple rotation ne suffit pas à redresser les lignes de texte. Pour les détections de boîtes englobantes inclinées par YOLOv8, le script applique une transformation de perspective (homographie) qui reprend les quatre coins du cadre détecté et les projette sur un rectangle à plat via la fonction \texttt{cv2.getPerspectiveTransform} d'OpenCV :
 
@@ -162,7 +162,7 @@ Certains documents anciens, numérisés depuis un livre ou un carnet, présenten
   \begin{pmatrix} x' \\ y' \\ 1 \end{pmatrix} = H \begin{pmatrix} x \\ y \\ 1 \end{pmatrix}, \quad H \in \mathbb{R}^{3\times3}
 \end{equation}
 
-Cette correction a pour but de présenter la zone extraite au moteur de lecture sous un format plat et normalisé, quel que soit l'angle ou la déformation d'origine du document.
+où $(x, y)$ et $(x', y')$ désignent respectivement les coordonnées des pixels (en pixels) avant et après redressement projectif, et $H$ la matrice d'homographie $3 \times 3$. Cette correction a pour but de présenter la zone extraite au moteur de lecture sous un format plat et normalisé, quel que soit l'angle ou la déformation d'origine du document.
 
 La Figure~\ref{fig:pretraitement_exemple} illustre le résultat de ces étapes de correction d'image sur un exemple concret.
 
@@ -221,12 +221,12 @@ Lorsque l'OCR et GLiNER ne parviennent pas à extraire un champ avec suffisammen
 
 Le traitement par modèle VLM demande plus de temps de calcul (10 à 30 secondes par zone d'image). Il est donc réservé uniquement aux cas où la première lecture par l'OCR ou GLiNER reste incertaine (score de confiance inférieur à 0,45 ou alerte de cohérence).
 
-Le modèle VLM \texttt{llava} tourne alors sur la machine via l'outil Ollama (port 11434). Les images ne quittent ainsi jamais l'ordinateur.
+Le modèle VLM  \texttt{llava} tourne alors sur la machine via l'outil Ollama (port 11434). Les images ne quittent ainsi jamais l'ordinateur.
 
 Contrairement à l'OCR qui lit le texte caractère par caractère, le modèle VLM regarde l'image de la zone dans son ensemble et répond à une consigne écrite. Par exemple, pour valider la commune, la consigne configurée dans le script est la suivante :
 
 \begin{quote}
-\textit{« Quel est le nom de la commune d'Ardèche écrit dans cette case ? Réponds uniquement par le nom de la commune, sans phrase, et répond par INCERTAIN lorsque tu n'arrive pas à une réponse plausible. »}
+\textit{« Quel est le nom de la commune d'Ardèche écrit dans cette case ? Réponds uniquement par le nom de la commune, sans phrase, et répond par INCERTAIN lorsque tu n'arrives pas à une réponse plausible. »}
 \end{quote}
 
 Si le modèle parvient à lire la zone, il met à jour la valeur. S'il hésite, il répond « INCERTAIN », ce qui signale le dossier pour la vérification humaine.
@@ -264,7 +264,8 @@ Une fois les informations extraites et arbitrées, l'ensemble des données est s
 
 Le résultat de l'extraction est enregistré sous la forme d'un fichier JSON structuré, associé à chaque document. Ce fichier regroupe l'ensemble des valeurs lues, leurs scores de confiance respectifs et les alertes générées par le contrôle de cohérence.
 
-Pour s'assurer qu'aucune information absurde ne soit transmise à l'étape suivante, le script \texttt{coherence\_controle.py} applique une série de vérifications automatiques :
+Pour s'assurer qu'aucune information absurde ne soit transmise à l'étape suivante, le script nommé 
+\texttt{coherence\_controle.py} applique une série de vérifications automatiques :
 
 \begin{itemize}
   \item Vérification des communes : le nom extrait est comparé à la liste officielle des communes de l'Ardèche et de la Drôme (via le Code Officiel Géographique de l'INSEE). Si l'orthographe s'écarte du nom de référence, la distance de Levenshtein calcule la commune la plus proche. Si le score de correspondance est inférieur à un seuil défini (88\,\%), le champ est marqué en alerte.
@@ -297,9 +298,9 @@ Les 500 images annotées ont été réparties en trois sous-ensembles : 70\,\% p
 Le système est conçu pour être ré-entraînable sans intervention technique complexe. Chaque fois qu'un lot de nouveaux documents est annoté, le script de ré-entraînement peut être relancé depuis un fichier de commandes qui exporte les annotations et démarre l'entraînement. Le modèle mis à jour remplace automatiquement l'ancien sans modifier le reste du code.
 
 
-\subsection{Gestion des exceptions et stratégies de repli}
+\subsection{Gestion des exceptions et stratégies en cas d'erreur}
 
-Dans une chaîne de traitement automatisée traitant des documents numérisés aux formats variés, des erreurs de calcul ou des échecs de détection peuvent survenir à chaque étape. Pour éviter qu'un fichier défectueux ne bloque l'ensemble du traitement par lot, le script principal intègre une gestion des exceptions associant des stratégies de repli.
+Dans une chaîne de traitement automatisée traitant des documents numérisés aux formats variés, des erreurs de calcul ou des échecs de détection peuvent survenir à chaque étape. Pour éviter qu'un fichier défectueux ne bloque l'ensemble du traitement par lot, le script principal intègre une gestion des exceptions associant des stratégies de repli en cas d'erreur.
 
 Si le modèle YOLOv8 ne retourne aucune boîte englobante sur une page (par exemple en cas de document au format non standard ou très sombre), le script bascule automatiquement sur un découpage géométrique par défaut. Les coordonnées des zones sont calculées à partir de ratios fixes (cartouche supérieur droit entre 0\,\% et 25\,\% de la hauteur, tableau central entre 25\,\% et 75\,\% de la hauteur). Un avertissement est inscrit dans le fichier JSON pour signaler le recours au découpage par défaut.
 
